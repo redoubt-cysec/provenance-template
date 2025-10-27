@@ -1,0 +1,27 @@
+name: cachix-nix
+on:
+  workflow_dispatch:
+    inputs:
+      cache:
+        description: Cachix cache name (e.g. OWNER-redoubt)
+        required: true
+
+jobs:
+  nix-cachix:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install Nix
+        uses: cachix/install-nix-action@v27
+      - name: Use Cachix
+        uses: cachix/cachix-action@v14
+        with:
+          name: ${{ github.event.inputs.cache }}
+          authToken: ${{ secrets.CACHIX_TOKEN }}
+      - name: Build & push to Cachix
+        run: |
+          nix build .# || nix build .
+          cachix push "${{ github.event.inputs.cache }}" result || true
+      - name: Smoke run via Nix
+        run: |
+          nix run .# -- --version || true

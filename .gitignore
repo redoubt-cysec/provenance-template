@@ -1,0 +1,68 @@
+# Virtual environments
+.venv/
+venv/
+env/
+
+# Build artifacts
+dist/
+build/
+*.pyz
+*.egg-info/
+*.whl
+*.tar.gz
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+
+# Testing
+.pytest_cache/
+.coverage
+.coverage.*
+htmlcov/
+.tox/
+.tmp/
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# Security/SBOM
+*.sum
+*.bundle
+sbom.cdx.json
+vuln-report.json
+osv-report.json
+.secrets.baseline
+
+# Environment
+.env
+.env.local
+*.pem
+*.key
+credentials.json
+
+# GPG Keys (NEVER commit!)
+gpg-keys/
+*.asc
+*.gpg
+*.pgp
+*.b64
+*-private-key.*
+*-secret-key.*
+key-fingerprint.txt
+revocation-cert.asc
+
+# Logs
+*.log
+*.log.*
+
+# OS
+.DS_Store
+Thumbs.db

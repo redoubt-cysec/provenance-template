@@ -1,0 +1,29 @@
+{
+    "version": "0.1.0",
+    "description": "Self-verifying CLI demonstrating reproducible, attestable releases",
+    "homepage": "https://github.com/OWNER/REPO",
+    "license": "MIT",
+    "url": "https://github.com/OWNER/REPO/releases/download/v0.1.0/redoubt-release-template.pyz",
+    "hash": "REPLACE_WITH_SHA256_FROM_RELEASE",
+    "bin": "redoubt-release-template.pyz",
+    "pre_install": [
+        "if (!(Get-Command python -ErrorAction SilentlyContinue)) {",
+        "    Write-Host 'Python 3.10+ is required. Install with: scoop install python'",
+        "    exit 1",
+        "}"
+    ],
+    "checkver": {
+        "github": "https://github.com/OWNER/REPO"
+    },
+    "autoupdate": {
+        "url": "https://github.com/OWNER/REPO/releases/download/v$version/redoubt-release-template.pyz"
+    },
+    "notes": [
+        "Run 'redoubt verify' to validate all security attestations!",
+        "",
+        "Available commands:",
+        "  redoubt hello <name>  - Say hello",
+        "  redoubt verify        - Verify binary attestations",
+        "  redoubt --version     - Show version"
+    ]
+}

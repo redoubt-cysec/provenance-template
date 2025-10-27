@@ -1,0 +1,55 @@
+# WinGet manifest for Redoubt Release Demo
+# Submit to: https://github.com/microsoft/winget-pkgs
+
+PackageIdentifier: OWNER.Redoubt
+PackageVersion: 0.1.0
+PackageLocale: en-US
+Publisher: OWNER
+PublisherUrl: https://github.com/OWNER
+PublisherSupportUrl: https://github.com/Borduas-Holdings/redoubt-release-template/issues
+Author: OWNER
+PackageName: Redoubt Release Demo
+PackageUrl: https://github.com/Borduas-Holdings/redoubt-release-template
+License: MIT
+LicenseUrl: https://github.com/Borduas-Holdings/redoubt-release-template/blob/main/LICENSE
+ShortDescription: Self-verifying CLI with complete supply chain security
+Description: |-
+  Redoubt Release Demo demonstrates production-grade supply chain security.
+
+  Features:
+  - Reproducible, deterministic builds
+  - Sigstore signatures and GitHub attestations
+  - SLSA provenance and SBOM generation
+  - OSV vulnerability scanning
+  - Complete supply chain security validation
+
+  Run 'redoubt verify' to validate all security attestations!
+Moniker: redoubt
+Tags:
+  - cli
+  - security
+  - slsa
+  - sigstore
+  - supply-chain
+  - attestation
+  - sbom
+  - verification
+ReleaseNotes: |-
+  Initial release of Redoubt Release Demo
+  - Self-verification command
+  - Complete security attestation chain
+  - VM-tested installation across platforms
+ReleaseNotesUrl: https://github.com/Borduas-Holdings/redoubt-release-template/releases/tag/v0.1.0
+Installers:
+  - Architecture: x64
+    InstallerType: portable
+    InstallerUrl: https://github.com/Borduas-Holdings/redoubt-release-template/releases/download/v0.1.0/redoubt-release-template.pyz
+    InstallerSha256: REPLACE_WITH_SHA256_FROM_RELEASE
+    Commands:
+      - redoubt
+    Dependencies:
+      PackageDependencies:
+        - PackageIdentifier: Python.Python.3.10
+          MinimumVersion: 3.10.0
+ManifestType: singleton
+ManifestVersion: 1.5.0

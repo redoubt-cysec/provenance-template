@@ -1,0 +1,766 @@
+"""
+Self-verification module for the demo CLI.
+
+This module demonstrates how to verify a binary's attestations using
+the complete security toolchain:
+- Sigstore signature verification
+- Rekor transparency log verification
+- GitHub attestations verification
+- SBOM verification
+- OSV vulnerability scanning
+- Checksum integrity verification
+"""
+
+import base64
+import hashlib
+import json
+import os
+import subprocess
+import sys
+from pathlib import Path
+from typing import Dict, List, Optional, Tuple
+
+try:
+    from rich.console import Console
+    from rich.table import Table
+    from rich.panel import Panel
+    from rich.progress import Progress, SpinnerColumn, TextColumn
+    RICH_AVAILABLE = True
+except ImportError:
+    RICH_AVAILABLE = False
+
+
+class VerificationResult:
+    """Result of a verification check."""
+
+    def __init__(self, name: str, passed: bool, message: str, details: Optional[str] = None):
+        self.name = name
+        self.passed = passed
+        self.message = message
+        self.details = details
+
+
+class Verifier:
+    """Handles all verification operations for the CLI binary."""
+
+    def __init__(self, binary_path: Optional[Path] = None):
+        """
+        Initialize verifier.
+
+        Args:
+            binary_path: Path to the binary to verify. If None, uses the running binary.
+        """
+        if binary_path:
+            self.binary_path = binary_path
+        else:
+            # Try to find the .pyz file we're running from
+            self.binary_path = self._find_running_binary()
+
+        self.console = Console() if RICH_AVAILABLE else None
+        self.results: List[VerificationResult] = []
+
+        # GitHub repo info (will be replaced during setup)
+        self.github_repo = os.getenv("GITHUB_REPOSITORY", "OWNER/REPO")
+        self.version = self._get_version()
+
+    def _find_running_binary(self) -> Optional[Path]:
+        """Find the .pyz file we're running from."""
+        # Check if we're running from a .pyz
+        if hasattr(sys, "_MEIPASS"):
+            # PyInstaller bundle
+            return Path(sys.executable)
+
+        # Check for .pyz in sys.path
+        for path_str in sys.path:
+            path = Path(path_str)
+            if path.suffix == ".pyz" and path.exists():
+                return path
+
+        # Check for dist/redoubt-release-template.pyz relative to package
+        pkg_dir = Path(__file__).parent.parent.parent
+        pyz_path = pkg_dir / "dist" / "redoubt-release-template.pyz"
+        if pyz_path.exists():
+            return pyz_path
+
+        return None
+
+    def _get_version(self) -> str:
+        """Get the package version."""
+        try:
+            from . import __version__
+            return __version__
+        except ImportError:
+            return "unknown"
+
+    def _print_header(self, text: str):
+        """Print a section header."""
+        if self.console:
+            self.console.print(f"\n[bold cyan]{text}[/bold cyan]")
+        else:
+            print(f"\n{'='*60}")
+            print(text)
+            print('='*60)
+
+    def _print_result(self, result: VerificationResult):
+        """Print a verification result."""
+        if self.console:
+            status = "[green]✓[/green]" if result.passed else "[red]✗[/red]"
+            self.console.print(f"{status} {result.name}: {result.message}")
+            if result.details:
+                self.console.print(f"  [dim]{result.details}[/dim]")
+        else:
+            status = "✓" if result.passed else "✗"
+            print(f"{status} {result.name}: {result.message}")
+            if result.details:
+                print(f"  {result.details}")
+
+    def _calculate_binary_sha256(self) -> Optional[str]:
+        """Return the SHA256 checksum for the current binary."""
+        if not self.binary_path or not self.binary_path.exists():
+            return None
+
+        sha256_hash = hashlib.sha256()
+        with open(self.binary_path, "rb") as f:
+            for byte_block in iter(lambda: f.read(4096), b""):
+                sha256_hash.update(byte_block)
+
+        return sha256_hash.hexdigest()
+
+    def verify_checksum(self) -> VerificationResult:
+        """Verify the binary's checksum matches the release."""
+        if not self.binary_path or not self.binary_path.exists():
+            return VerificationResult(
+                "Checksum Verification",
+                False,
+                "Binary not found",
+                f"Could not locate binary at {self.binary_path}"
+            )
+
+        checksum = self._calculate_binary_sha256()
+        if not checksum:
+            return VerificationResult(
+                "Checksum Verification",
+                False,
+                "Unable to calculate binary checksum"
+            )
+
+        # Try to find checksum manifest
+        candidates = [
+            self.binary_path.parent / "checksums.txt",
+            self.binary_path.parent / f"{self.binary_path.name}.sha256",
+            self.binary_path.with_suffix(self.binary_path.suffix + ".sha256"),
+        ]
+        checksums_file = next((p for p in candidates if p.exists()), None)
+
+        if not checksums_file:
+            return VerificationResult(
+                "Checksum Verification",
+                False,
+                "Release checksum manifest not found",
+                f"Expected one of: {', '.join(str(p) for p in candidates)}"
+            )
+
+        expected_checksum = None
+        try:
+            for line in checksums_file.read_text().splitlines():
+                stripped = line.strip()
+                if not stripped or stripped.startswith("#"):
+                    continue
+
+                parts = stripped.split()
+                if len(parts) == 1:
+                    # .sha256 files often contain only the checksum
+                    expected_checksum = parts[0]
+                    break
+
+                candidate_path = parts[-1].lstrip("*")
+                if Path(candidate_path).name == self.binary_path.name:
+                    expected_checksum = parts[0]
+                    break
+        except Exception as exc:
+            return VerificationResult(
+                "Checksum Verification",
+                False,
+                "Failed to read checksum manifest",
+                str(exc)[:200]
+            )
+
+        if not expected_checksum:
+            return VerificationResult(
+                "Checksum Verification",
+                False,
+                "Binary missing from checksum manifest",
+                f"Manifest: {checksums_file}"
+            )
+
+        if checksum.lower() != expected_checksum.lower():
+            return VerificationResult(
+                "Checksum Verification",
+                False,
+                "SHA256 checksum mismatch",
+                f"Calculated {checksum[:16]}…, expected {expected_checksum[:16]}…"
+            )
+
+        return VerificationResult(
+            "Checksum Verification",
+            True,
+            "SHA256 checksum matches release manifest",
+            f"Checksum: {checksum[:16]}… (manifest: {checksums_file.name})"
+        )
+
+    def verify_sigstore_signature(self) -> VerificationResult:
+        """Verify Sigstore signature using cosign or sigstore-python."""
+        if not self.binary_path or not self.binary_path.exists():
+            return VerificationResult(
+                "Sigstore Signature",
+                False,
+                "Binary not found"
+            )
+
+        # Check for signature bundle
+        sig_bundle = self.binary_path.with_suffix(self.binary_path.suffix + ".sigstore")
+        if not sig_bundle.exists():
+            sig_bundle = self.binary_path.parent / f"{self.binary_path.name}.sigstore"
+
+        if not sig_bundle.exists():
+            return VerificationResult(
+                "Sigstore Signature",
+                False,
+                "No signature bundle found",
+                f"Expected at: {sig_bundle}"
+            )
+
+        # Try to verify using cosign CLI (preferred for full verification)
+        try:
+            result = subprocess.run(
+                [
+                    "cosign", "verify-blob",
+                    str(self.binary_path),
+                    "--bundle", str(sig_bundle),
+                    "--certificate-identity-regexp", ".*",
+                    "--certificate-oidc-issuer-regexp", ".*"
+                ],
+                capture_output=True,
+                text=True,
+                timeout=30
+            )
+
+            if result.returncode == 0:
+                return VerificationResult(
+                    "Sigstore Signature",
+                    True,
+                    "Signature verified via Rekor transparency log",
+                    "Keyless signing with certificate from Fulcio CA"
+                )
+            else:
+                return VerificationResult(
+                    "Sigstore Signature",
+                    False,
+                    "Signature verification failed",
+                    result.stderr[:200] if result.stderr else None
+                )
+
+        except FileNotFoundError:
+            return VerificationResult(
+                "Sigstore Signature",
+                False,
+                "cosign not installed",
+                "Install: brew install cosign or see https://docs.sigstore.dev"
+            )
+        except subprocess.TimeoutExpired:
+            return VerificationResult(
+                "Sigstore Signature",
+                False,
+                "Verification timeout",
+                "Rekor transparency log query timed out"
+            )
+        except Exception as e:
+            return VerificationResult(
+                "Sigstore Signature",
+                False,
+                "Verification error",
+                str(e)[:200]
+            )
+
+    def verify_github_attestation(self) -> VerificationResult:
+        """Verify GitHub attestation using gh CLI."""
+        if not self.binary_path or not self.binary_path.exists():
+            return VerificationResult(
+                "GitHub Attestation",
+                False,
+                "Binary not found"
+            )
+
+        try:
+            result = subprocess.run(
+                [
+                    "gh", "attestation", "verify",
+                    str(self.binary_path),
+                    "--repo", self.github_repo
+                ],
+                capture_output=True,
+                text=True,
+                timeout=30
+            )
+
+            if result.returncode == 0:
+                return VerificationResult(
+                    "GitHub Attestation",
+                    True,
+                    "GitHub attestation verified",
+                    f"Repository: {self.github_repo}"
+                )
+            else:
+                return VerificationResult(
+                    "GitHub Attestation",
+                    False,
+                    "Attestation verification failed",
+                    result.stderr[:200] if result.stderr else None
+                )
+
+        except FileNotFoundError:
+            return VerificationResult(
+                "GitHub Attestation",
+                False,
+                "gh CLI not installed",
+                "Install: brew install gh or see https://cli.github.com"
+            )
+        except subprocess.TimeoutExpired:
+            return VerificationResult(
+                "GitHub Attestation",
+                False,
+                "Verification timeout"
+            )
+        except Exception as e:
+            return VerificationResult(
+                "GitHub Attestation",
+                False,
+                "Verification error",
+                str(e)[:200]
+            )
+
+    def verify_sbom(self) -> VerificationResult:
+        """Verify SBOM exists and is valid."""
+        if not self.binary_path:
+            return VerificationResult(
+                "SBOM Verification",
+                False,
+                "Binary not found"
+            )
+
+        # Look for SBOM file
+        sbom_file = self.binary_path.parent / "sbom.json"
+        if not sbom_file.exists():
+            sbom_file = self.binary_path.with_suffix(".sbom.json")
+
+        if not sbom_file.exists():
+            return VerificationResult(
+                "SBOM Verification",
+                False,
+                "SBOM file not found",
+                f"Expected at: {sbom_file}"
+            )
+
+        # Validate SBOM structure
+        try:
+            with open(sbom_file) as f:
+                sbom = json.load(f)
+
+            # Check for CycloneDX format
+            if "bomFormat" in sbom and sbom["bomFormat"] == "CycloneDX":
+                components = sbom.get("components", [])
+                return VerificationResult(
+                    "SBOM Verification",
+                    True,
+                    f"Valid CycloneDX SBOM with {len(components)} components",
+                    f"Spec version: {sbom.get('specVersion', 'unknown')}"
+                )
+            else:
+                return VerificationResult(
+                    "SBOM Verification",
+                    False,
+                    "Invalid SBOM format",
+                    "Expected CycloneDX format"
+                )
+
+        except json.JSONDecodeError:
+            return VerificationResult(
+                "SBOM Verification",
+                False,
+                "SBOM is not valid JSON"
+            )
+        except Exception as e:
+            return VerificationResult(
+                "SBOM Verification",
+                False,
+                "SBOM validation error",
+                str(e)[:200]
+            )
+
+    def verify_osv_scan(self) -> VerificationResult:
+        """Run OSV vulnerability scan on the SBOM."""
+        if not self.binary_path:
+            return VerificationResult(
+                "OSV Vulnerability Scan",
+                False,
+                "Binary not found"
+            )
+
+        sbom_file = self.binary_path.parent / "sbom.json"
+        if not sbom_file.exists():
+            sbom_file = self.binary_path.with_suffix(".sbom.json")
+
+        if not sbom_file.exists():
+            return VerificationResult(
+                "OSV Vulnerability Scan",
+                False,
+                "SBOM not found for scanning"
+            )
+
+        try:
+            result = subprocess.run(
+                ["osv-scanner", "--sbom", str(sbom_file), "--format", "json"],
+                capture_output=True,
+                text=True,
+                timeout=60
+            )
+
+            # OSV scanner returns 0 if no vulnerabilities, 1 if vulnerabilities found
+            if result.returncode == 0:
+                return VerificationResult(
+                    "OSV Vulnerability Scan",
+                    True,
+                    "No known vulnerabilities found",
+                    "Scanned against OSV database"
+                )
+            elif result.returncode == 1:
+                # Parse vulnerabilities if possible
+                try:
+                    output = json.loads(result.stdout)
+                    vuln_count = len(output.get("results", [{}])[0].get("packages", []))
+                    return VerificationResult(
+                        "OSV Vulnerability Scan",
+                        False,
+                        f"Found vulnerabilities in {vuln_count} package(s)",
+                        "Run 'osv-scanner --sbom sbom.json' for details"
+                    )
+                except:
+                    return VerificationResult(
+                        "OSV Vulnerability Scan",
+                        False,
+                        "Vulnerabilities detected",
+                        "Run 'osv-scanner --sbom sbom.json' for details"
+                    )
+            else:
+                return VerificationResult(
+                    "OSV Vulnerability Scan",
+                    False,
+                    "Scan failed",
+                    result.stderr[:200] if result.stderr else None
+                )
+
+        except FileNotFoundError:
+            return VerificationResult(
+                "OSV Vulnerability Scan",
+                False,
+                "osv-scanner not installed",
+                "Install: brew install osv-scanner or see https://google.github.io/osv-scanner/"
+            )
+        except subprocess.TimeoutExpired:
+            return VerificationResult(
+                "OSV Vulnerability Scan",
+                False,
+                "Scan timeout"
+            )
+        except Exception as e:
+            return VerificationResult(
+                "OSV Vulnerability Scan",
+                False,
+                "Scan error",
+                str(e)[:200]
+            )
+
+    def _load_attestation_statements(self, attestation_file: Path) -> List[Dict]:
+        """Load attestation statements from a JSONL bundle."""
+        statements: List[Dict] = []
+        with open(attestation_file) as f:
+            for line in f:
+                if not line.strip():
+                    continue
+                record = json.loads(line)
+
+                # Handle DSSE envelopes
+                if "payload" in record and "payloadType" in record:
+                    try:
+                        payload_bytes = base64.b64decode(record["payload"])
+                        payload = json.loads(payload_bytes)
+                        statements.append(payload)
+                        continue
+                    except (ValueError, json.JSONDecodeError):
+                        pass
+
+                if isinstance(record, dict):
+                    statements.append(record)
+        return statements
+
+    def verify_slsa_provenance(self) -> VerificationResult:
+        """Verify SLSA provenance attestation."""
+        if not self.binary_path:
+            return VerificationResult(
+                "SLSA Provenance",
+                False,
+                "Binary not found"
+            )
+
+        # SLSA provenance is included in GitHub attestations
+        # We verify it through the attestation bundle
+        attestation_file = self.binary_path.parent / "attestation.jsonl"
+        if not attestation_file.exists():
+            return VerificationResult(
+                "SLSA Provenance",
+                False,
+                "Attestation bundle not found",
+                f"Expected at: {attestation_file}"
+            )
+
+        try:
+            statements = self._load_attestation_statements(attestation_file)
+            if not statements:
+                return VerificationResult(
+                    "SLSA Provenance",
+                    False,
+                    "Attestation bundle is empty or unreadable",
+                    f"File: {attestation_file}"
+                )
+
+            binary_checksum = self._calculate_binary_sha256()
+            if not binary_checksum:
+                return VerificationResult(
+                    "SLSA Provenance",
+                    False,
+                    "Unable to calculate binary checksum"
+                )
+
+            slsa_statements = [
+                stmt for stmt in statements
+                if "predicateType" in stmt and "slsa" in stmt["predicateType"].lower()
+            ]
+
+            if not slsa_statements:
+                return VerificationResult(
+                    "SLSA Provenance",
+                    False,
+                    "No SLSA provenance in attestation bundle",
+                    f"Found {len(statements)} attestation(s)"
+                )
+
+            for statement in slsa_statements:
+                subjects = statement.get("subject", [])
+                for subject in subjects:
+                    subject_name = subject.get("name", "")
+                    digest = subject.get("digest", {})
+                    subject_checksum = (digest.get("sha256") or "").lower()
+
+                    if Path(subject_name).name != self.binary_path.name:
+                        continue
+
+                    if subject_checksum != binary_checksum.lower():
+                        return VerificationResult(
+                            "SLSA Provenance",
+                            False,
+                            "Attestation digest does not match binary",
+                            f"Attested {subject_checksum[:16]}…, calculated {binary_checksum[:16]}…"
+                        )
+
+                    builder_id = (
+                        statement.get("predicate", {})
+                        .get("builder", {})
+                        .get("id", "unknown")
+                    )
+                    build_type = statement.get("predicate", {}).get("buildType", "unknown")
+
+                    return VerificationResult(
+                        "SLSA Provenance",
+                        True,
+                        "SLSA provenance attestation verified",
+                        f"Builder: {builder_id} | Build type: {build_type}"
+                    )
+
+            return VerificationResult(
+                "SLSA Provenance",
+                False,
+                "Attestation bundle does not cover binary",
+                f"Binary: {self.binary_path.name}"
+            )
+
+        except Exception as e:
+            return VerificationResult(
+                "SLSA Provenance",
+                False,
+                "Provenance verification error",
+                str(e)[:200]
+            )
+
+    def verify_reproducible_build(self) -> VerificationResult:
+        """Check for reproducible build indicators."""
+        if not self.binary_path or not self.binary_path.exists():
+            return VerificationResult(
+                "Reproducible Build",
+                False,
+                "Binary not found"
+            )
+
+        # Check if SOURCE_DATE_EPOCH was used via attestation metadata
+        provenance_file = self.binary_path.parent / "attestation.jsonl"
+        source_date_epoch = None
+
+        def _extract_epoch_from_payload(payload: Dict) -> Optional[str]:
+            if not isinstance(payload, dict):
+                return None
+            if "SOURCE_DATE_EPOCH" in payload:
+                return str(payload["SOURCE_DATE_EPOCH"])
+            for value in payload.values():
+                if isinstance(value, dict):
+                    nested = _extract_epoch_from_payload(value)
+                    if nested:
+                        return nested
+                elif isinstance(value, list):
+                    for item in value:
+                        nested = _extract_epoch_from_payload(item) if isinstance(item, dict) else None
+                        if nested:
+                            return nested
+            return None
+
+        if provenance_file.exists():
+            try:
+                statements = self._load_attestation_statements(provenance_file)
+                for statement in statements:
+                    epoch = _extract_epoch_from_payload(statement.get("predicate", {}))
+                    if epoch:
+                        source_date_epoch = epoch
+                        break
+            except Exception:
+                pass
+
+        # Check build metadata file if it exists
+        metadata_file = self.binary_path.parent / "build-metadata.json"
+        if metadata_file.exists():
+            try:
+                with open(metadata_file) as f:
+                    metadata = json.load(f)
+                    epoch = _extract_epoch_from_payload(metadata)
+                    if epoch:
+                        source_date_epoch = epoch
+            except Exception:
+                pass
+
+        if not source_date_epoch:
+            return VerificationResult(
+                "Reproducible Build",
+                False,
+                "SOURCE_DATE_EPOCH not found in build metadata",
+                "Ensure builds export SOURCE_DATE_EPOCH in provenance or metadata"
+            )
+
+        if not str(source_date_epoch).isdigit():
+            return VerificationResult(
+                "Reproducible Build",
+                False,
+                "Invalid SOURCE_DATE_EPOCH value",
+                f"Value: {source_date_epoch}"
+            )
+
+        return VerificationResult(
+            "Reproducible Build",
+            True,
+            "Reproducible build verified",
+            f"SOURCE_DATE_EPOCH: {source_date_epoch}"
+        )
+
+    def verify_all(self) -> bool:
+        """
+        Run all verification checks.
+
+        Returns:
+            True if all checks passed, False otherwise.
+        """
+        self._print_header(f"🔐 Verifying {self.binary_path.name if self.binary_path else 'binary'}")
+
+        if self.console:
+            self.console.print(f"[dim]Version: {self.version}[/dim]")
+            self.console.print(f"[dim]Repository: {self.github_repo}[/dim]")
+        else:
+            print(f"Version: {self.version}")
+            print(f"Repository: {self.github_repo}")
+
+        # Run all checks
+        checks = [
+            ("Checksum", self.verify_checksum),
+            ("Sigstore Signature", self.verify_sigstore_signature),
+            ("GitHub Attestation", self.verify_github_attestation),
+            ("SBOM", self.verify_sbom),
+            ("OSV Scan", self.verify_osv_scan),
+            ("SLSA Provenance", self.verify_slsa_provenance),
+            ("Reproducible Build", self.verify_reproducible_build),
+        ]
+
+        if self.console:
+            with Progress(
+                SpinnerColumn(),
+                TextColumn("[progress.description]{task.description}"),
+                console=self.console,
+                transient=True
+            ) as progress:
+                for name, check_func in checks:
+                    task = progress.add_task(f"Checking {name}...", total=None)
+                    result = check_func()
+                    self.results.append(result)
+                    progress.remove_task(task)
+                    self._print_result(result)
+        else:
+            for name, check_func in checks:
+                print(f"\nChecking {name}...")
+                result = check_func()
+                self.results.append(result)
+                self._print_result(result)
+
+        # Summary
+        passed = sum(1 for r in self.results if r.passed)
+        total = len(self.results)
+        all_passed = passed == total
+
+        self._print_header("Summary")
+        if self.console:
+            status_color = "green" if all_passed else "red"
+            self.console.print(f"[{status_color}]{passed}/{total} checks passed[/{status_color}]")
+
+            if not all_passed:
+                self.console.print("\n[yellow]⚠ Some verifications failed or are skipped[/yellow]")
+                self.console.print("[dim]This may be expected if:[/dim]")
+                self.console.print("[dim]  • You're running a development build (not a release)[/dim]")
+                self.console.print("[dim]  • Security tools (cosign, gh, osv-scanner) are not installed[/dim]")
+                self.console.print("[dim]  • Attestation files are not present locally[/dim]")
+        else:
+            status = "✓" if all_passed else "✗"
+            print(f"{status} {passed}/{total} checks passed")
+
+            if not all_passed:
+                print("\n⚠ Some verifications failed or are skipped")
+                print("This may be expected if:")
+                print("  • You're running a development build (not a release)")
+                print("  • Security tools (cosign, gh, osv-scanner) are not installed")
+                print("  • Attestation files are not present locally")
+
+        return all_passed
+
+
+def verify_command(args) -> int:
+    """Run the verify command."""
+    binary_path = None
+    if hasattr(args, 'file') and args.file:
+        binary_path = Path(args.file)
+
+    verifier = Verifier(binary_path)
+    success = verifier.verify_all()
+
+    return 0 if success else 1

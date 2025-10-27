@@ -1,0 +1,51 @@
+[build-system]
+requires = ["hatchling>=1.25"]
+build-backend = "hatchling.build"
+
+[project]
+name = "demo-secure-cli"
+version = "0.1.0"
+description = "Minimal demo CLI with a hardened, reproducible, and attestable release pipeline."
+readme = "README.md"
+requires-python = ">=3.10"
+license = {text = "MIT"}
+authors = [{name = "Jonathan Borduas", email = "jonathan.borduas@example.com"}]
+keywords = ["cli", "security", "slsa", "sigstore", "supply-chain"]
+classifiers = [
+  "Programming Language :: Python :: 3",
+  "Programming Language :: Python :: 3.10",
+  "Programming Language :: Python :: 3.11",
+  "Programming Language :: Python :: 3.12",
+  "Programming Language :: Python :: 3.13",
+  "License :: OSI Approved :: MIT License"
+]
+
+[project.scripts]
+demo = "demo_cli.cli:main"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/demo_cli"]
+
+[tool.hatch.build.targets.sdist]
+exclude = ["/AppDir"]
+
+[tool.pytest.ini_options]
+minversion = "7.0"
+testpaths = ["tests"]
+python_files = ["test_*.py"]
+python_classes = ["Test*"]
+python_functions = ["test_*"]
+addopts = [
+    "-v",
+    "--strict-markers",
+    "--tb=short",
+    "--color=yes"
+]
+markers = [
+    "slow: marks tests as slow (deselect with '-m \"not slow\"')",
+    "integration: marks tests as integration tests (deselect with '-m \"not integration\"')",
+    "published: marks tests that require published packages (deselect with '-m \"not published\"')",
+]
+
+[project.optional-dependencies]
+dev = ["tomli", "pytest", "pytest-cov", "PyYAML"]

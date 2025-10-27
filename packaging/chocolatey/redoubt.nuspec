@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="utf-8"?>
+<package xmlns="http://schemas.microsoft.com/packaging/2015/06/nuspec.xsd">
+  <metadata>
+    <id>redoubt</id>
+    <version>0.1.0</version>
+    <packageSourceUrl>https://github.com/OWNER/REPO</packageSourceUrl>
+    <owners>OWNER</owners>
+    <title>Redoubt Release Demo</title>
+    <authors>OWNER</authors>
+    <projectUrl>https://github.com/OWNER/REPO</projectUrl>
+    <iconUrl>https://raw.githubusercontent.com/OWNER/REPO/main/icon.png</iconUrl>
+    <copyright>2024 OWNER</copyright>
+    <licenseUrl>https://github.com/OWNER/REPO/blob/main/LICENSE</licenseUrl>
+    <requireLicenseAcceptance>false</requireLicenseAcceptance>
+    <projectSourceUrl>https://github.com/OWNER/REPO</projectSourceUrl>
+    <docsUrl>https://github.com/OWNER/REPO/blob/main/README.md</docsUrl>
+    <bugTrackerUrl>https://github.com/OWNER/REPO/issues</bugTrackerUrl>
+    <tags>cli security supply-chain slsa sigstore attestation verification sbom</tags>
+    <summary>Self-verifying CLI with complete supply chain security</summary>
+    <description>
+Redoubt Release Demo demonstrates production-grade supply chain security for CLI applications.
+
+## Features
+
+- Reproducible, deterministic builds
+- Sigstore signatures and GitHub attestations
+- SLSA provenance and SBOM generation
+- OSV vulnerability scanning
+- Complete supply chain security validation
+
+Run 'redoubt verify' to validate all security attestations!
+
+## Usage
+
+```
+redoubt hello world
+redoubt verify
+redoubt --version
+```
+
+## Requirements
+
+- Python 3.10 or higher
+
+Install Python: `choco install python`
+    </description>
+    <releaseNotes>https://github.com/OWNER/REPO/releases/tag/v0.1.0</releaseNotes>
+    <dependencies>
+      <dependency id="python" version="3.10.0" />
+    </dependencies>
+  </metadata>
+  <files>
+    <file src="tools\**" target="tools" />
+  </files>
+</package>

@@ -1,0 +1,177 @@
+name: Secure Release
+on:
+  push:
+    tags: ['v*']
+
+permissions:
+  contents: write
+  id-token: write
+  attestations: write
+
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    environment: production
+    steps:
+      - name: Harden runner
+        uses: step-security/harden-runner@0080882f6c36860b6ba35c610c98ce87d4e2f26f  # v2.10.2
+        with:
+          egress-policy: audit
+          # allowed-endpoints: >
+          #   api.github.com:443
+          #   github.com:443
+          #   objects.githubusercontent.com:443
+          #   token.actions.githubusercontent.com:443
+          #   uploads.github.com:443
+          #   sigstore.dev:443
+          #   fulcio.sigstore.dev:443
+          #   rekor.sigstore.dev:443
+          #   oidc.sigstore.dev:443
+          #   storage.googleapis.com:443
+
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683  # v4.2.2
+        with:
+          persist-credentials: false
+
+      - name: Set up Python
+        uses: actions/setup-python@0b93645e9fea7318ecaed2b359559ac225c90a2b  # v5.3.0
+        with:
+          python-version: '3.11'
+
+      - name: Install Python tooling
+        run: |
+          python -m pip install --upgrade pip
+          pip install build pytest pyyaml rich
+
+      - name: Deterministic env
+        run: |
+          echo "TZ=UTC" >> $GITHUB_ENV
+          echo "LC_ALL=C" >> $GITHUB_ENV
+          echo "LANG=C" >> $GITHUB_ENV
+          echo "PYTHONHASHSEED=0" >> $GITHUB_ENV
+          echo "SOURCE_DATE_EPOCH=$(git log -1 --pretty=%ct)" >> $GITHUB_ENV
+          umask 0022
+
+      - name: Run tests
+        env:
+          PYTHONPATH: src
+        run: |
+          pytest tests/ -m "not slow and not integration and not published" --maxfail=1 --disable-warnings -q
+
+      - name: Install uv
+        run: |
+          curl -LsSf https://astral.sh/uv/install.sh | sh
+          echo "$HOME/.cargo/bin" >> $GITHUB_PATH
+
+      - name: Build .pyz package
+        run: ./scripts/build_pyz.sh
+
+      - name: Install linuxdeploy for AppImage
+        run: |
+          wget https://github.com/linuxdeploy/linuxdeploy/releases/download/continuous/linuxdeploy-x86_64.AppImage
+          chmod +x linuxdeploy-x86_64.AppImage
+          sudo mv linuxdeploy-x86_64.AppImage /usr/local/bin/linuxdeploy
+
+      - name: Build AppImage
+        run: |
+          export ARCH=x86_64
+          ./packaging/appimage/build-appimage.sh
+          # Move AppImage to dist/
+          mkdir -p dist
+          mv redoubt-*.AppImage dist/ || true
+
+      - name: Install Nix
+        uses: DeterminateSystems/nix-installer-action@da36cb69b1c3247ad7a1f931ebfd954a1105ef14 # v14
+        with:
+          extra-conf: |
+            experimental-features = nix-command flakes
+
+      - name: Setup Nix cache
+        uses: DeterminateSystems/magic-nix-cache-action@87b14cf437d03d37989d87f0fa5ce4f5dc1a330b # v8
+
+      - name: Build Nix package
+        run: |
+          nix build .# -L
+          # Create tarball and move to dist/
+          TAG="${{ github.ref_name }}"
+          tar -czf dist/redoubt-x86_64-linux-${TAG}.tar.gz -C result/bin redoubt
+
+      - name: SBOM + vuln report
+        run: |
+          python -m pip install --upgrade cyclonedx-bom pip-audit
+          python -m cyclonedx_bom -o sbom.cdx.json
+          pip-audit -r requirements.in -f json > vuln-report.json || true
+
+      - name: Checksums
+        run: |
+          find dist -type f -print0 | sort -z | xargs -0 sha256sum > SHA256SUMS
+          sha256sum sbom.cdx.json >> SHA256SUMS
+          sha256sum vuln-report.json >> SHA256SUMS
+
+      - name: Install cosign
+        run: |
+          COSIGN_VERSION="v2.2.4"
+          curl -sSfL "https://github.com/sigstore/cosign/releases/download/${COSIGN_VERSION}/cosign-linux-amd64" -o /usr/local/bin/cosign
+          chmod +x /usr/local/bin/cosign
+
+      - name: Sign checksums (keyless)
+        env: { COSIGN_EXPERIMENTAL: "true" }
+        run: |
+          cosign sign-blob --yes --keyless --bundle SHA256SUMS.bundle SHA256SUMS
+
+      - name: Attest provenance (GitHub)
+        uses: actions/attest-build-provenance@25fe9e7a9d0f397cda6b66b6e7569d850f2c0d91  # v2.0.0
+        with:
+          subject-path: |
+            dist/*
+            sbom.cdx.json
+            SHA256SUMS
+            SHA256SUMS.bundle
+            vuln-report.json
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@c062e08bd532815e2082a85e87e3ef29c3e6d191  # v2.0.8
+        with:
+          files: |
+            dist/*
+            sbom.cdx.json
+            SHA256SUMS
+            SHA256SUMS.bundle
+            vuln-report.json
+          generate_release_notes: true
+          body: |
+            ## Install
+            ```bash
+            TAG=${{ github.ref_name }}
+            REPO=${{ github.repository }}
+            curl -LO https://github.com/$REPO/releases/download/$TAG/client.pyz
+            chmod +x client.pyz && ./client.pyz --version
+            ```
+
+            ## Verify (attestation)
+            ```bash
+            gh attestation verify client.pyz --repo ${{ github.repository }}
+            ```
+
+            ## Verify (checksums + cosign)
+            ```bash
+            curl -LO https://github.com/${{ github.repository }}/releases/download/${{ github.ref_name }}/SHA256SUMS
+            curl -LO https://github.com/${{ github.repository }}/releases/download/${{ github.ref_name }}/SHA256SUMS.bundle
+            sha256sum --check SHA256SUMS --ignore-missing
+            COSIGN_EXPERIMENTAL=1 cosign verify-blob \
+              --bundle SHA256SUMS.bundle \
+              --certificate-oidc-issuer https://token.actions.githubusercontent.com \
+              --certificate-identity "https://github.com/${{ github.repository }}/.github/workflows/${{ github.workflow }}@refs/tags/${{ github.ref_name }}" \
+              SHA256SUMS
+            ```
+
+            ## Rebuild from source
+            ```bash
+            git clone https://github.com/${{ github.repository }}.git && cd $(basename ${{ github.repository }})
+            ./scripts/verify_build.sh ${{ github.ref_name }} ${{ github.repository_owner }} $(basename ${{ github.repository }}) client.pyz
+            ./scripts/verify_provenance.sh ${{ github.ref_name }} ${{ github.repository_owner }} $(basename ${{ github.repository }}) client.pyz
+            ```

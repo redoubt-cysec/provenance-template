@@ -1,0 +1,29 @@
+name: pypi-multiversion
+on:
+  workflow_dispatch:
+    inputs:
+      package:
+        description: Package name on TestPyPI (e.g. demo-secure-cli)
+        required: true
+      version:
+        description: Version (e.g. 1.1.0)
+        required: true
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        py: ["3.10","3.11","3.12","3.13"]
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install multipass
+        run: sudo snap install multipass --classic
+      - name: Test ${{ matrix.py }} via Multipass VM
+        env:
+          PYTHON_VERSION: ${{ matrix.py }}
+          PACKAGE_NAME: ${{ github.event.inputs.package }}
+          PACKAGE_VERSION: ${{ github.event.inputs.version }}
+        run: |
+          bash scripts/phase2-testing/test-test-pypi-vm.sh

@@ -1,0 +1,142 @@
+# GitHub Secrets Setup Guide
+
+## Essential Secrets (Required)
+
+### 1. CACHIX_AUTH_TOKEN ⭐ PRIORITY
+
+**Purpose**: Enables Nix binary caching (makes Nix installs 10x faster)
+
+**How to get it**:
+```bash
+# Option A: Sign up at cachix.org
+1. Go to https://app.cachix.org
+2. Sign in with GitHub
+3. Create a new cache: "redoubt" (or your preferred name)
+4. Go to Account → Create Token
+5. Copy the token
+
+# Option B: Use public cache (no auth needed)
+# Skip this secret and the workflow will use Magic Nix Cache only
+```
+
+**Add to GitHub**:
+- Name: `CACHIX_AUTH_TOKEN`
+- Value: `eyJhbGc...` (your token)
+
+---
+
+### 2. CACHIX_CACHE_NAME
+
+**Purpose**: Name of your Cachix cache
+
+**Value**: `redoubt` (or whatever name you chose)
+
+**Add to GitHub**:
+- Name: `CACHIX_CACHE_NAME`
+- Value: `redoubt`
+
+---
+
+### 3. TAP_GITHUB_TOKEN ⭐ PRIORITY
+
+**Purpose**: Allows Homebrew workflow to push to your homebrew-tap repository
+
+**How to get it**:
+```bash
+1. Go to GitHub → Settings → Developer settings
+2. Personal access tokens → Tokens (classic) → Generate new token
+3. Name: "Homebrew Tap Updater"
+4. Expiration: No expiration (or 1 year)
+5. Scopes:
+   ✓ repo (full control)
+   ✓ workflow (if you want to update workflows)
+6. Generate token
+7. Copy the token (starts with ghp_)
+```
+
+**Add to GitHub**:
+- Name: `TAP_GITHUB_TOKEN`
+- Value: `ghp_xxxxxxxxxxxx`
+
+---
+
+## Optional Secrets (For Enhanced Security)
+
+### 4. GPG_PRIVATE_KEY (Optional)
+
+**Purpose**: Signs APT/RPM packages with GPG
+
+**How to get it**:
+```bash
+# If you have a GPG key:
+gpg --list-secret-keys
+gpg --armor --export-secret-key YOUR_KEY_ID
+
+# If you need to create one:
+gpg --full-generate-key
+# Choose: RSA and RSA, 4096 bits, no expiration
+# Real name: Borduas Holdings
+# Email: packages@borduas.dev
+```
+
+**Add to GitHub**:
+- Name: `GPG_PRIVATE_KEY`
+- Value: `-----BEGIN PGP PRIVATE KEY BLOCK-----...`
+
+---
+
+### 5. GPG_PASSPHRASE (Optional)
+
+**Purpose**: Passphrase for GPG key
+
+**Add to GitHub**:
+- Name: `GPG_PASSPHRASE`
+- Value: `your-passphrase`
+
+---
+
+## Quick Setup Script
+
+You can also set secrets via GitHub CLI:
+
+```bash
+# Install gh CLI if needed
+brew install gh
+
+# Login
+gh auth login
+
+# Set secrets
+gh secret set CACHIX_AUTH_TOKEN --repo Borduas-Holdings/redoubt-release-template
+gh secret set CACHIX_CACHE_NAME --repo Borduas-Holdings/redoubt-release-template --body "redoubt"
+
+gh secret set TAP_GITHUB_TOKEN --repo Borduas-Holdings/redoubt-release-template
+```
+
+---
+
+## Testing Without Secrets
+
+You can create a release **without** secrets and most things will still work:
+
+- ✅ .pyz build
+- ✅ AppImage build
+- ✅ Nix build (with Magic Nix Cache)
+- ✅ AUR validation
+- ✅ Docker build (uses GITHUB_TOKEN automatically)
+- ⏩ Homebrew (will skip without TAP_GITHUB_TOKEN)
+- ⏩ Cachix (will use Magic Nix Cache only)
+- ⏩ GPG signing (will skip without keys)
+
+---
+
+## Verification
+
+After adding secrets, they should appear in:
+https://github.com/Borduas-Holdings/redoubt-release-template/settings/secrets/actions
+
+You should see:
+- ✅ CACHIX_AUTH_TOKEN (if added)
+- ✅ CACHIX_CACHE_NAME (if added)
+- ✅ TAP_GITHUB_TOKEN (if added)
+- Plus GITHUB_TOKEN (automatic, always present)

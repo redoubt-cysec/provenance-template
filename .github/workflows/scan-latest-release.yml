@@ -1,0 +1,46 @@
+name: Scan Latest Release
+on:
+  schedule:
+    - cron: '0 8 * * *'  # Daily at 8 AM UTC
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  security-events: write
+
+jobs:
+  scan:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Harden runner
+        uses: step-security/harden-runner@f4a75cfd619ee5ce8d5b864b0d183aff3c69b55a  # v2.13.1
+        with:
+          egress-policy: audit
+
+      - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8  # v5.0.0
+
+      - name: Get latest release
+        id: latest
+        run: |
+          TAG=$(gh release view --json tagName -q .tagName)
+          echo "tag=$TAG" >> $GITHUB_OUTPUT
+        env:
+          GH_TOKEN: ${{ github.token }}
+
+      - name: Download release artifact
+        run: |
+          gh release download ${{ steps.latest.outputs.tag }} -p 'client.pyz' -p 'sbom.cdx.json'
+        env:
+          GH_TOKEN: ${{ github.token }}
+
+      - name: OSV scan SBOM
+        run: |
+          curl -sSfL https://github.com/google/osv-scanner/releases/latest/download/osv-scanner_Linux_x86_64.tar.gz \
+          | tar xz && sudo mv ./osv-scanner /usr/local/bin/
+          osv-scanner --sbom=sbom.cdx.json --format=sarif > osv-results.sarif || true
+
+      - name: Upload SARIF
+        uses: github/codeql-action/upload-sarif@0f47cf5ea395a08f5ca3b81a506c66a63ecb648a  # v3.31.0
+        with:
+          sarif_file: osv-results.sarif
+          category: release-vulnerabilities

@@ -1,0 +1,41 @@
+name: windows-testing
+on: [workflow_dispatch, pull_request]
+
+jobs:
+  test-windows:
+    runs-on: windows-latest
+    strategy:
+      matrix:
+        package_manager: [scoop, chocolatey, winget]
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Prep Scoop bucket (local)
+        if: matrix.package_manager == 'scoop'
+        shell: powershell
+        run: |
+          iwr -useb get.scoop.sh | iex
+          scoop bucket add owner "${{ github.workspace }}\packaging\scoop"
+
+      - name: Test ${{ matrix.package_manager }}
+        shell: powershell
+        run: |
+          switch ("${{ matrix.package_manager }}") {
+            "scoop" {
+              scoop install redoubt
+              redoubt --version
+            }
+            "chocolatey" {
+              choco install chocolatey.server -y
+              Start-Service chocolatey.server -ErrorAction SilentlyContinue
+              # TODO: choco push your .nupkg to http://localhost:8080/ and install:
+              # choco push .\dist\redoubt*.nupkg --source http://localhost:8080/
+              # choco install redoubt -y --source http://localhost:8080/
+            }
+            "winget" {
+              winget validate .\packaging\winget\manifests\OWNER.redoubt.yaml
+              winget install --manifest .\packaging\winget\manifests\OWNER.redoubt.yaml `
+                --silent --accept-source-agreements --accept-package-agreements
+              redoubt --version
+            }
+          }

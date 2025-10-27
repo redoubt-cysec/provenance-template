@@ -1,0 +1,2 @@
+name: P0 - GPG Signing
+description: Implement GPG signing for APT/RPM repos.

@@ -1,0 +1,104 @@
+# GitHub Action for Redoubt Release Demo
+# Use this action to verify binaries in your CI/CD pipeline
+
+name: 'Redoubt Verify'
+description: 'Verify binary attestations using Redoubt Release Demo'
+author: 'OWNER'
+
+branding:
+  icon: 'shield'
+  color: 'blue'
+
+inputs:
+  binary-path:
+    description: 'Path to the binary to verify'
+    required: true
+  fail-on-error:
+    description: 'Fail the action if verification fails'
+    required: false
+    default: 'true'
+  install-tools:
+    description: 'Install verification tools (cosign, gh, osv-scanner)'
+    required: false
+    default: 'false'
+
+outputs:
+  verification-result:
+    description: 'Result of verification (success/failure)'
+    value: ${{ steps.verify.outputs.result }}
+  checks-passed:
+    description: 'Number of checks that passed'
+    value: ${{ steps.verify.outputs.passed }}
+  checks-total:
+    description: 'Total number of checks'
+    value: ${{ steps.verify.outputs.total }}
+
+runs:
+  using: 'composite'
+  steps:
+    - name: Install Redoubt
+      shell: bash
+      run: |
+        echo "Installing Redoubt..."
+        pip install redoubt-release-template
+
+    - name: Install verification tools
+      if: inputs.install-tools == 'true'
+      shell: bash
+      run: |
+        echo "Installing verification tools..."
+        # Install cosign
+        if ! command -v cosign &> /dev/null; then
+          echo "Installing cosign..."
+          curl -sL https://github.com/sigstore/cosign/releases/latest/download/cosign-linux-amd64 -o /usr/local/bin/cosign
+          chmod +x /usr/local/bin/cosign
+        fi
+
+        # Install gh CLI
+        if ! command -v gh &> /dev/null; then
+          echo "Installing gh CLI..."
+          curl -sL https://github.com/cli/cli/releases/latest/download/gh_*_linux_amd64.tar.gz | tar xz
+          sudo mv gh_*/bin/gh /usr/local/bin/
+        fi
+
+        # Install osv-scanner
+        if ! command -v osv-scanner &> /dev/null; then
+          echo "Installing osv-scanner..."
+          curl -sL https://github.com/google/osv-scanner/releases/latest/download/osv-scanner_linux_amd64 -o /usr/local/bin/osv-scanner
+          chmod +x /usr/local/bin/osv-scanner
+        fi
+
+    - name: Run verification
+      id: verify
+      shell: bash
+      run: |
+        echo "Verifying ${{ inputs.binary-path }}..."
+
+        # Run verification and capture output
+        if redoubt verify --file "${{ inputs.binary-path }}" > verification_output.txt 2>&1; then
+          RESULT="success"
+          EXIT_CODE=0
+        else
+          RESULT="failure"
+          EXIT_CODE=1
+        fi
+
+        # Parse results
+        PASSED=$(grep -c "✓" verification_output.txt || echo "0")
+        TOTAL=$(grep -c "Checking" verification_output.txt || echo "7")
+
+        # Output results
+        echo "result=$RESULT" >> $GITHUB_OUTPUT
+        echo "passed=$PASSED" >> $GITHUB_OUTPUT
+        echo "total=$TOTAL" >> $GITHUB_OUTPUT
+
+        # Display results
+        cat verification_output.txt
+
+        # Fail if requested
+        if [ "${{ inputs.fail-on-error }}" == "true" ] && [ "$EXIT_CODE" != "0" ]; then
+          echo "❌ Verification failed!"
+          exit 1
+        fi
+
+        echo "✅ Verification completed: $PASSED/$TOTAL checks passed"
