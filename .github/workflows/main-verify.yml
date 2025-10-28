@@ -7,6 +7,16 @@ permissions:
   contents: read
   security-events: write
   id-token: write
+  actions: none
+  checks: none
+  deployments: none
+  discussions: none
+  issues: none
+  packages: none
+  pages: none
+  pull-requests: none
+  repository-projects: none
+  statuses: none
 
 jobs:
   verify:

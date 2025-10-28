@@ -16,6 +16,18 @@ on:
 permissions:
   contents: read
   packages: write
+  actions: none
+  attestations: none
+  checks: none
+  deployments: none
+  discussions: none
+  id-token: none
+  issues: none
+  pages: none
+  pull-requests: none
+  repository-projects: none
+  security-events: none
+  statuses: none
 
 jobs:
   build-push:
