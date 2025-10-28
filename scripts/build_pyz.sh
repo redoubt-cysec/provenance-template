@@ -16,6 +16,19 @@ rm -rf dist && uv run --no-project python -m build
 # Make a .pyz from the installed package sources
 rm -rf build/pyz && mkdir -p build/pyz/src
 rsync -a --delete src/ build/pyz/src/
-# Create zipapp (module entry: demo_cli.cli:main)
-uv run --no-project python -m zipapp build/pyz/src -m "demo_cli.cli:main" -p "/usr/bin/env python3" -o dist/provenance-demo.pyz
+# Create zipapp (module entry: demo_cli.cli:main) with reproducible timestamps
+uv run --no-project python -c "
+import zipapp
+import os
+import time
+# Set mtime of all files to SOURCE_DATE_EPOCH for reproducibility
+sde = int(os.environ.get('SOURCE_DATE_EPOCH', time.time()))
+for root, dirs, files in os.walk('build/pyz/src'):
+    for name in files:
+        path = os.path.join(root, name)
+        os.utime(path, (sde, sde))
+zipapp.create_archive('build/pyz/src', 'dist/provenance-demo.pyz',
+                      interpreter='/usr/bin/env python3',
+                      main='demo_cli.cli:main')
+"
 chmod +x dist/provenance-demo.pyz

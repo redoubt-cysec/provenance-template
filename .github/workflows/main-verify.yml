@@ -50,7 +50,11 @@ jobs:
       - name: Determinism audit (double-build diff)
         run: |
           sha256sum dist/* > /tmp/first.sum
+          # Save SOURCE_DATE_EPOCH before clean
+          echo "$SOURCE_DATE_EPOCH" > /tmp/sde
           git clean -xdf
+          # Restore SOURCE_DATE_EPOCH
+          export SOURCE_DATE_EPOCH=$(cat /tmp/sde)
           ./scripts/build_pyz.sh
           sha256sum dist/* > /tmp/second.sum
           diff -u /tmp/first.sum /tmp/second.sum
