@@ -14,7 +14,12 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     build-essential \
     git \
     rsync \
+    curl \
     && rm -rf /var/lib/apt/lists/*
+
+# Install uv (Python package manager)
+RUN curl -LsSf https://astral.sh/uv/install.sh | sh
+ENV PATH="/root/.cargo/bin:${PATH}"
 
 # Copy source
 WORKDIR /build
