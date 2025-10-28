@@ -2,21 +2,16 @@ name: upgrade-suite
 on:
   workflow_dispatch:
     inputs:
-      pkg_name: { description: Package name (e.g. redoubt), required: true }
+      pkg_name: { description: Package name, required: true, default: "provenance-demo" }
       from_ver: { description: From version, required: true }
       to_ver:   { description: To version, required: true }
       apt_repo_url: { description: APT repo URL, required: true }
-      apt_dist: { description: APT dist, default: "stable" }
-      apt_component: { description: APT component, default: "main" }
       apt_gpg_url: { description: URL to APT pubkey, required: true }
       rpm_repo_url: { description: RPM repo URL, required: true }
       rpm_gpg_url: { description: URL to RPM pubkey, required: true }
-      image: { description: GHCR image (e.g. ghcr.io/OWNER/redoubt), default: "ghcr.io/OWNER/redoubt" }
-      from_tag: { description: Docker from tag, default: "1.0.0" }
-      to_tag: { description: Docker to tag, default: "1.1.0" }
-      snap_name: { description: Snap name, default: "redoubt" }
-      snap_from: { description: Snap channel from, default: "edge" }
-      snap_to:   { description: Snap channel to, default: "beta" }
+      image: { description: GHCR image, default: "ghcr.io/redoubt-cysec/provenance-demo" }
+      snap_name: { description: Snap name, default: "provenance-demo" }
+      snap_channel: { description: Snap upgrade path (e.g. edge->beta), default: "edge->beta" }
 
 jobs:
   run-upgrades:
@@ -31,16 +26,15 @@ jobs:
           FROM_VER:      ${{ github.event.inputs.from_ver }}
           TO_VER:        ${{ github.event.inputs.to_ver }}
           APT_REPO_URL:  ${{ github.event.inputs.apt_repo_url }}
-          APT_DIST:      ${{ github.event.inputs.apt_dist }}
-          APT_COMPONENT: ${{ github.event.inputs.apt_component }}
+          APT_DIST:      stable
+          APT_COMPONENT: main
           APT_GPG_URL:   ${{ github.event.inputs.apt_gpg_url }}
           RPM_REPO_URL:  ${{ github.event.inputs.rpm_repo_url }}
           RPM_GPG_URL:   ${{ github.event.inputs.rpm_gpg_url }}
           IMAGE:         ${{ github.event.inputs.image }}
-          FROM_TAG:      ${{ github.event.inputs.from_tag }}
-          TO_TAG:        ${{ github.event.inputs.to_tag }}
+          FROM_TAG:      ${{ github.event.inputs.from_ver }}
+          TO_TAG:        ${{ github.event.inputs.to_ver }}
           SNAP_NAME:     ${{ github.event.inputs.snap_name }}
-          FROM_CHANNEL:  ${{ github.event.inputs.snap_from }}
-          TO_CHANNEL:    ${{ github.event.inputs.snap_to }}
+          SNAP_CHANNEL:  ${{ github.event.inputs.snap_channel }}
         run: |
           bash scripts/phase2-testing/upgrade/run-upgrade-suite-local.sh
