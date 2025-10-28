@@ -47,7 +47,7 @@ def main():
     # Handle hello subcommand
     if args.command == "hello":
         name = args.name or "world"
-        print(f"hello, {name} 👋")
+        print(f"hello, {name}!")
         return 0
 
     # No command provided
