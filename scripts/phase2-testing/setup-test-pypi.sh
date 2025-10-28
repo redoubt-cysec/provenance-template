@@ -94,9 +94,9 @@ echo -e "${GREEN}✓ Installation successful${NC}"
 echo ""
 
 echo "Testing commands..."
-redoubt --version
-redoubt hello world
-redoubt verify || true
+provenance-demo --version
+provenance-demo hello world
+provenance-demo verify || true
 
 deactivate
 rm -rf "$TEMP_VENV"
