@@ -27,7 +27,7 @@ jobs:
       FLATHUB_FORK: ${{ github.event.inputs.flathub_repo }}
       MANIFEST_PATH: ${{ github.event.inputs.manifest_path }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683  # v4.2.2
 
       - name: Install Flatpak tooling
         run: |

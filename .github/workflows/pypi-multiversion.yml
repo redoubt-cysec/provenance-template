@@ -20,7 +20,7 @@ jobs:
       matrix:
         py: ["3.10","3.11","3.12","3.13"]
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683  # v4.2.2
       - name: Install multipass
         run: sudo snap install multipass --classic
       - name: Test ${{ matrix.py }} via Multipass VM
