@@ -5,22 +5,22 @@ ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 cd "$ROOT_DIR"
 
 YML="packaging/appimage/AppImageBuilder.yml"
-OUT="redoubt-$(date +%Y.%m.%d)-x86_64.AppImage"
+OUT="provenance-demo-$(date +%Y.%m.%d)-x86_64.AppImage"
 
 # Prefer linuxdeploy to avoid appimage-builder version parser bugs
 if command -v linuxdeploy >/dev/null 2>&1; then
   echo "Using linuxdeploy for AppImage build"
   mkdir -p AppDir/usr/bin
   # expect your pyz or binary exists:
-  if [[ -f "dist/redoubt.pyz" ]]; then
-    install -m 0755 dist/redoubt.pyz AppDir/usr/bin/redoubt
+  if [[ -f "dist/provenance-demo.pyz" ]]; then
+    install -m 0755 dist/provenance-demo.pyz AppDir/usr/bin/provenance-demo
   else
-    echo "dist/redoubt.pyz missing. Build your binary first."; exit 3
+    echo "dist/provenance-demo.pyz missing. Build your binary first."; exit 3
   fi
 
   # Use desktop file and icon
-  DESKTOP_FILE="packaging/appimage/redoubt.desktop"
-  ICON_FILE="packaging/appimage/icons/redoubt.png"
+  DESKTOP_FILE="packaging/appimage/provenance-demo.desktop"
+  ICON_FILE="packaging/appimage/icons/provenance-demo.png"
 
   linuxdeploy --appdir AppDir \
     --desktop-file "$DESKTOP_FILE" \

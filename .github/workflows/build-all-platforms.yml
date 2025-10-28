@@ -146,8 +146,8 @@ jobs:
 
       - name: Test Nix package
         run: |
-          ./result/bin/redoubt --version
-          ./result/bin/redoubt hello "Nix CI on ${{ matrix.os }}"
+          ./result/bin/provenance-demo --version
+          ./result/bin/provenance-demo hello "Nix CI on ${{ matrix.os }}"
 
       - name: Run nix flake check
         run: nix flake check
