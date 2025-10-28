@@ -124,7 +124,7 @@ jobs:
           cosign sign-blob --yes --keyless --bundle SHA256SUMS.bundle SHA256SUMS
 
       - name: Attest provenance (GitHub)
-        uses: actions/attest-build-provenance@25fe9e7a9d0f397cda6b66b6e7569d850f2c0d91  # v2.0.0
+        uses: actions/attest-build-provenance@e8998f949152b193b063cb0ec769d69d929409be  # v2.4.0
         with:
           subject-path: |
             dist/*

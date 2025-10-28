@@ -23,7 +23,7 @@ Use these commit SHAs to replace `<PINNED_SHA>` in your workflows:
 - uses: actions/download-artifact@fa0a91b85d4f404e444e00e005971372dc801d16  # v4.1.8
 
 # Build attestations
-- uses: actions/attest-build-provenance@25fe9e7a9d0f397cda6b66b6e7569d850f2c0d91  # v2.0.0
+- uses: actions/attest-build-provenance@e8998f949152b193b063cb0ec769d69d929409be  # v2.4.0
 
 # Dependency review
 - uses: actions/dependency-review-action@4081bf99e2866ebe428fc0477b69eb4fcda7220a  # v4.4.0
