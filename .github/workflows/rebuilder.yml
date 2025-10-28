@@ -36,6 +36,11 @@ jobs:
           git fetch --tags
           git checkout "${{ inputs.tag }}"
 
+      - name: Install uv
+        run: |
+          curl -LsSf https://astral.sh/uv/install.sh | sh
+          echo "$HOME/.cargo/bin" >> $GITHUB_PATH
+
       - name: Build
         run: |
           ./scripts/build_pyz.sh
