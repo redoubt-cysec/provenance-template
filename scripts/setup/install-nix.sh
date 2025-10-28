@@ -26,4 +26,7 @@ if [ -f "/etc/zshrc.backup-before-nix" ]; then
 fi
 
 echo "Running Nix installer in non-interactive mode..."
-sh <(curl -L https://nixos.org/nix/install) --daemon --yes
+curl -L https://nixos.org/nix/install -o /tmp/nix-install.sh
+echo "f630c4d3607d5f9a49bec0313a498eb560297ae139b758d71e73168ace7da2ea  /tmp/nix-install.sh" | sha256sum -c -
+sh /tmp/nix-install.sh --daemon --yes
+rm /tmp/nix-install.sh

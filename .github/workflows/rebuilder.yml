@@ -38,7 +38,9 @@ jobs:
 
       - name: Install uv
         run: |
-          curl -LsSf https://astral.sh/uv/install.sh | sh
+          curl -LsSf https://github.com/astral-sh/uv/releases/download/0.5.11/uv-installer.sh -o /tmp/uv-install.sh
+            echo "505407eb4b5bec00e0b231c8c86e968ee3f5aa0136d49dd8a541179e7f76ce7d  /tmp/uv-install.sh" | sha256sum -c -
+            sh /tmp/uv-install.sh && rm /tmp/uv-install.sh
           echo "$HOME/.cargo/bin" >> $GITHUB_PATH
 
       - name: Build

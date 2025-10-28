@@ -52,7 +52,7 @@ multipass exec "$VM" -- bash -lc "
   sudo apt-get install -y python${PYTHON_VERSION} python${PYTHON_VERSION}-venv
   /usr/bin/python${PYTHON_VERSION} -m venv venv
   . venv/bin/activate
-  python -m pip install -U pip
+  python -m pip install -U pip==24.3.1
   python -m pip install --index-url https://test.pypi.org/simple/ --extra-index-url https://pypi.org/simple \
     ${PACKAGE_NAME}==${PACKAGE_VERSION}
   ${PACKAGE_NAME%%-*} --version || true

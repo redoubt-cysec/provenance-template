@@ -10,7 +10,7 @@ DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 . "$DIR/_helpers.sh"
 
 python -m venv .venv && . .venv/bin/activate
-pip install -U pip
+pip install -U pip==24.3.1
 
 # Install FROM version
 pip install "${PKG_NAME}==${FROM_VER}"

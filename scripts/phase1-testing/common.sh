@@ -60,7 +60,7 @@ ensure_python_build_artifacts() {
     if [[ ! -d "$REPO_ROOT/.venv" ]]; then
       (cd "$REPO_ROOT" && uv venv) || skip "Unable to create virtual environment"
     fi
-    (cd "$REPO_ROOT" && uv pip install --upgrade pip build >/dev/null 2>&1) || skip "pip build dependencies unavailable"
+    (cd "$REPO_ROOT" && uv pip install --upgrade pip==24.3.1 build >/dev/null 2>&1) || skip "pip build dependencies unavailable"
     (cd "$REPO_ROOT" && uv run python -m build) || skip "python build failed"
   fi
 }

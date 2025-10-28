@@ -147,7 +147,7 @@ for PY_VERSION in "${PYTHON_VERSIONS[@]}"; do
     multipass exec "$VM_NAME" -- bash -c "
         set -e
         python$PY_VERSION -m venv /tmp/test-venv
-        /tmp/test-venv/bin/pip install --upgrade pip --quiet
+        /tmp/test-venv/bin/pip install --upgrade pip==24.3.1 --quiet
         cd /home/ubuntu
         # Try to import the package (simulates pip install)
         python$PY_VERSION -c 'import sys; sys.path.insert(0, \"/home/ubuntu/redoubt.pyz\"); import demo_cli.cli' 2>&1

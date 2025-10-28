@@ -86,7 +86,7 @@ fi
 if command -v python3 &> /dev/null && [ ! -f dist/*.whl ]; then
     echo ""
     echo "Building wheel..."
-    python3 -m pip install --quiet build 2>/dev/null || true
+    python3 -m pip install --quiet build==1.2.2.post1 2>/dev/null || true
     python3 -m build 2>/dev/null || true
     if ls dist/*.whl >/dev/null 2>&1; then
         echo -e "${GREEN}✓ Built wheel and sdist${NC}"
