@@ -43,10 +43,9 @@ jobs:
           ./scripts/build_pyz.sh
 
       - name: Generate SBOM (CycloneDX)
-        continue-on-error: true  # TODO: Fix cyclonedx-bom module import issue
         run: |
-          pip install --break-system-packages cyclonedx-bom
-          python -m cyclonedx_bom -o sbom.cdx.json || echo "SBOM generation skipped"
+          uv pip install cyclonedx-bom
+          uv run cyclonedx-py environment --pyproject pyproject.toml --output-reproducible -o sbom.cdx.json
 
       - name: Determinism audit (double-build diff)
         run: |
