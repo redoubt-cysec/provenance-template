@@ -270,15 +270,15 @@ jobs:
         shell: pwsh
         run: |
           python dist/provenance-demo.pyz --version
-          python dist/provenance-demo.pyz TestUser
+          python dist/provenance-demo.pyz hello TestUser
 
       - name: Test pip installation
         shell: pwsh
         run: |
           python -m venv C:\Temp\test-venv
           C:\Temp\test-venv\Scripts\pip install (Get-ChildItem dist\*.whl)[0].FullName
-          C:\Temp\test-venv\Scripts\demo --version
-          C:\Temp\test-venv\Scripts\demo TestUser
+          C:\Temp\test-venv\Scripts\provenance-demo --version
+          C:\Temp\test-venv\Scripts\provenance-demo hello TestUser
 
   summary:
     name: Integration Tests Summary

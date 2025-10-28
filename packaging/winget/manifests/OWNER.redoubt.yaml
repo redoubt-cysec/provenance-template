@@ -44,7 +44,7 @@ Installers:
   - Architecture: x64
     InstallerType: portable
     InstallerUrl: https://github.com/redoubt-cysec/provenance-template/releases/download/v0.1.0/provenance-demo.pyz
-    InstallerSha256: REPLACE_WITH_SHA256_FROM_RELEASE
+    InstallerSha256: 0000000000000000000000000000000000000000000000000000000000000000
     Commands:
       - provenance-demo
     Dependencies:
