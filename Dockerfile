@@ -27,15 +27,15 @@ RUN ./scripts/build_pyz.sh
 FROM python:3.10-slim
 
 # Security: Run as non-root user
-RUN useradd -m -u 1000 redoubt && \
+RUN useradd -m -u 1000 appuser && \
     mkdir -p /app && \
-    chown redoubt:redoubt /app
+    chown appuser:appuser /app
 
 WORKDIR /app
-USER redoubt
+USER appuser
 
 # Copy only the built artifact
-COPY --from=builder --chown=redoubt:redoubt /build/dist/provenance-demo.pyz /app/provenance-demo.pyz
+COPY --from=builder --chown=appuser:appuser /build/dist/provenance-demo.pyz /app/provenance-demo.pyz
 
 # Make executable
 RUN chmod +x /app/provenance-demo.pyz
@@ -52,7 +52,11 @@ ENTRYPOINT ["/app/provenance-demo.pyz"]
 CMD ["--help"]
 
 # Usage examples:
-# docker build -t redoubt .
-# docker run redoubt hello world
-# docker run redoubt verify
-# docker run redoubt --version
+# docker build -t provenance-demo .
+# docker run provenance-demo hello world
+# docker run provenance-demo verify
+# docker run provenance-demo --version
+#
+# Or pull from GHCR:
+# docker pull ghcr.io/redoubt-cysec/provenance-demo:latest
+# docker run ghcr.io/redoubt-cysec/provenance-demo:latest --version
