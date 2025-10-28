@@ -21,7 +21,7 @@ classifiers = [
 ]
 
 [project.scripts]
-demo = "demo_cli.cli:main"
+provenance-demo = "demo_cli.cli:main"
 
 [tool.hatch.build.targets.wheel]
 packages = ["src/demo_cli"]
