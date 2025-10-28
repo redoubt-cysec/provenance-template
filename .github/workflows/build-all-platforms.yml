@@ -101,7 +101,7 @@ jobs:
       - name: Test AppImage
         run: |
           # Find the AppImage (name has date)
-          APPIMAGE=$(find . -name "redoubt-*.AppImage" -type f | head -1)
+          APPIMAGE=$(find . -name "provenance-demo-*.AppImage" -type f | head -1)
           chmod +x "$APPIMAGE"
           "$APPIMAGE" --version
           "$APPIMAGE" hello "AppImage CI"
@@ -109,8 +109,8 @@ jobs:
       - name: Upload AppImage
         uses: actions/upload-artifact@65c4e9e2f5e1a4c3e4f3e8d5f9f6b6c6e8c9e0d0 # v4.4.3
         with:
-          name: redoubt-appimage
-          path: redoubt-*.AppImage
+          name: provenance-demo-appimage
+          path: provenance-demo-*.AppImage
           retention-days: 7
 
   # Nix build

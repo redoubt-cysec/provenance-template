@@ -82,7 +82,7 @@ jobs:
           ./packaging/appimage/build-appimage.sh
           # Move AppImage to dist/
           mkdir -p dist
-          mv redoubt-*.AppImage dist/ || true
+          mv provenance-demo-*.AppImage dist/ || true
 
       - name: Install Nix
         uses: DeterminateSystems/nix-installer-action@da36cb69b1c3247ad7a1f931ebfd954a1105ef14 # v14
