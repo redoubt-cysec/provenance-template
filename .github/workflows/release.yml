@@ -7,6 +7,17 @@ permissions:
   contents: write
   id-token: write
   attestations: write
+  actions: none
+  checks: none
+  deployments: none
+  discussions: none
+  issues: none
+  packages: none
+  pages: none
+  pull-requests: none
+  repository-projects: none
+  security-events: none
+  statuses: none
 
 concurrency:
   group: release-${{ github.ref }}
