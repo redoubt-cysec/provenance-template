@@ -47,7 +47,7 @@ fi
 
 if ! command_exists uv; then
     info "'uv' is not found. Installing it via pip..."
-    python3 -m pip install uv
+    python3 -m pip install uv==0.5.11
     # Add uv to PATH for the current session if it's not there already
     if ! command_exists uv; then
         export PATH="$HOME/.local/bin:$PATH"

@@ -19,7 +19,7 @@ echo ""
 # Check for required tools
 if ! command -v twine &> /dev/null; then
     echo -e "${YELLOW}Installing twine...${NC}"
-    pip install --upgrade twine
+    pip install --upgrade twine==6.0.1
 fi
 
 # Check for Test PyPI account

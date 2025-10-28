@@ -14,7 +14,7 @@ mkdir -p "$DIST_DIR"
 
 echo "→ Ensuring build tooling is installed"
 if ! python -c "import build" >/dev/null 2>&1; then
-  python -m pip install --upgrade pip >/dev/null 2>&1
+  python -m pip install --upgrade pip==24.3.1 >/dev/null 2>&1
   python -m pip install --upgrade build >/dev/null 2>&1
 fi
 

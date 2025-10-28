@@ -23,7 +23,10 @@ jobs:
             createrepo-c dpkg-dev || true
           sudo apt-get install -y terraform || true
           sudo snap install snapcraft --classic || true
-          curl -fsSL https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3 | bash
+          curl -fsSL https://get.helm.sh/helm-v3.17.0-linux-amd64.tar.gz -o /tmp/helm.tar.gz
+          echo "fb5d12662fde6eeff36ac4ccacbf3abed96b0ee2de07afdde4edb14e613aee24  /tmp/helm.tar.gz" | sha256sum -c -
+          tar -zxvf /tmp/helm.tar.gz -C /tmp && sudo mv /tmp/linux-amd64/helm /usr/local/bin/helm
+          rm -rf /tmp/helm.tar.gz /tmp/linux-amd64
       - name: Run distribution tests
         run: |
           bash scripts/distribution-testing/run-all.sh

@@ -11,7 +11,7 @@ if [ ! -d "$REPO_ROOT/.venv" ]; then
 fi
 
 # Install devpi and build tools
-(cd "$REPO_ROOT" && uv pip install --upgrade pip wheel devpi-server devpi-client twine build)
+(cd "$REPO_ROOT" && uv pip install --upgrade pip==24.3.1 wheel devpi-server devpi-client twine build)
 
 DEVPI_DIR="$(mktemp -d)"
 

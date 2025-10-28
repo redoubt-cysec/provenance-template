@@ -17,7 +17,7 @@ trap 'rm -rf "$TEMP_DIR"' EXIT
 VENV="$TEMP_DIR/venv"
 python3 -m venv "$VENV" || skip "venv creation failed"
 "$VENV/bin/pip" install --upgrade pip >/dev/null
-"$VENV/bin/pip" install --quiet build >/dev/null 2>&1 || skip "pip install build failed (likely offline)"
+"$VENV/bin/pip" install --quiet build >/dev/null 2>&1 || skip "pip install build==1.2.2.post1 failed (likely offline)"
 
 # Build wheel/sdist if not already
 (cd "$REPO_ROOT" && "$VENV/bin/python" -m build >/dev/null 2>&1 || true)

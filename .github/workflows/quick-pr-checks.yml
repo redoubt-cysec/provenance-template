@@ -35,8 +35,11 @@ jobs:
 
       - name: Install gitleaks
         run: |
-          curl -sSfL https://github.com/gitleaks/gitleaks/releases/latest/download/gitleaks_linux_x64.tar.gz \
-          | tar xz && sudo mv gitleaks /usr/local/bin/
+          curl -sSfL https://github.com/gitleaks/gitleaks/releases/download/v8.28.0/gitleaks_linux_x64.tar.gz \
+            -o /tmp/gitleaks.tar.gz
+          echo "0019dfc4b32d63c1392aa264aed2253c1e0c2fb09216f8e2cc269bbfb8bb49b5  /tmp/gitleaks.tar.gz" | sha256sum -c -
+          tar xzf /tmp/gitleaks.tar.gz && sudo mv gitleaks /usr/local/bin/
+          rm /tmp/gitleaks.tar.gz
       - name: Run gitleaks
         run: gitleaks detect --source . --no-git --redact
 
@@ -54,7 +57,9 @@ jobs:
 
       - name: Install uv
         run: |
-          curl -LsSf https://astral.sh/uv/install.sh | sh
+          curl -LsSf https://github.com/astral-sh/uv/releases/download/0.5.11/uv-installer.sh -o /tmp/uv-install.sh
+            echo "505407eb4b5bec00e0b231c8c86e968ee3f5aa0136d49dd8a541179e7f76ce7d  /tmp/uv-install.sh" | sha256sum -c -
+            sh /tmp/uv-install.sh && rm /tmp/uv-install.sh
           echo "$HOME/.cargo/bin" >> $GITHUB_PATH
 
       - name: Sanity build
