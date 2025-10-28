@@ -44,8 +44,8 @@ jobs:
 
       - name: Generate SBOM (CycloneDX)
         run: |
-          uv pip install --system cyclonedx-bom
-          uv run --no-project python -m cyclonedx_bom -o sbom.cdx.json
+          pip install --break-system-packages cyclonedx-bom
+          python -m cyclonedx_bom -o sbom.cdx.json
 
       - name: Determinism audit (double-build diff)
         run: |
