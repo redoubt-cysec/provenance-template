@@ -60,9 +60,76 @@
 
 ---
 
+### 4. PYPI_TOKEN ⭐ PRIORITY
+
+**Purpose**: Publishes package to production PyPI (pypi.org)
+
+**How to get it**:
+```bash
+1. Go to https://pypi.org/manage/account/login/
+2. Navigate to Account settings → API tokens
+3. Click "Add API token"
+4. Name: "GitHub Actions - provenance-demo"
+5. Scope: "Entire account" (or specific to provenance-demo project)
+6. Copy the token (starts with pypi-)
+```
+
+**Add to GitHub**:
+- Name: `PYPI_TOKEN`
+- Value: `pypi-AgEIcHlwaS5vcmcC...`
+
+---
+
+### 5. TESTPYPI_TOKEN ⭐ PRIORITY
+
+**Purpose**: Publishes package to TestPyPI (test.pypi.org) for testing before production
+
+**How to get it**:
+```bash
+1. Go to https://test.pypi.org/manage/account/login/
+2. Navigate to Account settings → API tokens
+3. Click "Add API token"
+4. Name: "GitHub Actions - provenance-demo"
+5. Scope: "Entire account" (or specific project)
+6. Copy the token (starts with pypi-)
+```
+
+**Add to GitHub**:
+- Name: `TESTPYPI_TOKEN`
+- Value: `pypi-AgEIcHlwaS5vcmcC...`
+
+---
+
+### 6. SNAPCRAFT_STORE_CREDENTIALS ⭐ PRIORITY
+
+**Purpose**: Publishes snap package to Snap Store (snapcraft.io)
+
+**How to get it**:
+```bash
+# 1. Login to snapcraft (one-time setup)
+snapcraft login
+
+# 2. Export credentials
+snapcraft export-login snapcraft-credentials.txt
+
+# 3. View the credentials file (this is what goes in the secret)
+cat snapcraft-credentials.txt
+```
+
+**Add to GitHub**:
+- Name: `SNAPCRAFT_STORE_CREDENTIALS`
+- Value: `[entire contents of snapcraft-credentials.txt]`
+
+**Security Note**: After adding to GitHub secrets, delete the local file:
+```bash
+rm snapcraft-credentials.txt
+```
+
+---
+
 ## Optional Secrets (For Enhanced Security)
 
-### 4. GPG_PRIVATE_KEY (Optional)
+### 7. GPG_PRIVATE_KEY (Optional)
 
 **Purpose**: Signs APT/RPM packages with GPG
 
@@ -85,7 +152,7 @@ gpg --full-generate-key
 
 ---
 
-### 5. GPG_PASSPHRASE (Optional)
+### 8. GPG_PASSPHRASE (Optional)
 
 **Purpose**: Passphrase for GPG key
 
@@ -125,6 +192,8 @@ You can create a release **without** secrets and most things will still work:
 - ✅ AUR validation
 - ✅ Docker build (uses GITHUB_TOKEN automatically)
 - ⏩ Homebrew (will skip without TAP_GITHUB_TOKEN)
+- ⏩ PyPI (will skip without PYPI_TOKEN and TESTPYPI_TOKEN)
+- ⏩ Snap Store (will skip without SNAPCRAFT_STORE_CREDENTIALS)
 - ⏩ Cachix (will use Magic Nix Cache only)
 - ⏩ GPG signing (will skip without keys)
 
@@ -133,10 +202,15 @@ You can create a release **without** secrets and most things will still work:
 ## Verification
 
 After adding secrets, they should appear in:
-https://github.com/redoubt-cysec/provenance-demo/settings/secrets/actions
+https://github.com/redoubt-cysec/provenance-template/settings/secrets/actions
 
 You should see:
 - ✅ CACHIX_AUTH_TOKEN (if added)
 - ✅ CACHIX_CACHE_NAME (if added)
 - ✅ TAP_GITHUB_TOKEN (if added)
+- ✅ PYPI_TOKEN (if added)
+- ✅ TESTPYPI_TOKEN (if added)
+- ✅ SNAPCRAFT_STORE_CREDENTIALS (if added)
+- ✅ GPG_PRIVATE_KEY (if added)
+- ✅ GPG_PASSPHRASE (if added)
 - Plus GITHUB_TOKEN (automatic, always present)
