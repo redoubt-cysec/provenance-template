@@ -52,19 +52,19 @@ class TestScoopManifest:
 
     def test_scoop_manifest_exists(self):
         """Verify Scoop manifest exists."""
-        manifest = REPO_ROOT / "packaging" / "scoop" / "redoubt.json"
+        manifest = REPO_ROOT / "packaging" / "scoop" / "provenance-demo.json"
         assert manifest.exists(), "Scoop manifest not found"
 
     def test_scoop_manifest_valid_json(self):
         """Verify Scoop manifest is valid JSON."""
-        manifest = REPO_ROOT / "packaging" / "scoop" / "redoubt.json"
+        manifest = REPO_ROOT / "packaging" / "scoop" / "provenance-demo.json"
         with open(manifest) as f:
             data = json.load(f)
         assert isinstance(data, dict), "Manifest should be a JSON object"
 
     def test_scoop_manifest_required_fields(self):
         """Verify Scoop manifest has required fields."""
-        manifest = REPO_ROOT / "packaging" / "scoop" / "redoubt.json"
+        manifest = REPO_ROOT / "packaging" / "scoop" / "provenance-demo.json"
         with open(manifest) as f:
             data = json.load(f)
 
@@ -78,7 +78,7 @@ class TestScoopManifest:
 
     def test_scoop_manifest_has_checkver(self):
         """Verify Scoop manifest has auto-update configuration."""
-        manifest = REPO_ROOT / "packaging" / "scoop" / "redoubt.json"
+        manifest = REPO_ROOT / "packaging" / "scoop" / "provenance-demo.json"
         with open(manifest) as f:
             data = json.load(f)
         assert "checkver" in data, "Should have checkver for auto-updates"
@@ -397,7 +397,7 @@ class TestConfigurationConsistency:
 
         # Check other configs
         configs_to_check = [
-            ("packaging/scoop/redoubt.json", lambda c: json.loads(c)["version"]),
+            ("packaging/scoop/provenance-demo.json", lambda c: json.loads(c)["version"]),
             ("packaging/rpm/redoubt.spec", lambda c: f"Version:        {version}" in c),
             ("packaging/aur/PKGBUILD", lambda c: f'pkgver={version}' in c),
         ]
@@ -421,7 +421,7 @@ class TestConfigurationConsistency:
         expected_names = ["redoubt", "provenance-demo"]
 
         configs = [
-            REPO_ROOT / "packaging" / "scoop" / "redoubt.json",
+            REPO_ROOT / "packaging" / "scoop" / "provenance-demo.json",
             REPO_ROOT / "packaging" / "chocolatey" / "redoubt.nuspec",
         ]
 
