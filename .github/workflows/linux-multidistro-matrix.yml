@@ -46,7 +46,7 @@ jobs:
           - debian:11
           - debian:12
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683  # v4.2.2
 
       - name: Install Multipass
         run: |
@@ -76,7 +76,7 @@ jobs:
           - rockylinux:9
           - fedora:40
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683  # v4.2.2
 
       - name: Install Multipass
         run: |
