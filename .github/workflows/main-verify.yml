@@ -49,11 +49,11 @@ jobs:
 
       - name: Determinism audit (double-build diff)
         run: |
-          sha256sum dist/* > first.sum
+          sha256sum dist/* > /tmp/first.sum
           git clean -xdf
           ./scripts/build_pyz.sh
-          sha256sum dist/* > second.sum
-          diff -u first.sum second.sum
+          sha256sum dist/* > /tmp/second.sum
+          diff -u /tmp/first.sum /tmp/second.sum
 
       - name: OSV scan SBOM
         run: |
