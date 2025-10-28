@@ -6,14 +6,14 @@
 
 ## 🚨 CRITICAL (Must Do Before Release)
 
-### 1. ❌ Replace Borduas-Holdings/redoubt-release-template Placeholders
+### 1. ❌ Replace redoubt-cysec/provenance-demo Placeholders
 
 **Status:** 74 instances found
 **Impact:** BLOCKING - Code won't work without this
 
 ```bash
 # Find all instances
-grep -r "Borduas-Holdings/redoubt-release-template" --include="*.yml" --include="*.yaml" --include="*.md" .
+grep -r "redoubt-cysec/provenance-demo" --include="*.yml" --include="*.yaml" --include="*.md" .
 
 # Replace with your values
 find .github scripts docs -type f \( -name "*.yml" -o -name "*.yaml" -o -name "*.md" \) -exec sed -i '' 's/OWNER\/REPO/yourusername\/your-repo/g' {} \;
@@ -128,7 +128,7 @@ uv run pytest tests/ -v
 # Watch for:
 #   - test_verification_enforcement.py MUST pass
 #   - No failures in security tests
-#   - Placeholder checks may fail (expected until Borduas-Holdings/redoubt-release-template replaced)
+#   - Placeholder checks may fail (expected until redoubt-cysec/provenance-demo replaced)
 ```
 
 ---
@@ -184,9 +184,9 @@ mkdir -p .github/ISSUE_TEMPLATE
 ### 11. 📋 Add Badges to README
 
 ```markdown
-[![Tests](https://github.com/Borduas-Holdings/redoubt-release-template/workflows/Tests/badge.svg)](https://github.com/Borduas-Holdings/redoubt-release-template/actions)
-[![Coverage](https://img.shields.io/codecov/c/github/Borduas-Holdings/redoubt-release-template)](https://codecov.io/gh/Borduas-Holdings/redoubt-release-template)
-[![License](https://img.shields.io/github/license/Borduas-Holdings/redoubt-release-template)](LICENSE)
+[![Tests](https://github.com/redoubt-cysec/provenance-demo/workflows/Tests/badge.svg)](https://github.com/redoubt-cysec/provenance-demo/actions)
+[![Coverage](https://img.shields.io/codecov/c/github/redoubt-cysec/provenance-demo)](https://codecov.io/gh/redoubt-cysec/provenance-demo)
+[![License](https://img.shields.io/github/license/redoubt-cysec/provenance-demo)](LICENSE)
 ```
 
 ---
@@ -250,7 +250,7 @@ gh issue list
 
 ### ❌ BLOCKING (Must fix before release)
 
-- [ ] **Replace Borduas-Holdings/redoubt-release-template** (74 instances)
+- [ ] **Replace redoubt-cysec/provenance-demo** (74 instances)
 - [ ] **Pin GitHub Action SHAs** (47 instances)
 - [ ] **Add LICENSE file** (critical!)
 
@@ -282,7 +282,7 @@ Copyright (c) 2025 Your Name
 ...
 EOF
 
-# 2. Replace Borduas-Holdings/redoubt-release-template (10 minutes)
+# 2. Replace redoubt-cysec/provenance-demo (10 minutes)
 ./scripts/setup_local_config.sh  # Interactive
 # OR
 find . -type f -name "*.yml" -o -name "*.md" | xargs sed -i '' 's/OWNER\/REPO/yourusername\/your-repo/g'
@@ -313,7 +313,7 @@ git push --tags
 ## 🚀 READY FOR RELEASE WHEN
 
 - ✅ LICENSE file added
-- ✅ Borduas-Holdings/redoubt-release-template replaced (all 74 instances)
+- ✅ redoubt-cysec/provenance-demo replaced (all 74 instances)
 - ✅ GitHub Action SHAs pinned (all 47 instances)
 - ✅ pyproject.toml updated
 - ✅ Tests pass
@@ -327,7 +327,7 @@ git push --tags
 
 ```bash
 # Check placeholders
-grep -r "Borduas-Holdings/redoubt-release-template" .github/ | wc -l
+grep -r "redoubt-cysec/provenance-demo" .github/ | wc -l
 grep -r "<PINNED_SHA>" .github/ | wc -l
 
 # Run critical tests
@@ -341,4 +341,4 @@ git diff --stat
 
 ---
 
-**Next Action:** Start with LICENSE, then Borduas-Holdings/redoubt-release-template, then pin SHAs. That's the critical path to release!
+**Next Action:** Start with LICENSE, then redoubt-cysec/provenance-demo, then pin SHAs. That's the critical path to release!

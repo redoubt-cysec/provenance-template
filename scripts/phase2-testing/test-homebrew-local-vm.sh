@@ -34,7 +34,7 @@ VM_NAME="homebrew-local-test-$$"
 vm_setup_cleanup_trap "$VM_NAME"
 
 # Check if .pyz exists
-PYZ_FILE="$PROJECT_ROOT/dist/redoubt-release-template.pyz"
+PYZ_FILE="$PROJECT_ROOT/dist/provenance-demo.pyz"
 if [ ! -f "$PYZ_FILE" ]; then
     echo -e "${YELLOW}⚠ .pyz file not found at $PYZ_FILE${NC}"
     echo -e "${YELLOW}→ Building .pyz file first...${NC}"
@@ -90,7 +90,7 @@ multipass exec "$VM_NAME" -- bash -c '
     cat > "$(brew --repository)/Library/Taps/local/homebrew-redoubt/Formula/redoubt.rb" <<EOF
 class Redoubt < Formula
   desc "Redoubt - Secure CLI with reproducible releases"
-  homepage "https://github.com/jonathanborduas/redoubt-release-template"
+  homepage "https://github.com/redoubt-cysec/provenance-template"
   url "file:///home/ubuntu/redoubt.pyz"
   version "0.1.0"
   sha256 "$(sha256sum /home/ubuntu/redoubt.pyz | awk "{print \$1}")"

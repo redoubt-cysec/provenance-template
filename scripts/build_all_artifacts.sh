@@ -28,8 +28,8 @@ mkdir -p "$REPO_ROOT/build/pyz/src"
 rsync -a "$REPO_ROOT/src/" "$REPO_ROOT/build/pyz/src/"
 python -m zipapp "$REPO_ROOT/build/pyz/src" \
   -m "demo_cli.cli:main" \
-  -o "$DIST_DIR/redoubt-release-template.pyz"
-chmod +x "$DIST_DIR/redoubt-release-template.pyz"
+  -o "$DIST_DIR/provenance-demo.pyz"
+chmod +x "$DIST_DIR/provenance-demo.pyz"
 
 echo "→ Capturing distribution manifests"
 

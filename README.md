@@ -1,8 +1,8 @@
-# Redoubt Release Template
+# Provenance Demo
 
-[![Main Verify](https://github.com/jonathanborduas/redoubt-release-template/actions/workflows/main-verify.yml/badge.svg)](https://github.com/jonathanborduas/redoubt-release-template/actions/workflows/main-verify.yml)
-[![Secure Release](https://github.com/jonathanborduas/redoubt-release-template/actions/workflows/release.yml/badge.svg)](https://github.com/jonathanborduas/redoubt-release-template/actions/workflows/release.yml)
-[![Coverage](https://img.shields.io/badge/coverage-100%25-brightgreen.svg)](https://github.com/jonathanborduas/redoubt-release-template/actions/workflows/coverage.yml)
+[![Main Verify](https://github.com/redoubt-cysec/provenance-demo/actions/workflows/main-verify.yml/badge.svg)](https://github.com/redoubt-cysec/provenance-demo/actions/workflows/main-verify.yml)
+[![Secure Release](https://github.com/redoubt-cysec/provenance-demo/actions/workflows/release.yml/badge.svg)](https://github.com/redoubt-cysec/provenance-demo/actions/workflows/release.yml)
+[![Coverage](https://img.shields.io/badge/coverage-100%25-brightgreen.svg)](https://github.com/redoubt-cysec/provenance-demo/actions/workflows/coverage.yml)
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 
 **Production-ready Python CLI template with enterprise-grade supply chain security.**
@@ -71,7 +71,7 @@ Run the setup script to replace placeholder values:
 ./scripts/setup_local_config.sh
 ```
 
-This replaces `jonathanborduas/redoubt-release-template` with your repository details throughout the codebase.
+This replaces `redoubt-cysec/provenance-demo` with your repository details throughout the codebase.
 
 ### 4. Pin GitHub Actions
 
@@ -95,8 +95,8 @@ just verify
 # Or using uv directly
 uv build
 uv run pytest tests/ -v
-./dist/redoubt-release-template.pyz --version
-./dist/redoubt-release-template.pyz verify
+./dist/provenance-demo.pyz --version
+./dist/provenance-demo.pyz verify
 ```
 
 ### 6. Customize for Your Project
@@ -130,11 +130,11 @@ All releases include cryptographic signatures and attestations. Verify them with
 
 ```bash
 # Verify GitHub attestations
-gh attestation verify redoubt-release-template.pyz \
-  --owner Borduas-Holdings
+gh attestation verify provenance-demo.pyz \
+  --owner redoubt-cysec
 
 # Verify with built-in command
-./redoubt-release-template.pyz verify
+./provenance-demo.pyz verify
 
 # Rebuild from source and compare hashes
 gh workflow run rebuilder.yml
@@ -151,9 +151,9 @@ The template includes a demo CLI to show how everything works:
 just build
 
 # Run the demo
-./dist/redoubt-release-template.pyz --version
-./dist/redoubt-release-template.pyz hello "World"
-./dist/redoubt-release-template.pyz verify
+./dist/provenance-demo.pyz --version
+./dist/provenance-demo.pyz hello "World"
+./dist/provenance-demo.pyz verify
 ```
 
 Replace the demo code in `src/demo_cli/` with your own application.
@@ -284,8 +284,8 @@ Built with modern security best practices:
 
 ## Support
 
-- **Issues:** [GitHub Issues](https://github.com/jonathanborduas/redoubt-release-template/issues)
-- **Discussions:** [GitHub Discussions](https://github.com/jonathanborduas/redoubt-release-template/discussions)
+- **Issues:** [GitHub Issues](https://github.com/redoubt-cysec/provenance-demo/issues)
+- **Discussions:** [GitHub Discussions](https://github.com/redoubt-cysec/provenance-demo/discussions)
 - **Security:** See [SECURITY.md](docs/security/SECURITY.md) for vulnerability reporting
 
 ---

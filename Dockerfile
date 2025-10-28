@@ -1,4 +1,4 @@
-# Multi-stage Dockerfile for Redoubt Release Demo
+# Multi-stage Dockerfile for Provenance Demo
 # Produces a minimal container with only the verified binary
 
 FROM python:3.10-slim as builder
@@ -35,20 +35,20 @@ WORKDIR /app
 USER redoubt
 
 # Copy only the built artifact
-COPY --from=builder --chown=redoubt:redoubt /build/dist/redoubt-release-template.pyz /app/redoubt-release-template.pyz
+COPY --from=builder --chown=redoubt:redoubt /build/dist/provenance-demo.pyz /app/provenance-demo.pyz
 
 # Make executable
-RUN chmod +x /app/redoubt-release-template.pyz
+RUN chmod +x /app/provenance-demo.pyz
 
 # Metadata
-LABEL org.opencontainers.image.title="Redoubt Release Demo"
+LABEL org.opencontainers.image.title="Provenance Demo"
 LABEL org.opencontainers.image.description="Self-verifying CLI with complete supply chain security"
-LABEL org.opencontainers.image.source="https://github.com/OWNER/REPO"
+LABEL org.opencontainers.image.source="https://github.com/redoubt-cysec/provenance-template"
 LABEL org.opencontainers.image.licenses="MIT"
-LABEL org.opencontainers.image.documentation="https://github.com/OWNER/REPO/blob/main/README.md"
+LABEL org.opencontainers.image.documentation="https://github.com/redoubt-cysec/provenance-template/blob/main/README.md"
 
 # Default entrypoint
-ENTRYPOINT ["/app/redoubt-release-template.pyz"]
+ENTRYPOINT ["/app/provenance-demo.pyz"]
 CMD ["--help"]
 
 # Usage examples:

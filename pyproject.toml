@@ -3,13 +3,13 @@ requires = ["hatchling>=1.25"]
 build-backend = "hatchling.build"
 
 [project]
-name = "demo-secure-cli"
+name = "provenance-demo"
 version = "0.1.0"
 description = "Minimal demo CLI with a hardened, reproducible, and attestable release pipeline."
 readme = "README.md"
 requires-python = ">=3.10"
 license = {text = "MIT"}
-authors = [{name = "Jonathan Borduas", email = "jonathan.borduas@example.com"}]
+authors = [{name = "Borduas Holdings Ltd.", email = "admin@borduasholdings.com"}]
 keywords = ["cli", "security", "slsa", "sigstore", "supply-chain"]
 classifiers = [
   "Programming Language :: Python :: 3",

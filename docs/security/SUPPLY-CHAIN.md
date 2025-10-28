@@ -7,7 +7,7 @@ This template ships a hardened, reproducible pipeline.
 ```bash
 # Download and verify attestation
 TAG=v0.1.0
-REPO=Borduas-Holdings/redoubt-release-template
+REPO=redoubt-cysec/provenance-demo
 curl -LO https://github.com/$REPO/releases/download/$TAG/client.pyz
 gh attestation verify client.pyz --repo $REPO
 ```

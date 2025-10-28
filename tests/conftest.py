@@ -1,4 +1,4 @@
-"""Pytest configuration hooks for the redoubt-release-template test suite."""
+"""Pytest configuration hooks for the provenance-template test suite."""
 import os
 
 
@@ -25,6 +25,6 @@ def pytest_addoption(parser):
     parser.addoption(
         "--github-repo",
         action="store",
-        default=os.getenv("GITHUB_REPO", "Borduas-Holdings/redoubt-release-template-"),
+        default=os.getenv("GITHUB_REPO", "redoubt-cysec/provenance-template"),
         help="GitHub repository in OWNER/REPO format (defaults to this project).",
     )

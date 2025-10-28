@@ -17,5 +17,5 @@ rm -rf dist && uv run python -m build
 rm -rf build/pyz && mkdir -p build/pyz/src
 rsync -a --delete src/ build/pyz/src/
 # Create zipapp (module entry: demo_cli.cli:main)
-uv run python -m zipapp build/pyz/src -m "demo_cli.cli:main" -p "/usr/bin/env python3" -o dist/redoubt-release-template.pyz
-chmod +x dist/redoubt-release-template.pyz
+uv run python -m zipapp build/pyz/src -m "demo_cli.cli:main" -p "/usr/bin/env python3" -o dist/provenance-demo.pyz
+chmod +x dist/provenance-demo.pyz

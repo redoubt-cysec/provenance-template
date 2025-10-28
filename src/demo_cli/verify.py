@@ -76,9 +76,9 @@ class Verifier:
             if path.suffix == ".pyz" and path.exists():
                 return path
 
-        # Check for dist/redoubt-release-template.pyz relative to package
+        # Check for dist/provenance-demo.pyz relative to package
         pkg_dir = Path(__file__).parent.parent.parent
-        pyz_path = pkg_dir / "dist" / "redoubt-release-template.pyz"
+        pyz_path = pkg_dir / "dist" / "provenance-demo.pyz"
         if pyz_path.exists():
             return pyz_path
 

@@ -2,7 +2,7 @@
 
 **Last Updated:** 2025-10-25 (Added AppImage, AUR, Nix, Flatpak testing coverage)
 
-Redoubt Release Demo can be installed on multiple platforms through various package managers and distribution methods.
+Provenance Demo can be installed on multiple platforms through various package managers and distribution methods.
 
 ## 🆕 Newly Tested Platforms (2025-10-25)
 
@@ -33,7 +33,7 @@ redoubt --version
 #### **Snap Store**
 
 ```bash
-snap install redoubt-release-template
+snap install provenance-demo
 redoubt --version
 ```
 
@@ -43,7 +43,7 @@ redoubt --version
 # Add repository (after publishing)
 echo "deb [trusted=yes] https://OWNER.github.io/apt-repo /" | sudo tee /etc/apt/sources.list.d/redoubt.list
 sudo apt update
-sudo apt install redoubt-release-template
+sudo apt install provenance-demo
 redoubt --version
 ```
 
@@ -51,7 +51,7 @@ redoubt --version
 
 ```bash
 # Download and install RPM
-curl -L -o redoubt.rpm https://github.com/Borduas-Holdings/redoubt-release-template/releases/download/v0.1.0/redoubt-0.1.0-1.rpm
+curl -L -o redoubt.rpm https://github.com/redoubt-cysec/provenance-demo/releases/download/v0.1.0/redoubt-0.1.0-1.rpm
 sudo rpm -i redoubt.rpm
 redoubt --version
 
@@ -63,11 +63,11 @@ rpmbuild -ba packaging/rpm/redoubt.spec
 
 ```bash
 # Using yay
-yay -S redoubt-release-template
+yay -S provenance-demo
 
 # Or manually
-git clone https://aur.archlinux.org/redoubt-release-template.git
-cd redoubt-release-template
+git clone https://aur.archlinux.org/provenance-demo.git
+cd provenance-demo
 makepkg -si
 ```
 
@@ -82,7 +82,7 @@ flatpak run com.OWNER.Redoubt hello world
 
 ```bash
 curl -L -o redoubt-0.1.0-x86_64.AppImage \
-  https://github.com/Borduas-Holdings/redoubt-release-template/releases/download/v0.1.0/redoubt-0.1.0-x86_64.AppImage
+  https://github.com/redoubt-cysec/provenance-demo/releases/download/v0.1.0/redoubt-0.1.0-x86_64.AppImage
 chmod +x redoubt-0.1.0-x86_64.AppImage
 ./redoubt-0.1.0-x86_64.AppImage --version
 ```
@@ -91,31 +91,31 @@ chmod +x redoubt-0.1.0-x86_64.AppImage
 
 ```bash
 # Using flakes
-nix run github:Borduas-Holdings/redoubt-release-template
+nix run github:redoubt-cysec/provenance-demo
 
 # Or add to your configuration.nix
 environment.systemPackages = [
-  (pkgs.callPackage (fetchTarball "https://github.com/Borduas-Holdings/redoubt-release-template/archive/main.tar.gz") {})
+  (pkgs.callPackage (fetchTarball "https://github.com/redoubt-cysec/provenance-demo/archive/main.tar.gz") {})
 ];
 ```
 
 #### **Direct .pyz Download**
 
 ```bash
-curl -L -o redoubt-release-template.pyz https://github.com/Borduas-Holdings/redoubt-release-template/releases/download/v0.1.0/redoubt-release-template.pyz
-chmod +x redoubt-release-template.pyz
-./redoubt-release-template.pyz --version
+curl -L -o provenance-demo.pyz https://github.com/redoubt-cysec/provenance-demo/releases/download/v0.1.0/provenance-demo.pyz
+chmod +x provenance-demo.pyz
+./provenance-demo.pyz --version
 ```
 
 #### **pip/pipx (Universal)**
 
 ```bash
 # Via pip
-pip install redoubt-release-template
+pip install provenance-demo
 redoubt --version
 
 # Via pipx (isolated)
-pipx install redoubt-release-template
+pipx install provenance-demo
 redoubt --version
 ```
 
@@ -132,17 +132,17 @@ redoubt --version
 #### **Direct .pyz Download**
 
 ```bash
-curl -L -o redoubt-release-template.pyz https://github.com/Borduas-Holdings/redoubt-release-template/releases/download/v0.1.0/redoubt-release-template.pyz
-chmod +x redoubt-release-template.pyz
-./redoubt-release-template.pyz --version
+curl -L -o provenance-demo.pyz https://github.com/redoubt-cysec/provenance-demo/releases/download/v0.1.0/provenance-demo.pyz
+chmod +x provenance-demo.pyz
+./provenance-demo.pyz --version
 ```
 
 #### **pip/pipx**
 
 ```bash
-pip install redoubt-release-template
+pip install provenance-demo
 # or
-pipx install redoubt-release-template
+pipx install provenance-demo
 ```
 
 ### Windows
@@ -173,16 +173,16 @@ redoubt --version
 #### **pip/pipx**
 
 ```powershell
-pip install redoubt-release-template
+pip install provenance-demo
 # or
-pipx install redoubt-release-template
+pipx install provenance-demo
 ```
 
 #### **Direct Download**
 
 ```powershell
-Invoke-WebRequest -Uri "https://github.com/Borduas-Holdings/redoubt-release-template/releases/download/v0.1.0/redoubt-release-template.pyz" -OutFile "redoubt-release-template.pyz"
-python redoubt-release-template.pyz --version
+Invoke-WebRequest -Uri "https://github.com/redoubt-cysec/provenance-demo/releases/download/v0.1.0/provenance-demo.pyz" -OutFile "provenance-demo.pyz"
+python provenance-demo.pyz --version
 ```
 
 ### Docker / OCI Containers
@@ -232,19 +232,19 @@ For maximum security, verify the binary after installation:
 ### Using gh CLI
 
 ```bash
-gh attestation verify $(which redoubt) --repo Borduas-Holdings/redoubt-release-template
+gh attestation verify $(which redoubt) --repo redoubt-cysec/provenance-demo
 ```
 
 ### Using cosign
 
 ```bash
 # Download signature bundle
-curl -L -o redoubt-release-template.pyz.sigstore \
-  https://github.com/Borduas-Holdings/redoubt-release-template/releases/download/v0.1.0/redoubt-release-template.pyz.sigstore
+curl -L -o provenance-demo.pyz.sigstore \
+  https://github.com/redoubt-cysec/provenance-demo/releases/download/v0.1.0/provenance-demo.pyz.sigstore
 
 # Verify signature
-cosign verify-blob redoubt-release-template.pyz \
-  --bundle redoubt-release-template.pyz.sigstore \
+cosign verify-blob provenance-demo.pyz \
+  --bundle provenance-demo.pyz.sigstore \
   --certificate-identity-regexp=".*" \
   --certificate-oidc-issuer-regexp=".*"
 ```
@@ -316,7 +316,7 @@ twine upload dist/*
 
 ```bash
 # Update formula with release SHA256
-sha256sum dist/redoubt-release-template.pyz
+sha256sum dist/provenance-demo.pyz
 # Edit packaging/homebrew-tap/Formula/redoubt.rb
 # Push to OWNER/homebrew-tap repository
 ```
@@ -327,7 +327,7 @@ sha256sum dist/redoubt-release-template.pyz
 # Build snap
 snapcraft
 # Upload to store
-snapcraft upload redoubt-release-template_0.1.0_all.snap --release=stable
+snapcraft upload provenance-demo_0.1.0_all.snap --release=stable
 ```
 
 #### 4. **Scoop Bucket**
@@ -428,7 +428,7 @@ python3 --version  # Should show 3.10 or higher
 Make the .pyz executable:
 
 ```bash
-chmod +x redoubt-release-template.pyz
+chmod +x provenance-demo.pyz
 ```
 
 ### Verification Fails

@@ -60,8 +60,8 @@ fi
 
 # Test each Python version
 for PY_VERSION in "${PYTHON_VERSIONS[@]}"; do
-    VM_NAME="python${PY_VERSION}-test-$$"
     PY_SHORT="${PY_VERSION//./}"  # 3.10 -> 310
+    VM_NAME="python${PY_SHORT}-test-$$"
 
     echo -e "${CYAN}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
     echo -e "${BOLD}${CYAN}Testing Python $PY_VERSION${NC}"

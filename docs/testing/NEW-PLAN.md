@@ -466,7 +466,7 @@ set -euo pipefail
 if ! command -v nix >/dev/null; then echo "Nix not installed, skipping"; exit 0; fi
 nix flake check || true
 nix build .# || nix build .
-./result/bin/redoubt --version || ./result/bin/redoubt-release-template --version
+./result/bin/redoubt --version || ./result/bin/provenance-demo --version
 nix run .# -- --version || true
 echo "Nix Phase 1 OK"
 ```
@@ -496,7 +496,7 @@ twine upload --repository-url http://127.0.0.1:3141/testuser/dev dist/* || true
 devpi upload || true
 
 python -m venv .venv && . .venv/bin/activate
-pip install --index-url http://127.0.0.1:3141/testuser/dev/simple --trusted-host 127.0.0.1 demo-secure-cli || redoubt-release-template || true
+pip install --index-url http://127.0.0.1:3141/testuser/dev/simple --trusted-host 127.0.0.1 demo-secure-cli || provenance-demo || true
 echo "✓ devpi Phase 1 OK"
 ```
 
@@ -541,7 +541,7 @@ multipass exec "$NAME" -- bash -lc '
   useradd -m b && echo "b ALL=(ALL) NOPASSWD:ALL" >>/etc/sudoers
   chown -R b:b /tmp/aur
   su - b -c "cd /tmp/aur && makepkg -si --noconfirm"
-  command -v redoubt || command -v redoubt-release-template || true
+  command -v redoubt || command -v provenance-demo || true
 '
 echo "AUR Phase 2 VM OK"
 multipass delete -p "$NAME"
@@ -805,7 +805,7 @@ pip install "${PKG_NAME}==${FROM_VER}"
 # Find installed CLI name
 REDOUBT_BIN="${REDOUBT_BIN:-$(python - <<'PY'
 import shutil,sys
-print(shutil.which("redoubt") or shutil.which("redoubt-release-template") or "redoubt")
+print(shutil.which("redoubt") or shutil.which("provenance-demo") or "redoubt")
 PY
 )}"
 

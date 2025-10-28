@@ -50,15 +50,15 @@ jobs:
 
       - name: Test .pyz execution
         run: |
-          ./dist/redoubt-release-template.pyz --version
-          ./dist/redoubt-release-template.pyz hello "Python ${{ matrix.python-version }}"
+          ./dist/provenance-demo.pyz --version
+          ./dist/provenance-demo.pyz hello "Python ${{ matrix.python-version }}"
 
       - name: Upload .pyz artifact
         uses: actions/upload-artifact@65c4e9e2f5e1a4c3e4f3e8d5f9f6b6c6e8c9e0d0 # v4.4.3
         if: matrix.os == 'ubuntu-latest' && matrix.python-version == '3.11'
         with:
           name: redoubt-pyz
-          path: dist/redoubt-release-template.pyz
+          path: dist/provenance-demo.pyz
           retention-days: 7
 
   # AppImage build

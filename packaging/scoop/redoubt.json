@@ -1,11 +1,11 @@
 {
     "version": "0.1.0",
-    "description": "Self-verifying CLI demonstrating reproducible, attestable releases",
-    "homepage": "https://github.com/OWNER/REPO",
+    "description": "Demo CLI showcasing supply chain security and provenance",
+    "homepage": "https://github.com/redoubt-cysec/provenance-template",
     "license": "MIT",
-    "url": "https://github.com/OWNER/REPO/releases/download/v0.1.0/redoubt-release-template.pyz",
+    "url": "https://github.com/redoubt-cysec/provenance-template/releases/download/v0.1.0/provenance-demo.pyz",
     "hash": "REPLACE_WITH_SHA256_FROM_RELEASE",
-    "bin": "redoubt-release-template.pyz",
+    "bin": "provenance-demo.pyz",
     "pre_install": [
         "if (!(Get-Command python -ErrorAction SilentlyContinue)) {",
         "    Write-Host 'Python 3.10+ is required. Install with: scoop install python'",
@@ -13,17 +13,17 @@
         "}"
     ],
     "checkver": {
-        "github": "https://github.com/OWNER/REPO"
+        "github": "https://github.com/redoubt-cysec/provenance-template"
     },
     "autoupdate": {
-        "url": "https://github.com/OWNER/REPO/releases/download/v$version/redoubt-release-template.pyz"
+        "url": "https://github.com/redoubt-cysec/provenance-template/releases/download/v$version/provenance-demo.pyz"
     },
     "notes": [
-        "Run 'redoubt verify' to validate all security attestations!",
+        "Run 'provenance-demo verify' to validate all security attestations!",
         "",
         "Available commands:",
-        "  redoubt hello <name>  - Say hello",
-        "  redoubt verify        - Verify binary attestations",
-        "  redoubt --version     - Show version"
+        "  provenance-demo hello <name>  - Say hello",
+        "  provenance-demo verify        - Verify binary attestations",
+        "  provenance-demo --version     - Show version"
     ]
 }

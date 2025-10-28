@@ -30,7 +30,7 @@ class Redoubt < Formula
   depends_on "python@3.11"
 
   def install
-    bin.install "redoubt-release-template.pyz" => "redoubt-local"
+    bin.install "provenance-demo.pyz" => "redoubt-local"
   end
 
   test do

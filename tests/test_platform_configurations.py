@@ -418,7 +418,7 @@ class TestConfigurationConsistency:
 
     def test_name_consistency(self):
         """Verify package name is consistent where applicable."""
-        expected_names = ["redoubt", "redoubt-release-template"]
+        expected_names = ["redoubt", "provenance-demo"]
 
         configs = [
             REPO_ROOT / "packaging" / "scoop" / "redoubt.json",

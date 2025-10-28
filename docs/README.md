@@ -1,6 +1,6 @@
-# Redoubt Release Template Documentation
+# Provenance Demo Documentation
 
-Welcome to the comprehensive documentation for the Redoubt Release Template - a production-ready Python CLI template with enterprise-grade supply chain security.
+Welcome to the comprehensive documentation for the Provenance Demo - a production-ready Python CLI template with enterprise-grade supply chain security.
 
 ## 📖 Documentation Index
 

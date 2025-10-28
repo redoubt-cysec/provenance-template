@@ -90,7 +90,7 @@ echo ""
 echo -e "${BLUE}Step 4: Build binary${NC}"
 cd "$REPO_ROOT"
 ./scripts/build_pyz.sh
-BINARY_PATH="$REPO_ROOT/dist/redoubt-release-template.pyz"
+BINARY_PATH="$REPO_ROOT/dist/provenance-demo.pyz"
 
 if [[ ! -f "$BINARY_PATH" ]]; then
     echo -e "${RED}Error: Binary not found at: $BINARY_PATH${NC}"
@@ -124,7 +124,7 @@ gh release create "$TEST_TAG" \
     --prerelease \
     "$BINARY_PATH"
 
-DOWNLOAD_URL="https://github.com/$OWNER/$REPO/releases/download/$TEST_TAG/redoubt-release-template.pyz"
+DOWNLOAD_URL="https://github.com/$OWNER/$REPO/releases/download/$TEST_TAG/provenance-demo.pyz"
 echo -e "${GREEN}✓ Test release created${NC}"
 echo "   URL: $DOWNLOAD_URL"
 echo ""
@@ -147,7 +147,7 @@ class Redoubt < Formula
   depends_on "python@3.10"
 
   def install
-    bin.install "redoubt-release-template.pyz" => "redoubt"
+    bin.install "provenance-demo.pyz" => "redoubt"
   end
 
   test do

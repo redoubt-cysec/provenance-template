@@ -175,7 +175,7 @@ bash scripts/phase1-testing/aur-local-build.sh
 404 error when downloading source tarball:
 ```
 curl: (22) The requested URL returned error: 404
-https://github.com/jonathanborduas/redoubt-release-template/archive/v0.1.0.tar.gz
+https://github.com/redoubt-cysec/provenance-demo/archive/v0.1.0.tar.gz
 ```
 
 **Expected behavior**: This is normal - no GitHub release created yet. When a release is published, download will work.

@@ -5,16 +5,16 @@
 ### Decision: [CHOOSE ONE]
 
 - [ ] **Option A: Keep as Template**
-  - Repository name: `redoubt-release-template`
-  - Artifact names: `redoubt-release-template.pyz`
-  - Docker image: `ghcr.io/borduas-holdings/redoubt-release-template`
+  - Repository name: `provenance-demo`
+  - Artifact names: `provenance-demo.pyz`
+  - Docker image: `ghcr.io/redoubt-cysec/provenance-demo`
   - Purpose: Reference implementation for others to copy
   - Action: Keep current naming
 
 - [x] **Option B: Make This Your Product** ✅ RECOMMENDED
   - Repository name: `redoubt` (rename repo)
   - Artifact names: `redoubt.pyz`
-  - Docker image: `ghcr.io/borduas-holdings/redoubt`
+  - Docker image: `ghcr.io/redoubt-cysec/redoubt`
   - Purpose: Your actual supply chain security tool
   - Action: Rename everything to "redoubt"
 
@@ -30,7 +30,7 @@
 **Script to update names**:
 ```bash
 # I can create a script to do this automatically
-# Find/replace "redoubt-release-template" → "redoubt"
+# Find/replace "provenance-demo" → "redoubt"
 ```
 
 ---
@@ -150,7 +150,7 @@ All of above, plus:
    - Scope: `repo`
 6. **Add GitHub Secret**:
    - `TAP_GITHUB_TOKEN`: [your PAT]
-7. **Create homebrew-tap repo**: https://github.com/Borduas-Holdings/homebrew-tap
+7. **Create homebrew-tap repo**: https://github.com/redoubt-cysec/homebrew-tap
 
 ---
 

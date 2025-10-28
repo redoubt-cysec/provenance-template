@@ -48,10 +48,10 @@ This document explains how to test different distribution methods at various sta
 ./scripts/build_pyz.sh
 
 # Transfer to VM
-multipass transfer dist/redoubt-release-template.pyz vm:/tmp/
+multipass transfer dist/provenance-demo.pyz vm:/tmp/
 
 # Test execution
-ssh vm "chmod +x /tmp/redoubt-release-template.pyz && /tmp/redoubt-release-template.pyz --version"
+ssh vm "chmod +x /tmp/provenance-demo.pyz && /tmp/provenance-demo.pyz --version"
 ```
 
 **What this tests:** Binary works on macOS/Linux
@@ -126,7 +126,7 @@ redoubt --version
 twine upload --repository testpypi dist/*
 
 # In VM:
-pip install --index-url https://test.pypi.org/simple/ redoubt-release-template
+pip install --index-url https://test.pypi.org/simple/ provenance-demo
 redoubt --version
 ```
 
@@ -143,7 +143,7 @@ redoubt --version
 
 ```bash
 # After uploading to production PyPI
-pip install redoubt-release-template
+pip install provenance-demo
 ```
 
 ---
@@ -157,10 +157,10 @@ pip install redoubt-release-template
 snapcraft
 
 # Transfer to VM
-multipass transfer redoubt-release-template_0.1.0_all.snap vm:/tmp/
+multipass transfer provenance-demo_0.1.0_all.snap vm:/tmp/
 
 # In VM:
-sudo snap install --dangerous /tmp/redoubt-release-template_0.1.0_all.snap
+sudo snap install --dangerous /tmp/provenance-demo_0.1.0_all.snap
 redoubt --version
 ```
 
@@ -176,10 +176,10 @@ redoubt --version
 
 # Or manually:
 # Upload to edge channel (not visible to general users)
-snapcraft upload redoubt-release-template_0.1.0_all.snap --release=edge
+snapcraft upload provenance-demo_0.1.0_all.snap --release=edge
 
 # In VM:
-snap install redoubt-release-template --edge
+snap install provenance-demo --edge
 ```
 
 **What this tests:**
@@ -195,7 +195,7 @@ snap install redoubt-release-template --edge
 
 ```bash
 # After releasing to stable channel
-snap install redoubt-release-template
+snap install provenance-demo
 ```
 
 ---
@@ -254,10 +254,10 @@ docker pull OWNER/redoubt
 
 ```powershell
 # Download .pyz to Windows VM
-curl -o redoubt-release-template.pyz https://yourserver/redoubt-release-template.pyz
+curl -o provenance-demo.pyz https://yourserver/provenance-demo.pyz
 
 # Test
-python redoubt-release-template.pyz --version
+python provenance-demo.pyz --version
 ```
 
 #### 🎯 Phase 2: Private Bucket Testing ✅ (Automated)
@@ -302,7 +302,7 @@ scoop install redoubt
 dpkg-buildpackage -us -uc
 
 # In VM:
-sudo dpkg -i redoubt-release-template_0.1.0-1_all.deb
+sudo dpkg -i provenance-demo_0.1.0-1_all.deb
 redoubt --version
 ```
 
@@ -336,7 +336,7 @@ sudo apt install redoubt
 ```bash
 # After adding to official Ubuntu/Debian repos or PPA
 sudo add-apt-repository ppa:OWNER/redoubt
-sudo apt install redoubt-release-template
+sudo apt install provenance-demo
 ```
 
 ---
@@ -374,7 +374,7 @@ sudo dnf install redoubt
 
 ```bash
 # After adding to EPEL or official repos
-sudo dnf install redoubt-release-template
+sudo dnf install provenance-demo
 ```
 
 ---

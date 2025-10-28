@@ -11,7 +11,7 @@ The `verify` command performs **7 comprehensive security checks**:
 Calculates SHA256 hash of the binary and compares against published checksums.
 
 ```bash
-$ ./redoubt-release-template.pyz verify
+$ ./provenance-demo.pyz verify
 ✓ Checksum Verification: SHA256 checksum matches
   Checksum: 76c642b637244d57...
 ```
@@ -41,7 +41,7 @@ Verifies build provenance attestation from GitHub Actions:
 
 ```bash
 ✓ GitHub Attestation: GitHub attestation verified
-  Repository: Borduas-Holdings/redoubt-release-template
+  Repository: redoubt-cysec/provenance-demo
 ```
 
 **Requires:** `gh` CLI installed (`brew install gh`)
@@ -108,13 +108,13 @@ Download a release and verify it:
 
 ```bash
 # Download from GitHub releases
-curl -L -o redoubt-release-template.pyz https://github.com/Borduas-Holdings/redoubt-release-template/releases/download/v0.1.0/redoubt-release-template.pyz
+curl -L -o provenance-demo.pyz https://github.com/redoubt-cysec/provenance-demo/releases/download/v0.1.0/provenance-demo.pyz
 
 # Make executable
-chmod +x redoubt-release-template.pyz
+chmod +x provenance-demo.pyz
 
 # Verify everything
-./redoubt-release-template.pyz verify
+./provenance-demo.pyz verify
 ```
 
 ### On a Local Build
@@ -126,15 +126,15 @@ For development builds, some checks will be skipped:
 ./scripts/build_pyz.sh
 
 # Verify what's possible
-./dist/redoubt-release-template.pyz verify
+./dist/provenance-demo.pyz verify
 ```
 
 Expected output for local builds:
 
 ```
-🔐 Verifying redoubt-release-template.pyz
+🔐 Verifying provenance-demo.pyz
 Version: 0.1.0
-Repository: Borduas-Holdings/redoubt-release-template
+Repository: redoubt-cysec/provenance-demo
 
 ✓ Checksum Verification: Checksum calculated
 ✗ Sigstore Signature: No signature bundle found (expected for dev builds)
@@ -159,7 +159,7 @@ This may be expected if:
 You can verify any `.pyz` file:
 
 ```bash
-./redoubt-release-template.pyz verify --file /path/to/other.pyz
+./provenance-demo.pyz verify --file /path/to/other.pyz
 ```
 
 ## Installing Verification Tools

@@ -36,7 +36,7 @@ if [ ! -f .env.example ]; then
 # Copy to .env and customize (DO NOT commit .env)
 
 # GitHub Configuration
-GITHUB_REPO=Borduas-Holdings/redoubt-release-template
+GITHUB_REPO=redoubt-cysec/provenance-demo
 
 # Optional: Homebrew Tap
 HOMEBREW_TAP=OWNER/tap
@@ -73,12 +73,12 @@ if command -v detect-secrets &> /dev/null; then
 fi
 
 # Build artifacts if not already built
-if [ ! -f dist/redoubt-release-template.pyz ]; then
+if [ ! -f dist/provenance-demo.pyz ]; then
     echo ""
     echo "Building artifacts..."
     if [ -x scripts/build_pyz.sh ]; then
         ./scripts/build_pyz.sh
-        echo -e "${GREEN}✓ Built redoubt-release-template.pyz${NC}"
+        echo -e "${GREEN}✓ Built provenance-demo.pyz${NC}"
     fi
 fi
 
@@ -105,13 +105,13 @@ echo "  ✓ Distribution directories created"
 echo "  ✓ .env.example created"
 [ -d .git/hooks ] && [ -f .git/hooks/pre-commit ] && echo "  ✓ Pre-commit hooks installed"
 [ -f .secrets.baseline ] && echo "  ✓ Secrets baseline generated"
-[ -f dist/redoubt-release-template.pyz ] && echo "  ✓ Artifacts built"
+[ -f dist/provenance-demo.pyz ] && echo "  ✓ Artifacts built"
 echo ""
 
 echo "Manual configuration needed:"
 echo ""
-echo "1. Replace Borduas-Holdings/redoubt-release-template placeholders:"
-echo "   Find: Borduas-Holdings/redoubt-release-template"
+echo "1. Replace redoubt-cysec/provenance-demo placeholders:"
+echo "   Find: redoubt-cysec/provenance-demo"
 echo "   Replace with: your-org/your-repo"
 echo "   Files: .github/workflows/*.yml, README.md, scripts/*.sh"
 echo ""

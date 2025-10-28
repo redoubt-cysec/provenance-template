@@ -35,11 +35,11 @@ fi
 
 # Fallback to default values if still not set
 if [ -z "$GITHUB_OWNER" ]; then
-    GITHUB_OWNER="Borduas-Holdings"
+    GITHUB_OWNER="redoubt-cysec"
     echo -e "${YELLOW}⚠ GITHUB_OWNER not set, using default: $GITHUB_OWNER${NC}"
 fi
 if [ -z "$GITHUB_REPO" ]; then
-    GITHUB_REPO="redoubt-release-template"
+    GITHUB_REPO="provenance-demo"
     echo -e "${YELLOW}⚠ GITHUB_REPO not set, using default: $GITHUB_REPO${NC}"
 fi
 
@@ -47,8 +47,8 @@ echo ""
 echo -e "${BLUE}## Updating Repository References${NC}"
 echo ""
 
-# Update Borduas-Holdings/redoubt-release-template placeholders in all files
-echo "Updating Borduas-Holdings/redoubt-release-template → $GITHUB_OWNER/$GITHUB_REPO..."
+# Update redoubt-cysec/provenance-demo placeholders in all files
+echo "Updating redoubt-cysec/provenance-demo → $GITHUB_OWNER/$GITHUB_REPO..."
 
 # Update workflows
 for file in .github/workflows/*.yml; do
@@ -62,7 +62,7 @@ done
 # Update documentation and packaging files
 for file in README.md SUPPLY-CHAIN.md QUICK-START.md DEVELOPER_GUIDE.md SECURITY.md packaging/aur/PKGBUILD; do
     if [ -f "$file" ]; then
-        sed -i.bak "s/jonathanborduas\/redoubt-release-template-/$GITHUB_OWNER\/$GITHUB_REPO/g" "$file"
+        sed -i.bak "s/redoubt-cysec\/provenance-demo-/$GITHUB_OWNER\/$GITHUB_REPO/g" "$file"
         sed -i.bak "s/OWNER\/tap/$GITHUB_OWNER\/tap/g" "$file"
         rm "${file}.bak"
         echo "  ✓ $file"
@@ -183,12 +183,12 @@ echo ""
 if [ -x scripts/build_pyz.sh ]; then
     echo "Building .pyz artifact..."
     ./scripts/build_pyz.sh
-    echo -e "${GREEN}  ✓ .pyz built: dist/redoubt-release-template.pyz${NC}"
+    echo -e "${GREEN}  ✓ .pyz built: dist/provenance-demo.pyz${NC}"
 else
     echo -e "${YELLOW}  ⚠ Build script not executable${NC}"
     chmod +x scripts/build_pyz.sh
     ./scripts/build_pyz.sh
-    echo -e "${GREEN}  ✓ .pyz built: dist/redoubt-release-template.pyz${NC}"
+    echo -e "${GREEN}  ✓ .pyz built: dist/provenance-demo.pyz${NC}"
 fi
 
 # Build wheel and sdist
@@ -212,12 +212,12 @@ cat > packaging/homebrew-tap/Formula/client.rb <<EOF
 class Client < Formula
   desc "$NEW_NAME - Secure CLI with reproducible releases"
   homepage "https://github.com/$GITHUB_OWNER/$GITHUB_REPO"
-  url "https://github.com/$GITHUB_OWNER/$GITHUB_REPO/releases/download/v0.1.0/redoubt-release-template.pyz"
+  url "https://github.com/$GITHUB_OWNER/$GITHUB_REPO/releases/download/v0.1.0/provenance-demo.pyz"
   sha256 "REPLACE_WITH_ACTUAL_SHA256"
   license "MIT"
 
   def install
-    bin.install "redoubt-release-template.pyz" => "$NEW_CLI"
+    bin.install "provenance-demo.pyz" => "$NEW_CLI"
   end
 
   test do
@@ -245,7 +245,7 @@ confinement: strict
 
 apps:
   $NEW_CLI:
-    command: bin/redoubt-release-template.pyz
+    command: bin/provenance-demo.pyz
     plugs:
       - home
       - network
@@ -255,9 +255,9 @@ parts:
     plugin: dump
     source: dist/
     organize:
-      'redoubt-release-template.pyz': bin/redoubt-release-template.pyz
+      'provenance-demo.pyz': bin/provenance-demo.pyz
     stage:
-      - bin/redoubt-release-template.pyz
+      - bin/provenance-demo.pyz
 EOF
 echo -e "${GREEN}  ✓ Created Snap configuration: packaging/snap/snapcraft.yaml${NC}"
 
@@ -318,8 +318,8 @@ echo "   git add ."
 echo "   git commit -m 'Configure repository for $GITHUB_OWNER/$GITHUB_REPO'"
 echo ""
 echo "2. Test your CLI:"
-echo "   ./dist/redoubt-release-template.pyz --version"
-echo "   ./dist/redoubt-release-template.pyz YourName"
+echo "   ./dist/provenance-demo.pyz --version"
+echo "   ./dist/provenance-demo.pyz YourName"
 echo ""
 echo "3. Optional - Set up external services:"
 echo "   • Create homebrew-tap repository: $GITHUB_OWNER/homebrew-tap"

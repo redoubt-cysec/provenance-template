@@ -566,7 +566,7 @@ jobs:
 
 **Files to Modify:**
 - `scripts/phase2-testing/test-homebrew-tap-vm.sh` (add macOS variant)
-- `packaging/homebrew-tap/Formula/redoubt-release-template.rb`
+- `packaging/homebrew-tap/Formula/provenance-demo.rb`
 - `docs/distribution/PLATFORM-SUPPORT.md`
 
 ---

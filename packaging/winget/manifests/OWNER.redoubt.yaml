@@ -1,20 +1,20 @@
-# WinGet manifest for Redoubt Release Demo
+# WinGet manifest for Provenance Demo
 # Submit to: https://github.com/microsoft/winget-pkgs
 
-PackageIdentifier: OWNER.Redoubt
+PackageIdentifier: redoubt-cysec.ProvenanceDemo
 PackageVersion: 0.1.0
 PackageLocale: en-US
-Publisher: OWNER
-PublisherUrl: https://github.com/OWNER
-PublisherSupportUrl: https://github.com/Borduas-Holdings/redoubt-release-template/issues
-Author: OWNER
-PackageName: Redoubt Release Demo
-PackageUrl: https://github.com/Borduas-Holdings/redoubt-release-template
+Publisher: redoubt-cysec
+PublisherUrl: https://github.com/redoubt-cysec
+PublisherSupportUrl: https://github.com/redoubt-cysec/provenance-template/issues
+Author: redoubt-cysec
+PackageName: Provenance Demo
+PackageUrl: https://github.com/redoubt-cysec/provenance-template
 License: MIT
-LicenseUrl: https://github.com/Borduas-Holdings/redoubt-release-template/blob/main/LICENSE
-ShortDescription: Self-verifying CLI with complete supply chain security
+LicenseUrl: https://github.com/redoubt-cysec/provenance-template/blob/main/LICENSE
+ShortDescription: Demo CLI showcasing supply chain security and provenance
 Description: |-
-  Redoubt Release Demo demonstrates production-grade supply chain security.
+  Provenance Demo demonstrates production-grade supply chain security.
 
   Features:
   - Reproducible, deterministic builds
@@ -23,8 +23,8 @@ Description: |-
   - OSV vulnerability scanning
   - Complete supply chain security validation
 
-  Run 'redoubt verify' to validate all security attestations!
-Moniker: redoubt
+  Run 'provenance-demo verify' to validate all security attestations!
+Moniker: provenance-demo
 Tags:
   - cli
   - security
@@ -35,18 +35,18 @@ Tags:
   - sbom
   - verification
 ReleaseNotes: |-
-  Initial release of Redoubt Release Demo
+  Initial release of Provenance Demo
   - Self-verification command
   - Complete security attestation chain
   - VM-tested installation across platforms
-ReleaseNotesUrl: https://github.com/Borduas-Holdings/redoubt-release-template/releases/tag/v0.1.0
+ReleaseNotesUrl: https://github.com/redoubt-cysec/provenance-template/releases/tag/v0.1.0
 Installers:
   - Architecture: x64
     InstallerType: portable
-    InstallerUrl: https://github.com/Borduas-Holdings/redoubt-release-template/releases/download/v0.1.0/redoubt-release-template.pyz
+    InstallerUrl: https://github.com/redoubt-cysec/provenance-template/releases/download/v0.1.0/provenance-demo.pyz
     InstallerSha256: REPLACE_WITH_SHA256_FROM_RELEASE
     Commands:
-      - redoubt
+      - provenance-demo
     Dependencies:
       PackageDependencies:
         - PackageIdentifier: Python.Python.3.10

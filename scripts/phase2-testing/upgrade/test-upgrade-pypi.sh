@@ -18,7 +18,7 @@ pip install "${PKG_NAME}==${FROM_VER}"
 # Find installed CLI name
 REDOUBT_BIN="${REDOUBT_BIN:-$(python - <<'PY'
 import shutil,sys
-print(shutil.which("redoubt") or shutil.which("redoubt-release-template") or "redoubt")
+print(shutil.which("redoubt") or shutil.which("provenance-demo") or "redoubt")
 PY
 )}"
 

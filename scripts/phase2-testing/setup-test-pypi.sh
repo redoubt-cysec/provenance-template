@@ -70,7 +70,7 @@ twine upload --repository testpypi dist/* || {
 }
 
 VERSION=$(grep '^version = ' "$REPO_ROOT/pyproject.toml" | cut -d'"' -f2)
-PACKAGE_NAME="redoubt-release-template"
+PACKAGE_NAME="provenance-demo"
 
 echo -e "${GREEN}✓ Package available on Test PyPI${NC}"
 echo ""
@@ -112,7 +112,7 @@ echo ""
 echo "1. Install from Test PyPI:"
 echo -e "   ${BLUE}pip install --index-url https://test.pypi.org/simple/ \\${NC}"
 echo -e "   ${BLUE}    --extra-index-url https://pypi.org/simple/ \\${NC}"
-echo -e "   ${BLUE}    redoubt-release-template${NC}"
+echo -e "   ${BLUE}    provenance-demo${NC}"
 echo ""
 echo "2. Or in a VM:"
 echo -e "   ${BLUE}./scripts/phase2-testing/test-test-pypi-vm.sh${NC}"

@@ -104,7 +104,7 @@ if ! vm_preflight_check; then
 fi
 
 # Ensure artifacts are built
-if [ ! -f "$REPO_ROOT/dist/redoubt-release-template.pyz" ]; then
+if [ ! -f "$REPO_ROOT/dist/provenance-demo.pyz" ]; then
     echo -e "${YELLOW}Building artifacts first...${NC}"
     cd "$REPO_ROOT"
     uv build || python3 -m build
@@ -112,8 +112,8 @@ if [ ! -f "$REPO_ROOT/dist/redoubt-release-template.pyz" ]; then
     # Build .pyz
     mkdir -p build/pyz/src
     rsync -a src/ build/pyz/src/
-    python3 -m zipapp build/pyz/src -m "demo_cli.cli:main" -p "/usr/bin/env python3" -o dist/redoubt-release-template.pyz
-    chmod +x dist/redoubt-release-template.pyz
+    python3 -m zipapp build/pyz/src -m "demo_cli.cli:main" -p "/usr/bin/env python3" -o dist/provenance-demo.pyz
+    chmod +x dist/provenance-demo.pyz
 fi
 
 echo -e "\n${GREEN}✓ Artifacts ready${NC}"
@@ -125,8 +125,8 @@ ls -lh "$REPO_ROOT/dist/"
 run_vm_test "apt-debian" "22.04" \
 "sudo apt-get update && sudo apt-get install -y python3 python3-pip python3-venv" \
 "cd /tmp && \
- python3 redoubt-release-template.pyz --version && \
- python3 redoubt-release-template.pyz verify || echo '⚠️  Verify skipped (dev build, no attestations)' && \
+ python3 provenance-demo.pyz --version && \
+ python3 provenance-demo.pyz verify || echo '⚠️  Verify skipped (dev build, no attestations)' && \
  echo 'APT test: .pyz works on Ubuntu'"
 
 # ═══════════════════════════════════════════════════════════════════
@@ -134,24 +134,24 @@ run_vm_test "apt-debian" "22.04" \
 # ═══════════════════════════════════════════════════════════════════
 run_vm_test "rpm-ubuntu" "22.04" \
 "sudo apt-get update && sudo apt-get install -y docker.io python3 && sudo systemctl start docker || true" \
-"cd /tmp && python3 redoubt-release-template.pyz --version && \
- python3 redoubt-release-template.pyz verify || echo '⚠️  Verify skipped (dev build)' && echo 'RPM test: .pyz works (RPM builds tested via Docker)'"
+"cd /tmp && python3 provenance-demo.pyz --version && \
+ python3 provenance-demo.pyz verify || echo '⚠️  Verify skipped (dev build)' && echo 'RPM test: .pyz works (RPM builds tested via Docker)'"
 
 # ═══════════════════════════════════════════════════════════════════
 # Test 3: Snap
 # ═══════════════════════════════════════════════════════════════════
 run_vm_test "snap-ubuntu" "22.04" \
 "sudo apt-get update && sudo apt-get install -y snapd python3" \
-"cd /tmp && python3 redoubt-release-template.pyz --version && \
- python3 redoubt-release-template.pyz verify || echo '⚠️  Verify skipped (dev build)' && echo 'Snap test: .pyz works (snap would be built separately)'"
+"cd /tmp && python3 provenance-demo.pyz --version && \
+ python3 provenance-demo.pyz verify || echo '⚠️  Verify skipped (dev build)' && echo 'Snap test: .pyz works (snap would be built separately)'"
 
 # ═══════════════════════════════════════════════════════════════════
 # Test 4: Flatpak
 # ═══════════════════════════════════════════════════════════════════
 run_vm_test "flatpak-ubuntu" "22.04" \
 "sudo apt-get update && sudo apt-get install -y flatpak python3" \
-"cd /tmp && python3 redoubt-release-template.pyz --version && \
- python3 redoubt-release-template.pyz verify || echo '⚠️  Verify skipped (dev build)' && echo 'Flatpak test: .pyz works (flatpak would be built separately)'"
+"cd /tmp && python3 provenance-demo.pyz --version && \
+ python3 provenance-demo.pyz verify || echo '⚠️  Verify skipped (dev build)' && echo 'Flatpak test: .pyz works (flatpak would be built separately)'"
 
 # ═══════════════════════════════════════════════════════════════════
 # Test 5: Homebrew (Linuxbrew)
@@ -160,8 +160,8 @@ run_vm_test "homebrew-ubuntu" "22.04" \
 "sudo apt-get update && sudo apt-get install -y build-essential curl git python3 && \
  NONINTERACTIVE=1 /bin/bash -c \"\$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)\" && \
  eval \"\$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)\"" \
-"cd /tmp && python3 redoubt-release-template.pyz --version && \
- python3 redoubt-release-template.pyz verify || echo '⚠️  Verify skipped (dev build)' && echo 'Homebrew test: .pyz works'"
+"cd /tmp && python3 provenance-demo.pyz --version && \
+ python3 provenance-demo.pyz verify || echo '⚠️  Verify skipped (dev build)' && echo 'Homebrew test: .pyz works'"
 
 # ═══════════════════════════════════════════════════════════════════
 # Test 6: PyPI / pip (using Ubuntu 24.04 for Python 3.12)
@@ -183,16 +183,16 @@ run_vm_test "docker-ubuntu" "22.04" \
 "sudo apt-get update && sudo apt-get install -y docker.io python3 && \
  sudo systemctl start docker && \
  sudo usermod -aG docker ubuntu" \
-"cd /tmp && python3 redoubt-release-template.pyz --version && \
- python3 redoubt-release-template.pyz verify || echo '⚠️  Verify skipped (dev build)' && echo 'Docker test: .pyz works (docker images built separately)'"
+"cd /tmp && python3 provenance-demo.pyz --version && \
+ python3 provenance-demo.pyz verify || echo '⚠️  Verify skipped (dev build)' && echo 'Docker test: .pyz works (docker images built separately)'"
 
 # ═══════════════════════════════════════════════════════════════════
 # Test 8: npm
 # ═══════════════════════════════════════════════════════════════════
 run_vm_test "npm-ubuntu" "22.04" \
 "sudo apt-get update && sudo apt-get install -y nodejs npm python3" \
-"cd /tmp && python3 redoubt-release-template.pyz --version && \
- python3 redoubt-release-template.pyz verify || echo '⚠️  Verify skipped (dev build)' && echo 'npm test: .pyz works (npm package would wrap .pyz)'"
+"cd /tmp && python3 provenance-demo.pyz --version && \
+ python3 provenance-demo.pyz verify || echo '⚠️  Verify skipped (dev build)' && echo 'npm test: .pyz works (npm package would wrap .pyz)'"
 
 # ═══════════════════════════════════════════════════════════════════
 # Test 9: Cargo (Rust)
@@ -201,24 +201,24 @@ run_vm_test "cargo-ubuntu" "22.04" \
 "sudo apt-get update && sudo apt-get install -y curl build-essential python3 && \
  curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y && \
  source \$HOME/.cargo/env" \
-"cd /tmp && python3 redoubt-release-template.pyz --version && \
- python3 redoubt-release-template.pyz verify || echo '⚠️  Verify skipped (dev build)' && echo 'Cargo test: .pyz works (cargo crate would be separate)'"
+"cd /tmp && python3 provenance-demo.pyz --version && \
+ python3 provenance-demo.pyz verify || echo '⚠️  Verify skipped (dev build)' && echo 'Cargo test: .pyz works (cargo crate would be separate)'"
 
 # ═══════════════════════════════════════════════════════════════════
 # Test 10: Go modules
 # ═══════════════════════════════════════════════════════════════════
 run_vm_test "go-ubuntu" "22.04" \
 "sudo apt-get update && sudo apt-get install -y golang-go python3" \
-"cd /tmp && python3 redoubt-release-template.pyz --version && \
- python3 redoubt-release-template.pyz verify || echo '⚠️  Verify skipped (dev build)' && echo 'Go test: .pyz works (go module would be separate)'"
+"cd /tmp && python3 provenance-demo.pyz --version && \
+ python3 provenance-demo.pyz verify || echo '⚠️  Verify skipped (dev build)' && echo 'Go test: .pyz works (go module would be separate)'"
 
 # ═══════════════════════════════════════════════════════════════════
 # Test 11: RubyGems
 # ═══════════════════════════════════════════════════════════════════
 run_vm_test "rubygems-ubuntu" "22.04" \
 "sudo apt-get update && sudo apt-get install -y ruby ruby-dev python3" \
-"cd /tmp && python3 redoubt-release-template.pyz --version && \
- python3 redoubt-release-template.pyz verify || echo '⚠️  Verify skipped (dev build)' && echo 'RubyGems test: .pyz works (gem would be separate)'"
+"cd /tmp && python3 provenance-demo.pyz --version && \
+ python3 provenance-demo.pyz verify || echo '⚠️  Verify skipped (dev build)' && echo 'RubyGems test: .pyz works (gem would be separate)'"
 
 # ═══════════════════════════════════════════════════════════════════
 # Test 12: Conda
@@ -228,8 +228,8 @@ run_vm_test "conda-ubuntu" "22.04" \
  wget https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-aarch64.sh -O /tmp/miniconda.sh && \
  bash /tmp/miniconda.sh -b -p \$HOME/miniconda && \
  eval \"\$(\$HOME/miniconda/bin/conda shell.bash hook)\"" \
-"cd /tmp && python3 redoubt-release-template.pyz --version && \
- python3 redoubt-release-template.pyz verify || echo '⚠️  Verify skipped (dev build)' && echo 'Conda test: .pyz works'"
+"cd /tmp && python3 provenance-demo.pyz --version && \
+ python3 provenance-demo.pyz verify || echo '⚠️  Verify skipped (dev build)' && echo 'Conda test: .pyz works'"
 
 # ═══════════════════════════════════════════════════════════════════
 # Test 13: Helm (Kubernetes)
@@ -237,8 +237,8 @@ run_vm_test "conda-ubuntu" "22.04" \
 run_vm_test "helm-ubuntu" "22.04" \
 "sudo apt-get update && sudo apt-get install -y curl python3 && \
  curl https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3 | bash" \
-"cd /tmp && python3 redoubt-release-template.pyz --version && \
- python3 redoubt-release-template.pyz verify || echo '⚠️  Verify skipped (dev build)' && echo 'Helm test: .pyz works (helm chart would be separate)'"
+"cd /tmp && python3 provenance-demo.pyz --version && \
+ python3 provenance-demo.pyz verify || echo '⚠️  Verify skipped (dev build)' && echo 'Helm test: .pyz works (helm chart would be separate)'"
 
 # ═══════════════════════════════════════════════════════════════════
 # Test 14: Terraform
@@ -248,8 +248,8 @@ run_vm_test "terraform-ubuntu" "22.04" \
  wget https://releases.hashicorp.com/terraform/1.6.0/terraform_1.6.0_linux_arm64.zip && \
  unzip terraform_1.6.0_linux_arm64.zip && \
  sudo mv terraform /usr/local/bin/" \
-"cd /tmp && python3 redoubt-release-template.pyz --version && \
- python3 redoubt-release-template.pyz verify || echo '⚠️  Verify skipped (dev build)' && echo 'Terraform test: .pyz works (terraform module would be separate)'"
+"cd /tmp && python3 provenance-demo.pyz --version && \
+ python3 provenance-demo.pyz verify || echo '⚠️  Verify skipped (dev build)' && echo 'Terraform test: .pyz works (terraform module would be separate)'"
 
 # ═══════════════════════════════════════════════════════════════════
 # Print Final Results

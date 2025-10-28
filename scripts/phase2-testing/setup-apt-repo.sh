@@ -63,11 +63,11 @@ echo -e "${GREEN}✓ GitHub CLI authenticated${NC}"
 echo ""
 
 # Build the binary
-echo -e "${BLUE}Step 3: Building redoubt-release-template.pyz${NC}"
+echo -e "${BLUE}Step 3: Building provenance-demo.pyz${NC}"
 cd "$REPO_ROOT"
 ./scripts/build_pyz.sh
 
-BINARY_PATH="dist/redoubt-release-template.pyz"
+BINARY_PATH="dist/provenance-demo.pyz"
 if [ ! -f "$BINARY_PATH" ]; then
     echo -e "${RED}Error: $BINARY_PATH not found${NC}"
     exit 1

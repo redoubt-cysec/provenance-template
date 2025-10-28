@@ -31,7 +31,7 @@ if ! snapcraft whoami &>/dev/null; then
     echo ""
     echo "You'll need:"
     echo "- A Snapcraft account (https://snapcraft.io)"
-    echo "- Your app registered: snapcraft register redoubt-release-template"
+    echo "- Your app registered: snapcraft register provenance-demo"
     exit 1
 fi
 echo -e "${GREEN}✓ Logged in to Snapcraft${NC}"
@@ -71,12 +71,12 @@ echo -e "${BLUE}Step 4: Testing local snap${NC}"
 sudo snap install "$SNAP_FILE" --dangerous
 
 echo "Testing version..."
-redoubt-release-template.redoubt --version
+provenance-demo.redoubt --version
 
 echo "Testing hello..."
-redoubt-release-template.redoubt hello "Snap Edge"
+provenance-demo.redoubt hello "Snap Edge"
 
-sudo snap remove redoubt-release-template
+sudo snap remove provenance-demo
 
 echo -e "${GREEN}✓ Local test passed${NC}"
 echo ""
@@ -87,18 +87,18 @@ echo ""
 echo -e "${YELLOW}Phase 2 Testing Instructions:${NC}"
 echo ""
 echo "1. Install from edge channel:"
-echo -e "   ${BLUE}sudo snap install redoubt-release-template --edge${NC}"
+echo -e "   ${BLUE}sudo snap install provenance-demo --edge${NC}"
 echo ""
 echo "2. Test the snap:"
-echo -e "   ${BLUE}redoubt-release-template.redoubt --version${NC}"
-echo -e "   ${BLUE}redoubt-release-template.redoubt hello world${NC}"
-echo -e "   ${BLUE}redoubt-release-template.redoubt verify${NC}"
+echo -e "   ${BLUE}provenance-demo.redoubt --version${NC}"
+echo -e "   ${BLUE}provenance-demo.redoubt hello world${NC}"
+echo -e "   ${BLUE}provenance-demo.redoubt verify${NC}"
 echo ""
 echo "3. Test in a fresh VM:"
 echo -e "   ${BLUE}./scripts/phase2-testing/test-snap-edge-vm.sh${NC}"
 echo ""
 echo -e "${BLUE}Snap Store URL:${NC}"
-echo "   https://snapcraft.io/redoubt-release-template"
+echo "   https://snapcraft.io/provenance-demo"
 echo ""
 echo -e "${YELLOW}Note:${NC} Edge channel updates take ~5 minutes to propagate"
 echo ""

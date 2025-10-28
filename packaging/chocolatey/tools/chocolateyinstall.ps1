@@ -1,13 +1,13 @@
 $ErrorActionPreference = 'Stop'
 
-$packageName = 'redoubt'
+$packageName = 'provenance-demo'
 $toolsDir = "$(Split-Path -parent $MyInvocation.MyCommand.Definition)"
-$url = 'https://github.com/OWNER/REPO/releases/download/v0.1.0/redoubt-release-template.pyz'
+$url = 'https://github.com/redoubt-cysec/provenance-template/releases/download/v0.1.0/provenance-demo.pyz'
 $checksum = 'REPLACE_WITH_SHA256_FROM_RELEASE'
 $checksumType = 'sha256'
 
 # Download the .pyz file
-$pyzFile = Join-Path $toolsDir 'redoubt-release-template.pyz'
+$pyzFile = Join-Path $toolsDir 'provenance-demo.pyz'
 Get-ChocolateyWebFile -PackageName $packageName `
                       -FileFullPath $pyzFile `
                       -Url $url `
@@ -15,15 +15,15 @@ Get-ChocolateyWebFile -PackageName $packageName `
                       -ChecksumType $checksumType
 
 # Create a wrapper batch file
-$batFile = Join-Path $toolsDir 'redoubt.bat'
+$batFile = Join-Path $toolsDir 'provenance-demo.bat'
 @"
 @echo off
-python "%~dp0redoubt-release-template.pyz" %*
+python "%~dp0provenance-demo.pyz" %*
 "@ | Out-File -FilePath $batFile -Encoding ASCII
 
 # Add to PATH
 Install-ChocolateyPath -PathToInstall $toolsDir -PathType 'User'
 
-Write-Host "Redoubt has been installed successfully!"
-Write-Host "Run 'redoubt --version' to verify installation"
-Write-Host "Run 'redoubt verify' to validate security attestations"
+Write-Host "Provenance Demo has been installed successfully!"
+Write-Host "Run 'provenance-demo --version' to verify installation"
+Write-Host "Run 'provenance-demo verify' to validate security attestations"

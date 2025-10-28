@@ -41,7 +41,7 @@ if multipass exec "$NAME" -- bash -lc '
   useradd -m b && echo "b ALL=(ALL) NOPASSWD:ALL" >>/etc/sudoers
   chown -R b:b /tmp/aur
   su - b -c "cd /tmp/aur && makepkg -si --noconfirm"
-  command -v redoubt || command -v redoubt-release-template || true
+  command -v redoubt || command -v provenance-demo || true
 '; then
   echo "✓ AUR Phase 2 VM OK"
   exit 0

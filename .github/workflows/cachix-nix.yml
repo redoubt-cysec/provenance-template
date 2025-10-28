@@ -3,7 +3,7 @@ on:
   workflow_dispatch:
     inputs:
       cache:
-        description: Cachix cache name (e.g. OWNER-redoubt)
+        description: Cachix cache name (e.g. provenancedemo)
         required: true
 
 jobs:

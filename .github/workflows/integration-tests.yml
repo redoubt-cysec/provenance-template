@@ -108,11 +108,11 @@ jobs:
 
       - name: Test .pyz installation
         run: |
-          python3 dist/redoubt-release-template.pyz --version
-          python3 dist/redoubt-release-template.pyz hello TestUser
-          chmod +x dist/redoubt-release-template.pyz
-          ./dist/redoubt-release-template.pyz --version
-          ./dist/redoubt-release-template.pyz hello world
+          python3 dist/provenance-demo.pyz --version
+          python3 dist/provenance-demo.pyz hello TestUser
+          chmod +x dist/provenance-demo.pyz
+          ./dist/provenance-demo.pyz --version
+          ./dist/provenance-demo.pyz hello world
 
       - name: Test pip installation
         run: |
@@ -143,9 +143,9 @@ jobs:
 
       - name: Test .pyz installation
         run: |
-          python3 dist/redoubt-release-template.pyz --version
-          chmod +x dist/redoubt-release-template.pyz
-          ./dist/redoubt-release-template.pyz --version
+          python3 dist/provenance-demo.pyz --version
+          chmod +x dist/provenance-demo.pyz
+          ./dist/provenance-demo.pyz --version
 
       - name: Test pip installation
         run: |
@@ -174,9 +174,9 @@ jobs:
 
       - name: Test .pyz installation
         run: |
-          python3 dist/redoubt-release-template.pyz --version
-          chmod +x dist/redoubt-release-template.pyz
-          ./dist/redoubt-release-template.pyz --version
+          python3 dist/provenance-demo.pyz --version
+          chmod +x dist/provenance-demo.pyz
+          ./dist/provenance-demo.pyz --version
 
       - name: Test pip installation
         run: |
@@ -205,9 +205,9 @@ jobs:
 
       - name: Test .pyz installation
         run: |
-          python3 dist/redoubt-release-template.pyz --version
-          chmod +x dist/redoubt-release-template.pyz
-          ./dist/redoubt-release-template.pyz --version
+          python3 dist/provenance-demo.pyz --version
+          chmod +x dist/provenance-demo.pyz
+          ./dist/provenance-demo.pyz --version
 
       - name: Test pip installation
         run: |
@@ -230,9 +230,9 @@ jobs:
 
       - name: Test .pyz installation
         run: |
-          python3 dist/redoubt-release-template.pyz --version
-          chmod +x dist/redoubt-release-template.pyz
-          ./dist/redoubt-release-template.pyz --version
+          python3 dist/provenance-demo.pyz --version
+          chmod +x dist/provenance-demo.pyz
+          ./dist/provenance-demo.pyz --version
 
       - name: Test pip installation
         run: |
@@ -264,8 +264,8 @@ jobs:
       - name: Test .pyz installation
         shell: pwsh
         run: |
-          python dist/redoubt-release-template.pyz --version
-          python dist/redoubt-release-template.pyz TestUser
+          python dist/provenance-demo.pyz --version
+          python dist/provenance-demo.pyz TestUser
 
       - name: Test pip installation
         shell: pwsh

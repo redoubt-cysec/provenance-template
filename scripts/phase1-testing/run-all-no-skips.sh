@@ -34,7 +34,7 @@ echo ""
 echo "→ Building Python artifacts..."
 
 cd "$REPO_ROOT"
-if [ ! -f "dist/redoubt-release-template.pyz" ] || [ ! -f "dist/demo_secure_cli-0.1.0-py3-none-any.whl" ]; then
+if [ ! -f "dist/provenance-demo.pyz" ] || [ ! -f "dist/demo_secure_cli-0.1.0-py3-none-any.whl" ]; then
     # Build with uv
     if command -v uv >/dev/null 2>&1; then
         uv build >/dev/null 2>&1
@@ -45,8 +45,8 @@ if [ ! -f "dist/redoubt-release-template.pyz" ] || [ ! -f "dist/demo_secure_cli-
     # Build .pyz
     mkdir -p build/pyz/src
     rsync -a src/ build/pyz/src/
-    python3 -m zipapp build/pyz/src -m "demo_cli.cli:main" -p "/usr/bin/env python3" -o dist/redoubt-release-template.pyz
-    chmod +x dist/redoubt-release-template.pyz
+    python3 -m zipapp build/pyz/src -m "demo_cli.cli:main" -p "/usr/bin/env python3" -o dist/provenance-demo.pyz
+    chmod +x dist/provenance-demo.pyz
 
     echo "  ✓ Artifacts built"
 else

@@ -1,9 +1,9 @@
-name: demo-secure-cli
+name: provenance-demo
 base: core22
 version: '0.1.0'
-summary: Secure CLI with reproducible releases
+summary: Demo CLI showcasing supply chain security and provenance
 description: |
-  demo-secure-cli is a Python CLI application with a production-grade
+  provenance-demo is a Python CLI application with a production-grade
   secure release pipeline including reproducible builds, SBOM generation,
   and cryptographic signatures.
 
@@ -11,8 +11,8 @@ grade: stable
 confinement: strict
 
 apps:
-  demo:
-    command: bin/redoubt-release-template.pyz
+  provenance-demo:
+    command: bin/provenance-demo.pyz
     plugs:
       - home
       - network
@@ -22,6 +22,6 @@ parts:
     plugin: dump
     source: dist/
     organize:
-      'redoubt-release-template.pyz': bin/redoubt-release-template.pyz
+      'provenance-demo.pyz': bin/provenance-demo.pyz
     stage:
-      - bin/redoubt-release-template.pyz
+      - bin/provenance-demo.pyz

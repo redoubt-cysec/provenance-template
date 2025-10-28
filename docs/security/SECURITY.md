@@ -147,7 +147,7 @@ When using this template:
 
 Before your first release:
 
-- [ ] Replace `Borduas-Holdings/redoubt-release-template` throughout the repository
+- [ ] Replace `redoubt-cysec/provenance-demo` throughout the repository
 - [ ] Pin all GitHub Actions to commit SHAs
 - [ ] Set up branch protection rules
 - [ ] Enable GitHub environment protection

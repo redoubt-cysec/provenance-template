@@ -1,6 +1,6 @@
 # GitHub Action Pinned SHAs
 
-**For Repository:** Borduas-Holdings/redoubt-release-template
+**For Repository:** redoubt-cysec/provenance-demo
 **Date:** October 2025
 
 ## 📌 Recommended Pinned SHAs

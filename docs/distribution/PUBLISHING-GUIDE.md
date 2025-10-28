@@ -38,7 +38,7 @@ This guide explains what tokens and accounts you need to publish to each platfor
 ./scripts/build_pyz.sh
 
 # Test locally
-./dist/redoubt-release-template.pyz --version
+./dist/provenance-demo.pyz --version
 
 # Run tests
 uv run pytest tests/ -m "not slow and not integration"
@@ -114,7 +114,7 @@ password = pypi-AgEIcHlwaS5vcmcC...your-token
 1. Register: <https://snapcraft.io/account>
 2. Install: `sudo snap install snapcraft --classic`
 3. Login: `snapcraft login`
-4. Register name: `snapcraft register redoubt-release-template`
+4. Register name: `snapcraft register provenance-demo`
    - Name must be unique globally
    - Request takes ~1 day for approval
 
@@ -317,7 +317,7 @@ git push origin v0.1.0
 
 ```bash
 echo $DOCKERHUB_TOKEN | docker login -u $DOCKERHUB_USERNAME --password-stdin
-docker push your-username/redoubt-release-template:latest
+docker push your-username/provenance-demo:latest
 ```
 
 ---
@@ -330,7 +330,7 @@ docker push your-username/redoubt-release-template:latest
 
 ```bash
 # Promote from edge to stable
-snapcraft promote redoubt-release-template --from-channel edge --to-channel stable
+snapcraft promote provenance-demo --from-channel edge --to-channel stable
 ```
 
 ---
@@ -346,7 +346,7 @@ snapcraft promote redoubt-release-template --from-channel edge --to-channel stab
 
 ```bash
 brew create --tap homebrew/core \
-  https://github.com/Borduas-Holdings/redoubt-release-template/releases/download/v0.1.0/redoubt-release-template.pyz
+  https://github.com/redoubt-cysec/provenance-demo/releases/download/v0.1.0/provenance-demo.pyz
 ```
 
 3. Wait for review (1-7 days)
@@ -369,7 +369,7 @@ brew create --tap homebrew/core \
 **Publish:**
 
 ```bash
-choco push redoubt-release-template.nupkg \
+choco push provenance-demo.nupkg \
   --source https://push.chocolatey.org/ \
   --api-key $CHOCOLATEY_API_KEY
 ```
@@ -387,7 +387,7 @@ choco push redoubt-release-template.nupkg \
 
 ```bash
 wingetcreate new \
-  --url https://github.com/Borduas-Holdings/redoubt-release-template/releases/download/v0.1.0/redoubt-release-template.pyz
+  --url https://github.com/redoubt-cysec/provenance-demo/releases/download/v0.1.0/provenance-demo.pyz
 ```
 
 3. Submit PR to microsoft/winget-pkgs
@@ -424,7 +424,7 @@ wingetcreate new \
 4. Push to AUR:
 
 ```bash
-git remote add aur ssh://aur@aur.archlinux.org/redoubt-release-template.git
+git remote add aur ssh://aur@aur.archlinux.org/provenance-demo.git
 git push aur master
 ```
 
@@ -514,7 +514,7 @@ jobs:
 ### Phase 1: Local (No tokens)
 
 - [ ] Build succeeds: `./scripts/build_pyz.sh`
-- [ ] Binary runs: `./dist/redoubt-release-template.pyz --version`
+- [ ] Binary runs: `./dist/provenance-demo.pyz --version`
 - [ ] Tests pass: `uv run pytest tests/ -m "not slow"`
 
 ### Phase 2: Private (Minimal tokens)
@@ -592,7 +592,7 @@ password = pypi-AgEIcHlwaS5vcmcC...
 ### "Snap name not registered"
 
 ```bash
-snapcraft register redoubt-release-template
+snapcraft register provenance-demo
 # Wait ~24 hours for approval
 ```
 

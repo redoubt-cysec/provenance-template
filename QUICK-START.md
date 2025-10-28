@@ -11,7 +11,7 @@
 
 You need to replace these placeholders in workflow files:
 
-- `jonathanborduas/redoubt-release-template` - Your GitHub username/org and repository name
+- `redoubt-cysec/provenance-demo` - Your GitHub username/org and repository name
 - `<PINNED_SHA>` - Pin all GitHub Actions to specific commit SHAs
 - `<PINNED_DIGEST>` - Pin container image to specific digest
 
@@ -120,6 +120,6 @@ gh attestation verify client.pyz --repo $REPO
 
 ### Verification fails
 
-- Ensure you've replaced `jonathanborduas/redoubt-release-template` placeholders
+- Ensure you've replaced `redoubt-cysec/provenance-demo` placeholders
 - GitHub CLI must be authenticated: `gh auth login`
 - For cosign verification, ensure cosign is installed: `brew install cosign` or similar

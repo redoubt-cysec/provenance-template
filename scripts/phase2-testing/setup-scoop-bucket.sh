@@ -85,11 +85,11 @@ fi
 echo ""
 
 # Build the binary
-echo -e "${BLUE}Step 3: Building redoubt-release-template.pyz${NC}"
+echo -e "${BLUE}Step 3: Building provenance-demo.pyz${NC}"
 cd "$REPO_ROOT"
 ./scripts/build_pyz.sh
 
-BINARY_PATH="dist/redoubt-release-template.pyz"
+BINARY_PATH="dist/provenance-demo.pyz"
 if [ ! -f "$BINARY_PATH" ]; then
     echo -e "${RED}Error: $BINARY_PATH not found${NC}"
     exit 1
@@ -137,7 +137,7 @@ cd scoop-bucket
 mkdir -p bucket
 
 # Create manifest
-DOWNLOAD_URL="https://github.com/$OWNER/$REPO/releases/download/$TEST_TAG/redoubt-release-template.pyz"
+DOWNLOAD_URL="https://github.com/$OWNER/$REPO/releases/download/$TEST_TAG/provenance-demo.pyz"
 
 cat > bucket/redoubt.json <<EOF
 {
@@ -147,7 +147,7 @@ cat > bucket/redoubt.json <<EOF
     "license": "MIT",
     "url": "$DOWNLOAD_URL",
     "hash": "$BINARY_SHA256",
-    "bin": "redoubt-release-template.pyz",
+    "bin": "provenance-demo.pyz",
     "pre_install": [
         "if (!(Test-Path \"\$env:USERPROFILE\\.redoubt\")) { New-Item -ItemType Directory -Path \"\$env:USERPROFILE\\.redoubt\" -Force | Out-Null }"
     ],
@@ -157,7 +157,7 @@ cat > bucket/redoubt.json <<EOF
         "regex": "v([\\d.]+)"
     },
     "autoupdate": {
-        "url": "https://github.com/$OWNER/$REPO/releases/download/v\$version/redoubt-release-template.pyz"
+        "url": "https://github.com/$OWNER/$REPO/releases/download/v\$version/provenance-demo.pyz"
     },
     "notes": [
         "Run 'redoubt --version' to verify installation",

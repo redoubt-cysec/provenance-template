@@ -1,5 +1,5 @@
 {
-  description = "Redoubt Release Demo - Self-verifying CLI with complete supply chain security";
+  description = "Provenance Demo - Demo CLI showcasing supply chain security and provenance";
 
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
@@ -14,7 +14,7 @@
       in
       {
         packages.default = pkgs.stdenv.mkDerivation {
-          pname = "redoubt-release-template";
+          pname = "provenance-demo";
           version = "0.1.0";
 
           src = ./.;
@@ -59,13 +59,13 @@
 
           installPhase = ''
             mkdir -p $out/bin
-            cp dist/redoubt-release-template.pyz $out/bin/redoubt
-            chmod +x $out/bin/redoubt
+            cp dist/provenance-demo.pyz $out/bin/provenance-demo
+            chmod +x $out/bin/provenance-demo
           '';
 
           meta = with pkgs.lib; {
-            description = "Self-verifying CLI with complete supply chain security";
-            homepage = "https://github.com/OWNER/REPO";
+            description = "Demo CLI showcasing supply chain security and provenance";
+            homepage = "https://github.com/redoubt-cysec/provenance-template";
             license = licenses.mit;
             maintainers = [ ];
             platforms = platforms.unix;
@@ -84,16 +84,16 @@
           ];
 
           shellHook = ''
-            echo "Redoubt development environment"
+            echo "Provenance Demo development environment"
             echo "Run: ./scripts/build_pyz.sh to build"
-            echo "Run: ./dist/redoubt-release-template.pyz verify to test"
+            echo "Run: ./dist/provenance-demo.pyz verify to test"
           '';
         };
 
         # Expose the app
         apps.default = {
           type = "app";
-          program = "${self.packages.${system}.default}/bin/redoubt";
+          program = "${self.packages.${system}.default}/bin/provenance-demo";
         };
       }
     );

@@ -45,7 +45,7 @@ jobs:
       - name: Install Cachix
         uses: cachix/cachix-action@ad2ddac53f961de1989924296a1f236fcfbaa4fc # v15
         with:
-          name: ${{ secrets.CACHIX_CACHE_NAME || 'redoubt' }}
+          name: ${{ secrets.CACHIX_CACHE_NAME || 'provenancedemo' }}
           authToken: '${{ secrets.CACHIX_AUTH_TOKEN }}'
           pushFilter: '(-source$|nixpkgs\.tar\.gz$)'
 
@@ -55,12 +55,12 @@ jobs:
 
       - name: Test package
         run: |
-          ./result/bin/redoubt --version
-          ./result/bin/redoubt hello "Cachix CI on ${{ matrix.system }}"
+          ./result/bin/provenance-demo --version
+          ./result/bin/provenance-demo hello "Cachix CI on ${{ matrix.system }}"
 
       - name: Check Cachix cache
         run: |
-          CACHE_NAME="${{ secrets.CACHIX_CACHE_NAME || 'redoubt' }}"
+          CACHE_NAME="${{ secrets.CACHIX_CACHE_NAME || 'provenancedemo' }}"
           echo "Binary cached at: https://${CACHE_NAME}.cachix.org"
 
       - name: Build all outputs
@@ -73,7 +73,7 @@ jobs:
       - name: Create summary
         if: always()
         run: |
-          CACHE_NAME="${{ secrets.CACHIX_CACHE_NAME || 'redoubt' }}"
+          CACHE_NAME="${{ secrets.CACHIX_CACHE_NAME || 'provenancedemo' }}"
 
           echo "## Nix Binary Cache (${{ matrix.system }})" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
@@ -105,7 +105,7 @@ jobs:
 
       - name: Check if Cachix section exists
         run: |
-          CACHE_NAME="${{ secrets.CACHIX_CACHE_NAME || 'redoubt' }}"
+          CACHE_NAME="${{ secrets.CACHIX_CACHE_NAME || 'provenancedemo' }}"
 
           echo "Cachix cache available at: https://${CACHE_NAME}.cachix.org"
           echo ""

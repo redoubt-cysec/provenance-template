@@ -5,7 +5,7 @@ default: help
 
 # Show help message with available commands
 help:
-    @echo "Redoubt Release Template - Development Commands"
+    @echo "Provenance Demo - Development Commands"
     @echo ""
     @echo "Usage: just [command]"
     @echo ""
@@ -27,7 +27,7 @@ dev-setup:
 build:
     @echo "🔨 Building project..."
     ./scripts/build_pyz.sh
-    @echo "✅ Build complete: dist/redoubt-release-template.pyz"
+    @echo "✅ Build complete: dist/provenance-demo.pyz"
 
 # Run all fast tests (excludes slow and integration tests)
 test:
@@ -115,8 +115,8 @@ clean-all:
 # Verify the built binary
 verify:
     @echo "🔍 Verifying binary..."
-    ./dist/redoubt-release-template.pyz --version
-    ./dist/redoubt-release-template.pyz hello "verification"
+    ./dist/provenance-demo.pyz --version
+    ./dist/provenance-demo.pyz hello "verification"
     @echo "✅ Binary verification complete"
 
 # Build and run full verification
@@ -124,7 +124,7 @@ verify-full:
     @echo "🔍 Running full verification..."
     just build
     just verify
-    ./dist/redoubt-release-template.pyz verify
+    ./dist/provenance-demo.pyz verify
     @echo "✅ Full verification complete"
 
 # Install pre-commit hooks

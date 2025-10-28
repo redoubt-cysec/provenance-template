@@ -1,14 +1,14 @@
 # Maintainer: Your Name <your.email@example.com>
-pkgname=redoubt-release-template
+pkgname=provenance-demo
 pkgver=0.1.0
 pkgrel=1
-pkgdesc="Self-verifying CLI with complete supply chain security"
+pkgdesc="Demo CLI showcasing supply chain security and provenance"
 arch=('any')
-url="https://github.com/jonathanborduas/redoubt-release-template"
+url="https://github.com/redoubt-cysec/provenance-template"
 license=('MIT')
 depends=('python>=3.10' 'python-pip')
 makedepends=('git' 'rsync' 'python-build')
-source=("$pkgname-$pkgver.tar.gz::https://github.com/jonathanborduas/redoubt-release-template/archive/v$pkgver.tar.gz")
+source=("$pkgname-$pkgver.tar.gz::https://github.com/redoubt-cysec/provenance-template/archive/v$pkgver.tar.gz")
 sha256sums=('SKIP')
 
 build() {
@@ -36,7 +36,7 @@ package() {
     cd "$pkgname-$pkgver"
 
     # Install the .pyz
-    install -Dm755 dist/redoubt-release-template.pyz "$pkgdir/usr/bin/redoubt"
+    install -Dm755 dist/provenance-demo.pyz "$pkgdir/usr/bin/provenance-demo"
 
     # Install documentation
     install -Dm644 README.md "$pkgdir/usr/share/doc/$pkgname/README.md"

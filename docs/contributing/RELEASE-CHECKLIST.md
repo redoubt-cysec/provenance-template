@@ -69,7 +69,7 @@
 ✅ No *.pem or *.key files
 ✅ No credentials.json
 ✅ .secrets.baseline in gitignore
-✅ All placeholder values (Borduas-Holdings/redoubt-release-template)
+✅ All placeholder values (redoubt-cysec/provenance-demo)
 ```
 
 ### ✅ Professional Structure

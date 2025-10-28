@@ -11,7 +11,7 @@
 # Option A: Sign up at cachix.org
 1. Go to https://app.cachix.org
 2. Sign in with GitHub
-3. Create a new cache: "redoubt" (or your preferred name)
+3. Create a new cache: "provenancedemo" (or your preferred name)
 4. Go to Account → Create Token
 5. Copy the token
 
@@ -29,11 +29,11 @@
 
 **Purpose**: Name of your Cachix cache
 
-**Value**: `redoubt` (or whatever name you chose)
+**Value**: `provenancedemo` (or whatever name you chose)
 
 **Add to GitHub**:
 - Name: `CACHIX_CACHE_NAME`
-- Value: `redoubt`
+- Value: `provenancedemo`
 
 ---
 
@@ -75,8 +75,8 @@ gpg --armor --export-secret-key YOUR_KEY_ID
 # If you need to create one:
 gpg --full-generate-key
 # Choose: RSA and RSA, 4096 bits, no expiration
-# Real name: Borduas Holdings
-# Email: packages@borduas.dev
+# Real name: Borduas Holdings Ltd.
+# Email: packages@borduasholdings.com
 ```
 
 **Add to GitHub**:
@@ -107,10 +107,10 @@ brew install gh
 gh auth login
 
 # Set secrets
-gh secret set CACHIX_AUTH_TOKEN --repo Borduas-Holdings/redoubt-release-template
-gh secret set CACHIX_CACHE_NAME --repo Borduas-Holdings/redoubt-release-template --body "redoubt"
+gh secret set CACHIX_AUTH_TOKEN --repo redoubt-cysec/provenance-demo
+gh secret set CACHIX_CACHE_NAME --repo redoubt-cysec/provenance-demo --body "redoubt"
 
-gh secret set TAP_GITHUB_TOKEN --repo Borduas-Holdings/redoubt-release-template
+gh secret set TAP_GITHUB_TOKEN --repo redoubt-cysec/provenance-demo
 ```
 
 ---
@@ -133,7 +133,7 @@ You can create a release **without** secrets and most things will still work:
 ## Verification
 
 After adding secrets, they should appear in:
-https://github.com/Borduas-Holdings/redoubt-release-template/settings/secrets/actions
+https://github.com/redoubt-cysec/provenance-demo/settings/secrets/actions
 
 You should see:
 - ✅ CACHIX_AUTH_TOKEN (if added)

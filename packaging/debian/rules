@@ -1,6 +1,6 @@
 #!/usr/bin/make -f
 
-# Debian package build rules for redoubt-release-template
+# Debian package build rules for provenance-demo
 
 %:
 	dh $@
@@ -11,7 +11,7 @@ override_dh_auto_build:
 
 override_dh_auto_install:
 	# Install the .pyz to /usr/bin
-	install -D -m 755 dist/redoubt-release-template.pyz debian/redoubt-release-template/usr/bin/redoubt
+	install -D -m 755 dist/provenance-demo.pyz debian/provenance-demo/usr/bin/provenance-demo
 
 override_dh_auto_clean:
 	# Clean build artifacts

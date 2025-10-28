@@ -37,9 +37,9 @@ import pytest
 REPO_ROOT = Path(__file__).parent.parent
 
 # Configuration from environment or defaults
-GITHUB_REPO = os.getenv("GITHUB_REPO", "Borduas-Holdings/redoubt-release-template-")
-HOMEBREW_TAP = os.getenv("HOMEBREW_TAP", "OWNER/tap")
-PYPI_PACKAGE = os.getenv("PYPI_PACKAGE", "demo-secure-cli")
+GITHUB_REPO = os.getenv("GITHUB_REPO", "redoubt-cysec/provenance-template")
+HOMEBREW_TAP = os.getenv("HOMEBREW_TAP", "redoubt-cysec/tap")
+PYPI_PACKAGE = os.getenv("PYPI_PACKAGE", "provenance-demo")
 
 
 @pytest.fixture(scope="module")

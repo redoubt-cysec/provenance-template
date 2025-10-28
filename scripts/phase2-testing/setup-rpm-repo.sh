@@ -76,11 +76,11 @@ echo -e "${GREEN}✓ GitHub CLI authenticated${NC}"
 echo ""
 
 # Build the binary
-echo -e "${BLUE}Step 3: Building redoubt-release-template.pyz${NC}"
+echo -e "${BLUE}Step 3: Building provenance-demo.pyz${NC}"
 cd "$REPO_ROOT"
 ./scripts/build_pyz.sh
 
-BINARY_PATH="dist/redoubt-release-template.pyz"
+BINARY_PATH="dist/provenance-demo.pyz"
 if [ ! -f "$BINARY_PATH" ]; then
     echo -e "${RED}Error: $BINARY_PATH not found${NC}"
     exit 1
@@ -111,7 +111,7 @@ Summary:        Self-verifying CLI demonstrating reproducible, attestable releas
 
 License:        MIT
 URL:            https://github.com/$OWNER/$REPO
-Source0:        redoubt-release-template.pyz
+Source0:        provenance-demo.pyz
 
 BuildArch:      noarch
 Requires:       python3 >= 3.10

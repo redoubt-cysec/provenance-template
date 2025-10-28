@@ -87,11 +87,11 @@ pytest tests/test_distribution_integration.py -v -s -m integration
 # Test specific release
 pytest tests/test_published_distributions.py -v \
   --release-tag=v1.0.0 \
-  --github-repo=Borduas-Holdings/redoubt-release-template
+  --github-repo=redoubt-cysec/provenance-demo
 
 # Test latest release
 pytest tests/test_published_distributions.py -v --use-latest \
-  --github-repo=Borduas-Holdings/redoubt-release-template
+  --github-repo=redoubt-cysec/provenance-demo
 
 # Set environment for tap/PyPI
 export HOMEBREW_TAP="OWNER/tap"
@@ -185,7 +185,7 @@ pytest tests/test_published_distributions.py -v --use-latest
 
 ```bash
 # Required for all tests
-export GITHUB_REPO="Borduas-Holdings/redoubt-release-template"
+export GITHUB_REPO="redoubt-cysec/provenance-demo"
 
 # Optional for Homebrew tests
 export HOMEBREW_TAP="OWNER/tap"
@@ -246,7 +246,7 @@ Set these as repository secrets/variables:
    ```bash
    pytest tests/test_published_distributions.py -v \
      --release-tag=v1.0.0 \
-     --github-repo=Borduas-Holdings/redoubt-release-template
+     --github-repo=redoubt-cysec/provenance-demo
    ```
 
 3. **Manually verify one install method:**
@@ -257,8 +257,8 @@ Set these as repository secrets/variables:
    brew install client
 
    # Or test direct download
-   gh release download v1.0.0 --repo Borduas-Holdings/redoubt-release-template
-   gh attestation verify client.pyz --repo Borduas-Holdings/redoubt-release-template
+   gh release download v1.0.0 --repo redoubt-cysec/provenance-demo
+   gh attestation verify client.pyz --repo redoubt-cysec/provenance-demo
    ```
 
 ### During Development
@@ -277,7 +277,7 @@ Set these as repository secrets/variables:
 
 - Check formula syntax in [packaging/homebrew-tap/Formula/](packaging/homebrew-tap/Formula/)
 - Verify [pyproject.toml](pyproject.toml) has all required fields
-- Ensure placeholders (Borduas-Holdings/redoubt-release-template) are replaced
+- Ensure placeholders (redoubt-cysec/provenance-demo) are replaced
 
 ### Integration Tests Fail
 

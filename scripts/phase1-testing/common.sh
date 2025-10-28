@@ -55,8 +55,12 @@ ensure_python_build_artifacts() {
       skip "Unable to build Python artifacts (likely offline)."
     fi
   else
-    require_command python3
-    python3 -m pip install --upgrade pip build >/dev/null 2>&1 || skip "pip build dependencies unavailable"
-    (cd "$REPO_ROOT" && python3 -m build) || skip "python build failed"
+    require_command uv
+    # Ensure venv exists
+    if [[ ! -d "$REPO_ROOT/.venv" ]]; then
+      (cd "$REPO_ROOT" && uv venv) || skip "Unable to create virtual environment"
+    fi
+    (cd "$REPO_ROOT" && uv pip install --upgrade pip build >/dev/null 2>&1) || skip "pip build dependencies unavailable"
+    (cd "$REPO_ROOT" && uv run python -m build) || skip "python build failed"
   fi
 }

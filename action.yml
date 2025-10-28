@@ -1,8 +1,8 @@
-# GitHub Action for Redoubt Release Demo
+# GitHub Action for Provenance Demo
 # Use this action to verify binaries in your CI/CD pipeline
 
-name: 'Redoubt Verify'
-description: 'Verify binary attestations using Redoubt Release Demo'
+name: 'Provenance Verify'
+description: 'Verify binary attestations using Provenance Demo'
 author: 'OWNER'
 
 branding:
@@ -36,11 +36,11 @@ outputs:
 runs:
   using: 'composite'
   steps:
-    - name: Install Redoubt
+    - name: Install Provenance Demo
       shell: bash
       run: |
-        echo "Installing Redoubt..."
-        pip install redoubt-release-template
+        echo "Installing Provenance Demo..."
+        pip install provenance-demo
 
     - name: Install verification tools
       if: inputs.install-tools == 'true'
@@ -75,7 +75,7 @@ runs:
         echo "Verifying ${{ inputs.binary-path }}..."
 
         # Run verification and capture output
-        if redoubt verify --file "${{ inputs.binary-path }}" > verification_output.txt 2>&1; then
+        if provenance-demo verify --file "${{ inputs.binary-path }}" > verification_output.txt 2>&1; then
           RESULT="success"
           EXIT_CODE=0
         else

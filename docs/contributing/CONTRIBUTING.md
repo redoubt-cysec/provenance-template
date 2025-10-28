@@ -1,4 +1,4 @@
-# Contributing to Redoubt Release Template
+# Contributing to Provenance Demo
 
 First off, thank you for considering contributing! Your help is greatly appreciated.
 

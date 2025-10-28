@@ -121,7 +121,7 @@ Each platform has:
 # 1. Setup private tap
 ./setup-homebrew-tap.sh
 # - Creates OWNER/homebrew-tap repository
-# - Builds redoubt-release-template.pyz
+# - Builds provenance-demo.pyz
 # - Creates test release in main repo
 # - Updates Formula/redoubt.rb with SHA256
 # - Pushes to tap repo
@@ -164,7 +164,7 @@ brew install redoubt
 **What users will do:**
 
 ```bash
-pip install --index-url https://test.pypi.org/simple/ redoubt-release-template
+pip install --index-url https://test.pypi.org/simple/ provenance-demo
 ```
 
 ---
@@ -210,14 +210,14 @@ docker run ghcr.io/OWNER/redoubt:test-VERSION --version
 ./test-snap-edge-vm.sh
 # - Creates Ubuntu VM
 # - Waits for snapd
-# - Installs from edge: snap install redoubt-release-template --edge
+# - Installs from edge: snap install provenance-demo --edge
 # - Tests commands
 ```
 
 **What users will do:**
 
 ```bash
-sudo snap install redoubt-release-template --edge
+sudo snap install provenance-demo --edge
 ```
 
 ---
@@ -284,7 +284,7 @@ sudo dnf install redoubt
 # 1. Setup private bucket (macOS/Linux)
 ./setup-scoop-bucket.sh
 # - Creates OWNER/scoop-bucket repository
-# - Builds redoubt-release-template.pyz
+# - Builds provenance-demo.pyz
 # - Creates test release
 # - Generates Scoop manifest with SHA256
 # - Pushes to bucket repo

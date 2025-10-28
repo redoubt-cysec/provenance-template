@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# This script checks the configuration of the Redoubt Release Template.
+# This script checks the configuration of the Provenance Demo.
 # It verifies that essential files exist and are correctly configured.
 
 set -euo pipefail

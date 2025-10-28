@@ -70,7 +70,7 @@ jobs:
           mkdir -p deb-build/redoubt_${VERSION}/usr/share/doc/redoubt
 
           # Copy binary
-          cp dist/redoubt-release-template.pyz deb-build/redoubt_${VERSION}/usr/bin/redoubt
+          cp dist/provenance-demo.pyz deb-build/redoubt_${VERSION}/usr/bin/redoubt
           chmod +x deb-build/redoubt_${VERSION}/usr/bin/redoubt
 
           # Create control file
@@ -80,7 +80,7 @@ jobs:
           Section: utils
           Priority: optional
           Architecture: amd64
-          Maintainer: Borduas Holdings <noreply@borduas.dev>
+          Maintainer: Redoubt Cysec <noreply@redoubt-cysec.com>
           Description: Supply chain security verification tool
            Redoubt provides comprehensive supply chain security verification
            with checksum validation, signature verification, and SBOM analysis.
@@ -102,7 +102,7 @@ jobs:
           # Create Release file
           cd dists/stable
           cat > Release <<EOF
-          Origin: Borduas Holdings
+          Origin: Redoubt Cysec
           Label: Redoubt
           Suite: stable
           Codename: stable
@@ -136,7 +136,7 @@ jobs:
           Summary:        Supply chain security verification tool
           License:        MIT
           URL:            https://github.com/${{ github.repository }}
-          Source0:        redoubt-release-template.pyz
+          Source0:        provenance-demo.pyz
 
           %description
           Redoubt provides comprehensive supply chain security verification
@@ -155,7 +155,7 @@ jobs:
           EOF
 
           # Copy source
-          cp dist/redoubt-release-template.pyz rpmbuild/SOURCES/
+          cp dist/provenance-demo.pyz rpmbuild/SOURCES/
 
           # Build RPM
           rpmbuild --define "_topdir $(pwd)/rpmbuild" -bb rpmbuild/SPECS/redoubt.spec
@@ -211,7 +211,7 @@ jobs:
             <h2>APT Repository (Debian/Ubuntu)</h2>
             <pre>
           # Add repository
-          echo "deb [trusted=yes] https://${{ github.repository_owner }}.github.io/redoubt-release-template/apt stable main" | sudo tee /etc/apt/sources.list.d/redoubt.list
+          echo "deb [trusted=yes] https://${{ github.repository_owner }}.github.io/provenance-demo/apt stable main" | sudo tee /etc/apt/sources.list.d/redoubt.list
 
           # Update and install
           sudo apt update
@@ -224,7 +224,7 @@ jobs:
           sudo tee /etc/yum.repos.d/redoubt.repo <<REPO
           [redoubt]
           name=Redoubt Repository
-          baseurl=https://${{ github.repository_owner }}.github.io/redoubt-release-template/rpm
+          baseurl=https://${{ github.repository_owner }}.github.io/provenance-demo/rpm
           enabled=1
           gpgcheck=0
           REPO

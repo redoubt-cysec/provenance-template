@@ -6,7 +6,7 @@ This document provides a comprehensive security checklist for using this templat
 
 ### Repository Configuration
 
-- [ ] Replace `Borduas-Holdings/redoubt-release-template` with your actual GitHub org/repo
+- [ ] Replace `redoubt-cysec/provenance-demo` with your actual GitHub org/repo
 - [ ] Replace `<PINNED_SHA>` with actual commit SHAs in all workflows
 - [ ] Replace `<PINNED_DIGEST>` with actual image digests (if using OCI)
 - [ ] Update `[YOUR_SECURITY_EMAIL]` in SECURITY.md
@@ -256,7 +256,7 @@ git push origin v1.0.0
 ### Post-Release Verification
 
 - [ ] Download release artifacts
-- [ ] Verify attestations: `gh attestation verify artifact.pyz --repo Borduas-Holdings/redoubt-release-template`
+- [ ] Verify attestations: `gh attestation verify artifact.pyz --repo redoubt-cysec/provenance-demo`
 - [ ] Verify checksums: `sha256sum --check SHA256SUMS`
 - [ ] Verify signature: `cosign verify-blob ... SHA256SUMS`
 - [ ] Test artifact works: `./artifact.pyz --version`
@@ -282,7 +282,7 @@ If using OCI:
 - [ ] Image pushed to GHCR
 - [ ] Image signed with cosign
 - [ ] SBOM attached to image
-- [ ] Test: `docker pull ghcr.io/Borduas-Holdings/redoubt-release-template:tag`
+- [ ] Test: `docker pull ghcr.io/redoubt-cysec/provenance-demo:tag`
 
 ## 🔄 Ongoing Maintenance
 

@@ -28,7 +28,7 @@ Welcome! This guide shows you how to turn this template into your app with a rep
 
 Replace placeholders with your values:
 
-- `Borduas-Holdings/redoubt-release-template` → your org/repo (e.g., acme/rocket-cli)
+- `redoubt-cysec/provenance-demo` → your org/repo (e.g., acme/rocket-cli)
 - CLI name: today it's `demo` (entry point), artifact name `client.pyz`
 - Python package: today `demo_cli`
 
@@ -86,7 +86,7 @@ python -m zipapp build/pyz/src -m "rocket_cli.cli:main" -o dist/rocket.pyz
 
 ### A) Replace repo placeholders
 
-Open these files and replace `Borduas-Holdings/redoubt-release-template` and `client.pyz` with yours:
+Open these files and replace `redoubt-cysec/provenance-demo` and `client.pyz` with yours:
 
 - `.github/workflows/*` (all of them)
 - [SUPPLY-CHAIN.md](../security/SUPPLY-CHAIN.md), [QUICK-START.md](../../QUICK-START.md), [README.md](../../README.md)
@@ -142,7 +142,7 @@ git push origin v0.1.0
 
 ```bash
 TAG=v0.1.0
-REPO=Borduas-Holdings/redoubt-release-template
+REPO=redoubt-cysec/provenance-demo
 curl -LO https://github.com/$REPO/releases/download/$TAG/rocket.pyz
 gh attestation verify rocket.pyz --repo $REPO
 ```
@@ -251,7 +251,7 @@ COSIGN_EXPERIMENTAL=1 cosign verify-blob \
 
 ## 13) Quick "rename checklist"
 
-- Replace `Borduas-Holdings/redoubt-release-template` everywhere
+- Replace `redoubt-cysec/provenance-demo` everywhere
 - `client.pyz` → `rocket.pyz` (or your name)
 - `demo_cli` → `rocket_cli` (package)
 - `[project.scripts] demo = ...` → `rocket = ...`

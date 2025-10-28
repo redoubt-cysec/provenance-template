@@ -157,7 +157,7 @@ nix build .# --extra-experimental-features nix-command --extra-experimental-feat
 ✓ python -m build succeeded (wheel and sdist built)
 ✓ zipapp created successfully
 ✓ installPhase completed
-✓ Package installed to /nix/store/.../redoubt-release-template-0.1.0
+✓ Package installed to /nix/store/.../provenance-demo-0.1.0
 ```
 
 ### Execution Tests ✅
@@ -239,7 +239,7 @@ nix develop --extra-experimental-features nix-command --extra-experimental-featu
 
 # Inside the shell:
 ./scripts/build_pyz.sh
-./dist/redoubt-release-template.pyz --version
+./dist/provenance-demo.pyz --version
 ```
 
 **Enable Experimental Features Permanently**:

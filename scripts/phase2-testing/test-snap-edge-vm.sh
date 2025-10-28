@@ -56,9 +56,9 @@ multipass exec "$VM_NAME" -- bash -c '
 
 # Install snap from edge channel
 echo -e "${BLUE}Step 3: Installing from edge channel${NC}"
-if ! multipass exec "$VM_NAME" -- sudo snap install redoubt-release-template --edge 2>&1; then
+if ! multipass exec "$VM_NAME" -- sudo snap install provenance-demo --edge 2>&1; then
     echo ""
-    echo -e "${YELLOW}⚠ Snap 'redoubt-release-template' not found in edge channel${NC}"
+    echo -e "${YELLOW}⚠ Snap 'provenance-demo' not found in edge channel${NC}"
     echo -e "${YELLOW}→ This is expected for a template repository before publishing to Snap Store${NC}"
     echo -e "${YELLOW}→ Run setup-snap-edge.sh to build and push to edge channel${NC}"
     echo ""
@@ -73,17 +73,17 @@ echo -e "${BLUE}Step 4: Testing snap${NC}"
 
 # Test version
 echo -e "${YELLOW}Testing --version...${NC}"
-VERSION_OUTPUT=$(multipass exec "$VM_NAME" -- redoubt-release-template.redoubt --version)
+VERSION_OUTPUT=$(multipass exec "$VM_NAME" -- provenance-demo.redoubt --version)
 echo "  Output: $VERSION_OUTPUT"
 
 # Test hello
 echo -e "${YELLOW}Testing hello command...${NC}"
-HELLO_OUTPUT=$(multipass exec "$VM_NAME" -- redoubt-release-template.redoubt hello "Snap Edge Test")
+HELLO_OUTPUT=$(multipass exec "$VM_NAME" -- provenance-demo.redoubt hello "Snap Edge Test")
 echo "  Output: $HELLO_OUTPUT"
 
 # Test verify
 echo -e "${YELLOW}Testing verify command...${NC}"
-VERIFY_OUTPUT=$(multipass exec "$VM_NAME" -- redoubt-release-template.redoubt verify 2>&1 || true)
+VERIFY_OUTPUT=$(multipass exec "$VM_NAME" -- provenance-demo.redoubt verify 2>&1 || true)
 echo "  Output: $VERIFY_OUTPUT"
 
 # Check results

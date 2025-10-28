@@ -1,9 +1,9 @@
-# Makefile for Redoubt Release Template
+# Makefile for Provenance Demo
 # Provides convenient commands for development, testing, and building
 
 .PHONY: help
 help: ## Show this help message
-	@echo "Redoubt Release Template - Development Commands"
+	@echo "Provenance Demo - Development Commands"
 	@echo ""
 	@echo "Usage: make [target]"
 	@echo ""
@@ -26,7 +26,7 @@ dev-setup: ## Complete development environment setup (first-time setup)
 build: ## Build the .pyz binary and wheels
 	@echo "🔨 Building project..."
 	./scripts/build_pyz.sh
-	@echo "✅ Build complete: dist/redoubt-release-template.pyz"
+	@echo "✅ Build complete: dist/provenance-demo.pyz"
 
 .PHONY: test
 test: ## Run all fast tests (excludes slow and integration tests)
@@ -113,14 +113,14 @@ clean-all: clean ## Remove all generated files including .env
 .PHONY: verify
 verify: ## Verify the built binary
 	@echo "🔍 Verifying binary..."
-	./dist/redoubt-release-template.pyz --version
-	./dist/redoubt-release-template.pyz hello "verification"
+	./dist/provenance-demo.pyz --version
+	./dist/provenance-demo.pyz hello "verification"
 	@echo "✅ Binary verification complete"
 
 .PHONY: verify-full
 verify-full: build verify ## Build and run full verification
 	@echo "🔍 Running full verification..."
-	./dist/redoubt-release-template.pyz verify
+	./dist/provenance-demo.pyz verify
 	@echo "✅ Full verification complete"
 
 .PHONY: phase2-homebrew
@@ -154,14 +154,14 @@ phase2-quick: ## Run quick Phase 2 tests (Homebrew, Docker)
 .PHONY: docker-build
 docker-build: ## Build Docker image
 	@echo "🐳 Building Docker image..."
-	docker build -t redoubt-release-template:dev .
-	@echo "✅ Docker image built: redoubt-release-template:dev"
+	docker build -t provenance-demo:dev .
+	@echo "✅ Docker image built: provenance-demo:dev"
 
 .PHONY: docker-run
 docker-run: docker-build ## Build and run Docker image
 	@echo "🐳 Running Docker image..."
-	docker run --rm redoubt-release-template:dev --version
-	docker run --rm redoubt-release-template:dev hello "Docker"
+	docker run --rm provenance-demo:dev --version
+	docker run --rm provenance-demo:dev hello "Docker"
 
 .PHONY: pre-commit-install
 pre-commit-install: ## Install pre-commit hooks
@@ -204,11 +204,11 @@ watch-tests: ## Watch for changes and run tests automatically
 .PHONY: shell
 shell: ## Open Python shell with project context
 	@echo "🐍 Opening Python shell..."
-	uv run python -i -c "from demo_cli.cli import main; from demo_cli import __version__; print(f'Redoubt Release Template v{__version__}'); print('Available: main, __version__')"
+	uv run python -i -c "from demo_cli.cli import main; from demo_cli import __version__; print(f'Provenance Demo v{__version__}'); print('Available: main, __version__')"
 
 .PHONY: info
 info: ## Show project information
-	@echo "📦 Redoubt Release Template"
+	@echo "📦 Provenance Demo"
 	@echo ""
 	@echo "Version:    $$(grep '^version = ' pyproject.toml | cut -d'\"' -f2)"
 	@echo "Python:     $$(python3 --version)"
@@ -223,10 +223,10 @@ info: ## Show project information
 benchmark: ## Run performance benchmarks
 	@echo "⚡ Running benchmarks..."
 	@echo "Binary size:"
-	@ls -lh dist/redoubt-release-template.pyz 2>/dev/null || echo "  (build first with 'make build')"
+	@ls -lh dist/provenance-demo.pyz 2>/dev/null || echo "  (build first with 'make build')"
 	@echo ""
 	@echo "Startup time:"
-	@time ./dist/redoubt-release-template.pyz --version >/dev/null 2>&1 || echo "  (build first)"
+	@time ./dist/provenance-demo.pyz --version >/dev/null 2>&1 || echo "  (build first)"
 
 .PHONY: update-deps
 update-deps: ## Update dependencies

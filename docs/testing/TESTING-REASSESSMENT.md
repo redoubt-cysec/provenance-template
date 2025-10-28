@@ -125,7 +125,7 @@ multipass exec test-appimage -- ./redoubt-*.AppImage --version
 **Packaging Exists:**
 ```bash
 # packaging/aur/PKGBUILD
-pkgname=redoubt-release-template
+pkgname=provenance-demo
 pkgver=0.1.0
 pkgrel=1
 pkgdesc="Self-verifying CLI with complete supply chain security"
@@ -185,7 +185,7 @@ multipass exec test-aur -- redoubt --version
 ```nix
 # flake.nix
 packages.default = pkgs.stdenv.mkDerivation {
-  pname = "redoubt-release-template";
+  pname = "provenance-demo";
   version = "0.1.0";
   # ... complete derivation
 };

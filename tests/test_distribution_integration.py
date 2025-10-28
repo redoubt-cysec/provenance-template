@@ -174,13 +174,13 @@ class TestHomebrewInstallation:
         print(f"[{vm_name}] Testing .pyz installation...")
 
         # Copy local .pyz to VM (if it exists)
-        pyz_file = REPO_ROOT / "dist" / "redoubt-release-template.pyz"
+        pyz_file = REPO_ROOT / "dist" / "provenance-demo.pyz"
         if not pyz_file.exists():
             pytest.skip("No .pyz file to test (run build first)")
 
         # Transfer file to VM
         subprocess.run(
-            ["multipass", "transfer", str(pyz_file), f"{vm_name}:/tmp/redoubt-release-template.pyz"],
+            ["multipass", "transfer", str(pyz_file), f"{vm_name}:/tmp/provenance-demo.pyz"],
             capture_output=True,
             timeout=30
         )
@@ -188,7 +188,7 @@ class TestHomebrewInstallation:
         # Make executable and run
         result = multipass_exec(
             vm_name,
-            "chmod +x /tmp/redoubt-release-template.pyz && /tmp/redoubt-release-template.pyz --version",
+            "chmod +x /tmp/provenance-demo.pyz && /tmp/provenance-demo.pyz --version",
             timeout=10
         )
 
@@ -394,14 +394,14 @@ class TestDirectPyzInstallation:
             pytest.skip(f"Failed to install Python: {result.stderr}")
 
         # Check for .pyz
-        pyz_file = REPO_ROOT / "dist" / "redoubt-release-template.pyz"
+        pyz_file = REPO_ROOT / "dist" / "provenance-demo.pyz"
         if not pyz_file.exists():
             pytest.skip("No .pyz file to test (run build first)")
 
         # Transfer .pyz to VM
         print(f"[{vm_name}] Transferring .pyz...")
         subprocess.run(
-            ["multipass", "transfer", str(pyz_file), f"{vm_name}:/tmp/redoubt-release-template.pyz"],
+            ["multipass", "transfer", str(pyz_file), f"{vm_name}:/tmp/provenance-demo.pyz"],
             capture_output=True,
             timeout=30
         )
@@ -412,7 +412,7 @@ class TestDirectPyzInstallation:
         # Test with python3
         result = multipass_exec(
             vm_name,
-            "python3 /tmp/redoubt-release-template.pyz --version",
+            "python3 /tmp/provenance-demo.pyz --version",
             timeout=10
         )
         assert result.returncode == 0, f"Failed to run with python3: {result.stderr}"
@@ -420,7 +420,7 @@ class TestDirectPyzInstallation:
         # Test as executable
         result = multipass_exec(
             vm_name,
-            "chmod +x /tmp/redoubt-release-template.pyz && /tmp/redoubt-release-template.pyz --version",
+            "chmod +x /tmp/provenance-demo.pyz && /tmp/provenance-demo.pyz --version",
             timeout=10
         )
         assert result.returncode == 0, f"Failed to run as executable: {result.stderr}"
@@ -428,7 +428,7 @@ class TestDirectPyzInstallation:
         # Test actual functionality
         result = multipass_exec(
             vm_name,
-            "/tmp/redoubt-release-template.pyz hello World",
+            "/tmp/provenance-demo.pyz hello World",
             timeout=10
         )
         assert result.returncode == 0, f"Failed to run with argument: {result.stderr}"
@@ -446,13 +446,13 @@ class TestCrossPlatformCompatibility:
         """Test with different Python versions."""
         vm_name = ubuntu_vm
 
-        pyz_file = REPO_ROOT / "dist" / "redoubt-release-template.pyz"
+        pyz_file = REPO_ROOT / "dist" / "provenance-demo.pyz"
         if not pyz_file.exists():
             pytest.skip("No .pyz file to test")
 
         # Transfer .pyz
         subprocess.run(
-            ["multipass", "transfer", str(pyz_file), f"{vm_name}:/tmp/redoubt-release-template.pyz"],
+            ["multipass", "transfer", str(pyz_file), f"{vm_name}:/tmp/provenance-demo.pyz"],
             capture_output=True,
             timeout=30
         )
@@ -483,7 +483,7 @@ class TestCrossPlatformCompatibility:
             # Test with this version
             result = multipass_exec(
                 vm_name,
-                f"{python_version} /tmp/redoubt-release-template.pyz --version",
+                f"{python_version} /tmp/provenance-demo.pyz --version",
                 timeout=10
             )
 
