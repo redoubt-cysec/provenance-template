@@ -1,6 +1,9 @@
 name: homebrew-macos
 on: [workflow_dispatch, pull_request]
 
+permissions:
+  contents: read  # Only needs to checkout code for testing
+
 jobs:
   test-homebrew-macos:
     runs-on: macos-latest

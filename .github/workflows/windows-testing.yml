@@ -1,6 +1,9 @@
 name: windows-testing
 on: [workflow_dispatch, pull_request]
 
+permissions:
+  contents: read  # Only needs to checkout code for testing
+
 jobs:
   test-windows:
     runs-on: windows-latest

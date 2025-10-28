@@ -1,0 +1,41 @@
+# CODEOWNERS - Automatically request reviews from code owners
+#
+# When a pull request is opened, GitHub will automatically request reviews
+# from the people listed here based on which files were changed.
+#
+# More info: https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/customizing-your-repository/about-code-owners
+
+# Default owner for everything in the repo
+# This ensures all PRs get automatically assigned for review
+* @jobordu
+
+# Security-critical files require extra scrutiny
+/.github/workflows/ @jobordu
+/docs/security/ @jobordu
+/scripts/ @jobordu
+SECURITY.md @jobordu
+
+# Package configuration
+pyproject.toml @jobordu
+Dockerfile @jobordu
+
+# Documentation (can be less strict if you add more contributors)
+/docs/ @jobordu
+*.md @jobordu
+
+# ===================================================================
+# TEMPLATE USERS: Customize this file for your organization
+# ===================================================================
+#
+# Replace @jobordu with your GitHub username(s) or team(s)
+#
+# Examples:
+#   * @your-username
+#   * @your-org/your-team
+#   * @user1 @user2 @user3
+#
+# You can also have different owners for different paths:
+#   /frontend/ @frontend-team
+#   /backend/ @backend-team
+#   *.py @python-experts
+#

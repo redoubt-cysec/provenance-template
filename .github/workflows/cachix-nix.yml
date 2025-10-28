@@ -6,6 +6,9 @@ on:
         description: Cachix cache name (e.g. provenancedemo)
         required: true
 
+permissions:
+  contents: read  # Only needs to checkout code
+
 jobs:
   nix-cachix:
     runs-on: ubuntu-latest

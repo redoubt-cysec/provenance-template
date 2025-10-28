@@ -1,6 +1,9 @@
 name: homebrew-upgrade
 on: [workflow_dispatch]
 
+permissions:
+  contents: read  # Only needs to checkout code for testing
+
 jobs:
   brew-upgrade:
     runs-on: macos-latest

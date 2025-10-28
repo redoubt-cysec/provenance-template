@@ -7,6 +7,9 @@ on:
       - 'scripts/distribution-testing/**'
       - '.github/workflows/distribution-testing.yml'
 
+permissions:
+  contents: read  # Only needs to checkout code for testing
+
 jobs:
   linux:
     name: Linux Matrix
