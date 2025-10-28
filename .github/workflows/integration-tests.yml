@@ -118,8 +118,8 @@ jobs:
         run: |
           python3 -m venv /tmp/test-venv
           /tmp/test-venv/bin/pip install dist/*.whl
-          /tmp/test-venv/bin/redoubt --version
-          /tmp/test-venv/bin/redoubt hello TestUser
+          /tmp/test-venv/bin/provenance-demo --version
+          /tmp/test-venv/bin/provenance-demo hello TestUser
 
   test-docker-debian:
     name: Test on Debian (Docker)
@@ -151,7 +151,7 @@ jobs:
         run: |
           python3 -m venv /tmp/test-venv
           /tmp/test-venv/bin/pip install dist/*.whl
-          /tmp/test-venv/bin/redoubt --version
+          /tmp/test-venv/bin/provenance-demo --version
 
   test-docker-fedora:
     name: Test on Fedora (Docker)
@@ -182,7 +182,7 @@ jobs:
         run: |
           python3 -m venv /tmp/test-venv
           /tmp/test-venv/bin/pip install dist/*.whl
-          /tmp/test-venv/bin/redoubt --version
+          /tmp/test-venv/bin/provenance-demo --version
 
   test-docker-alpine:
     name: Test on Alpine (Docker)
@@ -213,7 +213,7 @@ jobs:
         run: |
           python3 -m venv /tmp/test-venv
           /tmp/test-venv/bin/pip install dist/*.whl
-          /tmp/test-venv/bin/redoubt --version
+          /tmp/test-venv/bin/provenance-demo --version
 
   test-macos:
     name: Test on macOS
@@ -238,7 +238,7 @@ jobs:
         run: |
           python3 -m venv /tmp/test-venv
           /tmp/test-venv/bin/pip install dist/*.whl
-          /tmp/test-venv/bin/redoubt --version
+          /tmp/test-venv/bin/provenance-demo --version
 
       - name: Test Homebrew formula (dry-run)
         run: |

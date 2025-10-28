@@ -65,17 +65,17 @@ jobs:
           VERSION="${{ steps.version.outputs.version_number }}"
 
           # Create DEB package structure
-          mkdir -p deb-build/redoubt_${VERSION}/DEBIAN
-          mkdir -p deb-build/redoubt_${VERSION}/usr/bin
-          mkdir -p deb-build/redoubt_${VERSION}/usr/share/doc/redoubt
+          mkdir -p deb-build/provenance-demo_${VERSION}/DEBIAN
+          mkdir -p deb-build/provenance-demo_${VERSION}/usr/bin
+          mkdir -p deb-build/provenance-demo_${VERSION}/usr/share/doc/provenance-demo
 
           # Copy binary
-          cp dist/provenance-demo.pyz deb-build/redoubt_${VERSION}/usr/bin/redoubt
-          chmod +x deb-build/redoubt_${VERSION}/usr/bin/redoubt
+          cp dist/provenance-demo.pyz deb-build/provenance-demo_${VERSION}/usr/bin/provenance-demo
+          chmod +x deb-build/provenance-demo_${VERSION}/usr/bin/provenance-demo
 
           # Create control file
-          cat > deb-build/redoubt_${VERSION}/DEBIAN/control <<EOF
-          Package: redoubt
+          cat > deb-build/provenance-demo_${VERSION}/DEBIAN/control <<EOF
+          Package: provenance-demo
           Version: ${VERSION}
           Section: utils
           Priority: optional
@@ -88,8 +88,8 @@ jobs:
           EOF
 
           # Build DEB
-          dpkg-deb --build deb-build/redoubt_${VERSION}
-          cp deb-build/redoubt_${VERSION}.deb apt-repo/pool/main/
+          dpkg-deb --build deb-build/provenance-demo_${VERSION}
+          cp deb-build/provenance-demo_${VERSION}.deb apt-repo/pool/main/
 
       - name: Create APT repository
         run: |
