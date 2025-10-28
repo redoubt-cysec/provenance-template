@@ -18,17 +18,35 @@ rm -rf build/pyz && mkdir -p build/pyz/src
 rsync -a --delete src/ build/pyz/src/
 # Create zipapp (module entry: demo_cli.cli:main) with reproducible timestamps
 uv run --no-project python -c "
-import zipapp
+import zipfile
 import os
 import time
-# Set mtime of all files to SOURCE_DATE_EPOCH for reproducibility
+from pathlib import Path
+
 sde = int(os.environ.get('SOURCE_DATE_EPOCH', time.time()))
-for root, dirs, files in os.walk('build/pyz/src'):
-    for name in files:
-        path = os.path.join(root, name)
-        os.utime(path, (sde, sde))
-zipapp.create_archive('build/pyz/src', 'dist/provenance-demo.pyz',
-                      interpreter='/usr/bin/env python3',
-                      main='demo_cli.cli:main')
+date_time = time.gmtime(sde)[:6]
+
+with zipfile.ZipFile('dist/provenance-demo.pyz', 'w', zipfile.ZIP_DEFLATED) as zf:
+    # Add __main__.py with deterministic timestamp
+    main_content = 'from demo_cli.cli import main\nmain()\n'
+    zinfo = zipfile.ZipInfo('__main__.py', date_time=date_time)
+    zinfo.external_attr = 0o644 << 16
+    zf.writestr(zinfo, main_content, compress_type=zipfile.ZIP_DEFLATED)
+
+    # Add all source files in sorted order with deterministic timestamps
+    src_dir = Path('build/pyz/src')
+    for file_path in sorted(src_dir.rglob('*')):
+        if file_path.is_file():
+            arcname = str(file_path.relative_to(src_dir))
+            zinfo = zipfile.ZipInfo(arcname, date_time=date_time)
+            zinfo.external_attr = 0o644 << 16
+            with open(file_path, 'rb') as f:
+                zf.writestr(zinfo, f.read(), compress_type=zipfile.ZIP_DEFLATED)
+
+# Add shebang
+with open('dist/provenance-demo.pyz', 'rb') as f:
+    content = f.read()
+with open('dist/provenance-demo.pyz', 'wb') as f:
+    f.write(b'#!/usr/bin/env python3\n' + content)
 "
 chmod +x dist/provenance-demo.pyz
