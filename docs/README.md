@@ -17,6 +17,7 @@ Start here if you're new to the template:
 Understand the security features and how to verify releases:
 
 - **[Security Policy](security/SECURITY.md)** - Vulnerability reporting and security support
+- **[Private Vulnerability Reporting Setup](security/PRIVATE-VULNERABILITY-REPORTING-SETUP.md)** - Enable GitHub's private reporting feature
 - **[Supply Chain Security](security/SUPPLY-CHAIN.md)** - Verification instructions for releases
 - **[Security Testing](security/SECURITY-TESTING.md)** - Details on the 25+ security tests
 - **[Complete Security Checklist](security/COMPLETE-SECURITY-CHECKLIST.md)** - Pre-release security validation
@@ -98,9 +99,9 @@ Contribute to the template or prepare for release:
 
 ## 📋 Documentation by Category
 
-### Security Documentation (6 files)
+### Security Documentation (7 files)
 
-- Supply Chain Security, Verification, Testing, Policies, and Checklists
+- Supply Chain Security, Verification, Testing, Policies, Private Reporting, and Checklists
 
 ### Testing Documentation (4 files)
 

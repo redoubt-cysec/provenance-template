@@ -21,7 +21,7 @@ Instead, please report them via:
    - Fill out the form with details
 
 2. **Email** (if GitHub is not available)
-   - Contact: [YOUR_SECURITY_EMAIL]
+   - Contact: security@[YOUR-DOMAIN].com
    - Use subject: "SECURITY: [brief description]"
    - Include:
      - Description of the vulnerability

@@ -286,7 +286,7 @@ Built with modern security best practices:
 
 - **Issues:** [GitHub Issues](https://github.com/redoubt-cysec/provenance-demo/issues)
 - **Discussions:** [GitHub Discussions](https://github.com/redoubt-cysec/provenance-demo/discussions)
-- **Security:** See [SECURITY.md](docs/security/SECURITY.md) for vulnerability reporting
+- **Security:** See [SECURITY.md](SECURITY.md) for vulnerability reporting
 
 ---
 
