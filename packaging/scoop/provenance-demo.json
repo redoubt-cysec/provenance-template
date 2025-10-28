@@ -4,7 +4,7 @@
     "homepage": "https://github.com/redoubt-cysec/provenance-template",
     "license": "MIT",
     "url": "https://github.com/redoubt-cysec/provenance-template/releases/download/v0.1.0/provenance-demo.pyz",
-    "hash": "REPLACE_WITH_SHA256_FROM_RELEASE",
+    "hash": "0000000000000000000000000000000000000000000000000000000000000000",
     "bin": "provenance-demo.pyz",
     "pre_install": [
         "if (!(Get-Command python -ErrorAction SilentlyContinue)) {",

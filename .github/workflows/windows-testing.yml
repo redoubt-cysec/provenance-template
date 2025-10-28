@@ -25,20 +25,20 @@ jobs:
         run: |
           switch ("${{ matrix.package_manager }}") {
             "scoop" {
-              scoop install redoubt
-              redoubt --version
+              scoop install provenance-demo
+              provenance-demo --version
             }
             "chocolatey" {
               choco install chocolatey.server -y
               Start-Service chocolatey.server -ErrorAction SilentlyContinue
               # TODO: choco push your .nupkg to http://localhost:8080/ and install:
-              # choco push .\dist\redoubt*.nupkg --source http://localhost:8080/
-              # choco install redoubt -y --source http://localhost:8080/
+              # choco push .\dist\provenance-demo*.nupkg --source http://localhost:8080/
+              # choco install provenance-demo -y --source http://localhost:8080/
             }
             "winget" {
               winget validate .\packaging\winget\manifests\OWNER.redoubt.yaml
               winget install --manifest .\packaging\winget\manifests\OWNER.redoubt.yaml `
                 --silent --accept-source-agreements --accept-package-agreements
-              redoubt --version
+              provenance-demo --version
             }
           }
