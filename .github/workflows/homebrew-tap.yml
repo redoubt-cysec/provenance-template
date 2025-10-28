@@ -49,11 +49,11 @@ jobs:
           REPO="${{ github.repository }}"
 
           # Download the .pyz file
-          curl -fsSL -o redoubt.pyz \
-            "https://github.com/${REPO}/releases/download/${VERSION}/provenance-template.pyz"
+          curl -fsSL -o provenance-demo.pyz \
+            "https://github.com/${REPO}/releases/download/${VERSION}/provenance-demo.pyz"
 
           # Calculate SHA256
-          SHA256=$(shasum -a 256 redoubt.pyz | awk '{print $1}')
+          SHA256=$(shasum -a 256 provenance-demo.pyz | awk '{print $1}')
           echo "sha256=${SHA256}" >> $GITHUB_ENV
 
       - name: Update formula
@@ -62,12 +62,12 @@ jobs:
           SHA256="${{ env.sha256 }}"
           REPO="${{ github.repository }}"
 
-          FORMULA_FILE="tap/Formula/redoubt.rb"
+          FORMULA_FILE="tap/Formula/provenance-demo.rb"
 
           # Create or update formula
           cat > "$FORMULA_FILE" <<'EOF'
-          class Redoubt < Formula
-            desc "Supply chain security verification tool"
+          class ProvenanceDemo < Formula
+            desc "Demo CLI showcasing supply chain security and provenance attestation"
             homepage "https://github.com/${{ github.repository }}"
             url "https://github.com/${{ github.repository }}/releases/download/v${{ steps.version.outputs.version_number }}/provenance-demo.pyz"
             sha256 "${{ env.sha256 }}"
@@ -77,11 +77,11 @@ jobs:
             depends_on "python@3.11"
 
             def install
-              bin.install "provenance-demo.pyz" => "redoubt"
+              bin.install "provenance-demo.pyz" => "provenance-demo"
             end
 
             test do
-              assert_match version.to_s, shell_output("#{bin}/redoubt --version")
+              assert_match version.to_s, shell_output("#{bin}/provenance-demo --version")
             end
           end
           EOF
@@ -95,14 +95,14 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
 
-          git add Formula/redoubt.rb
+          git add Formula/provenance-demo.rb
 
           if git diff --staged --quiet; then
             echo "No changes to commit"
             exit 0
           fi
 
-          git commit -m "Update redoubt to v${{ steps.version.outputs.version_number }}
+          git commit -m "Update provenance-demo to v${{ steps.version.outputs.version_number }}
 
           - SHA256: ${{ env.sha256 }}
           - Release: ${{ steps.version.outputs.version }}
@@ -114,9 +114,9 @@ jobs:
       - name: Test formula
         run: |
           cd tap
-          brew install --build-from-source Formula/redoubt.rb
-          redoubt --version
-          redoubt hello "Homebrew CI"
+          brew install --build-from-source Formula/provenance-demo.rb
+          provenance-demo --version
+          provenance-demo hello "Homebrew CI"
 
       - name: Create summary
         if: always()
@@ -129,5 +129,5 @@ jobs:
           echo "### Install command:" >> $GITHUB_STEP_SUMMARY
           echo '```bash' >> $GITHUB_STEP_SUMMARY
           echo "brew tap ${{ inputs.tap_repo || 'redoubt-cysec/homebrew-tap' }}" >> $GITHUB_STEP_SUMMARY
-          echo "brew install redoubt" >> $GITHUB_STEP_SUMMARY
+          echo "brew install provenance-demo" >> $GITHUB_STEP_SUMMARY
           echo '```' >> $GITHUB_STEP_SUMMARY

@@ -6,9 +6,9 @@ on:
   workflow_dispatch:
     inputs:
       image:
-        description: 'GHCR image (e.g. ghcr.io/OWNER/redoubt)'
+        description: 'GHCR image (e.g. ghcr.io/OWNER/provenance-demo)'
         required: true
-        default: 'ghcr.io/redoubt-cysec/redoubt'
+        default: 'ghcr.io/redoubt-cysec/provenance-demo'
       tag:
         description: 'Image tag (e.g. v1.1.0)'
         required: true
@@ -48,7 +48,7 @@ jobs:
         uses: docker/metadata-action@8e5442c4ef9f78752691e2d8f8d19755c6f78e81 # v5.5.1
         with:
           images: |
-            ${{ github.event.inputs.image || 'ghcr.io/redoubt-cysec/redoubt' }}
+            ${{ github.event.inputs.image || 'ghcr.io/redoubt-cysec/provenance-demo' }}
           tags: |
             type=semver,pattern={{version}},value=${{ github.event.inputs.tag || github.ref_name }}
             type=semver,pattern={{major}}.{{minor}},value=${{ github.event.inputs.tag || github.ref_name }}
@@ -67,7 +67,7 @@ jobs:
 
       - name: Test multi-arch images
         run: |
-          IMAGE="${{ github.event.inputs.image || 'ghcr.io/redoubt-cysec/redoubt' }}"
+          IMAGE="${{ github.event.inputs.image || 'ghcr.io/redoubt-cysec/provenance-demo' }}"
           TAG="${{ github.event.inputs.tag || github.ref_name }}"
 
           # Test amd64
@@ -79,7 +79,7 @@ jobs:
 
       - name: Create summary
         run: |
-          IMAGE="${{ github.event.inputs.image || 'ghcr.io/redoubt-cysec/redoubt' }}"
+          IMAGE="${{ github.event.inputs.image || 'ghcr.io/redoubt-cysec/provenance-demo' }}"
           TAG="${{ github.event.inputs.tag || github.ref_name }}"
 
           echo "## Docker Multi-arch Build Complete" >> $GITHUB_STEP_SUMMARY
