@@ -121,7 +121,7 @@ jobs:
       - name: Sign checksums (keyless)
         env: { COSIGN_EXPERIMENTAL: "true" }
         run: |
-          cosign sign-blob --yes --keyless --bundle SHA256SUMS.bundle SHA256SUMS
+          cosign sign-blob --yes --bundle SHA256SUMS.bundle SHA256SUMS
 
       - name: Attest provenance (GitHub)
         uses: actions/attest-build-provenance@e8998f949152b193b063cb0ec769d69d929409be  # v2.4.0
