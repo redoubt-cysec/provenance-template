@@ -103,7 +103,7 @@ jobs:
       - name: SBOM + vuln report
         run: |
           uv pip install --system cyclonedx-bom pip-audit
-          uv run cyclonedx-py environment --pyproject pyproject.toml --output-reproducible -o sbom.cdx.json
+          uv run --no-project cyclonedx-py environment --pyproject pyproject.toml --output-reproducible -o sbom.cdx.json
           pip-audit -r requirements.in -f json > vuln-report.json || true
 
       - name: Checksums
