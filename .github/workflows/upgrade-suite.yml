@@ -13,6 +13,9 @@ on:
       snap_name: { description: Snap name, default: "provenance-demo" }
       snap_channel: { description: Snap upgrade path (e.g. edge->beta), default: "edge->beta" }
 
+permissions:
+  contents: read  # Only needs to checkout code for testing
+
 jobs:
   run-upgrades:
     runs-on: ubuntu-latest

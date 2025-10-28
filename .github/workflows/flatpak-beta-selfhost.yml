@@ -9,6 +9,9 @@ on:
       manifest_path:
         default: "packaging/flatpak/com.OWNER.Redoubt.yml"
 
+permissions:
+  contents: read  # Only needs to checkout code
+
 jobs:
   build-and-publish:
     runs-on: ubuntu-latest

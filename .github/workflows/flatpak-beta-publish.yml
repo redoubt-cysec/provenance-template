@@ -15,6 +15,9 @@ on:
         description: "Path to manifest in this repo"
         default: "packaging/flatpak/com.OWNER.Redoubt.yml"
 
+permissions:
+  contents: read  # Only needs to checkout code (PR creation uses GH_TOKEN secret)
+
 jobs:
   publish-beta:
     runs-on: ubuntu-latest

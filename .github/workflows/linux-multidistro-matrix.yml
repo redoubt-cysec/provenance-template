@@ -30,6 +30,9 @@ on:
         description: URL to RPM public key (RELEASE-GPG-KEY)
         required: true
 
+permissions:
+  contents: read  # Only needs to checkout code for testing
+
 jobs:
   apt-matrix:
     runs-on: ubuntu-latest
