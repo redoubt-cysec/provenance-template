@@ -9,7 +9,7 @@ echo "Checking dependency licenses..."
 # Install pip-licenses if not available
 if ! command -v pip-licenses &> /dev/null; then
     echo "Installing pip-licenses..."
-    pip install pip-licenses
+    pip install pip-licenses==5.0.0
 fi
 
 # Approved licenses (permissive open source)
