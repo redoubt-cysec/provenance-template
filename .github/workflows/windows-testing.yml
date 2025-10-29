@@ -14,16 +14,16 @@ jobs:
 
       - name: Read CI platforms configuration
         id: read_config
-                run: |
-                  python -c "
-                    import yaml
-                    import json
-                    with open('config/ci-platforms.yml', 'r') as f:
-                        config = yaml.safe_load(f)
-                    enabled_platforms = [key for key, value in config['platforms'].items() if value['enabled']]
-                    matrix_output = {'package_manager': enabled_platforms}
-                    print(f'matrix={json.dumps(matrix_output)}')
-                  " >> "$GITHUB_OUTPUT"
+        run: |
+          python -c "
+            import yaml
+            import json
+            with open('config/ci-platforms.yml', 'r') as f:
+                config = yaml.safe_load(f)
+            enabled_platforms = [key for key, value in config['platforms'].items() if value['enabled']]
+            matrix_output = {'package_manager': enabled_platforms}
+            print(f'matrix={json.dumps(matrix_output)}')
+          " >> "$GITHUB_OUTPUT"
   test-windows:
     needs: get-platforms
     if: ${{ fromJson(needs.get-platforms.outputs.matrix).package_manager.length > 0 }}
