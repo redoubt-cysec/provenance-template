@@ -33,6 +33,10 @@ print(f'platforms={json.dumps(enabled_platforms)}')
     steps:
       - uses: actions/checkout@v4
 
+      - name: Test Package Manager
+        shell: powershell
+        run: |
+          switch ("${{ matrix.package_manager }}") {
             "scoop" {
               iwr -useb get.scoop.sh | iex
               scoop bucket add owner "${{ github.workspace }}\packaging\scoop"
