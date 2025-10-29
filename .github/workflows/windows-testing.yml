@@ -33,18 +33,9 @@ print(f'platforms={json.dumps(enabled_platforms)}')
     steps:
       - uses: actions/checkout@v4
 
-      - name: Prep Scoop bucket (local)
-        if: matrix.package_manager == 'scoop'
-        shell: powershell
-        run: |
-          iwr -useb get.scoop.sh | iex
-          scoop bucket add owner "${{ github.workspace }}\packaging\scoop"
-
-      - name: Test ${{ matrix.package_manager }}
-        shell: powershell
-        run: |
-          switch ("${{ matrix.package_manager }}") {
             "scoop" {
+              iwr -useb get.scoop.sh | iex
+              scoop bucket add owner "${{ github.workspace }}\packaging\scoop"
               scoop install provenance-demo
               provenance-demo --version
             }
