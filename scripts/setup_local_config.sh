@@ -18,6 +18,24 @@ echo -e "${BLUE}Local Configuration Setup${NC}"
 echo -e "${BLUE}========================================${NC}"
 echo ""
 
+# Display tool versions from centralized config
+if [ -f "config/tool-versions.yml" ]; then
+    echo -e "${BLUE}## Tool Versions (from config/tool-versions.yml)${NC}"
+    echo ""
+    # Extract key versions using grep/sed (works without yaml parser)
+    UV_VERSION=$(grep -A1 "^uv:" config/tool-versions.yml | grep "version:" | sed 's/.*version: "\(.*\)"/\1/')
+    PIP_VERSION=$(grep -A1 "^pip:" config/tool-versions.yml | grep "version:" | sed 's/.*version: "\(.*\)"/\1/')
+    PYTHON_DEFAULT=$(grep -A3 "^python:" config/tool-versions.yml | grep "default:" | sed 's/.*default: "\(.*\)"/\1/')
+
+    echo "  • Python: $PYTHON_DEFAULT (default)"
+    echo "  • uv: $UV_VERSION"
+    echo "  • pip: $PIP_VERSION"
+    echo ""
+    echo -e "${GREEN}✅ Using centralized tool versions from config/tool-versions.yml${NC}"
+    echo "   (Edit this file to update tool versions across all workflows and scripts)"
+    echo ""
+fi
+
 # Get repository information from git remote or environment variables
 GITHUB_OWNER="${GITHUB_OWNER:-}"
 GITHUB_REPO="${GITHUB_REPO:-}"

@@ -1,0 +1,8 @@
+# Custom gitleaks configuration to suppress false positives introduced by GitHub Actions
+
+[allowlist]
+  # GitHub's checkout action can inject a temporary authorization header in this file.
+  # The token is masked in logs and not a persistent credential, so suppress it.
+  paths = [
+    "\\.git/config"
+  ]

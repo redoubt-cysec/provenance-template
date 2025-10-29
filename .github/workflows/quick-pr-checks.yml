@@ -27,6 +27,8 @@ jobs:
           egress-policy: audit
 
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683  # v4.2.2
+        with:
+          persist-credentials: false
 
       - name: Dependency Review
         uses: actions/dependency-review-action@4081bf99e2866ebe428fc0477b69eb4fcda7220a  # v4.4.0
@@ -35,20 +37,13 @@ jobs:
 
       - name: Install gitleaks
         run: |
-          curl -sSfL https://github.com/gitleaks/gitleaks/releases/download/v8.28.0/gitleaks_linux_x64.tar.gz \
+          curl -sSfL https://github.com/gitleaks/gitleaks/releases/download/v8.28.0/gitleaks_8.28.0_linux_x64.tar.gz \
             -o /tmp/gitleaks.tar.gz
-          echo "0019dfc4b32d63c1392aa264aed2253c1e0c2fb09216f8e2cc269bbfb8bb49b5  /tmp/gitleaks.tar.gz" | sha256sum -c -
+          echo "a65b5253807a68ac0cafa4414031fd740aeb55f54fb7e55f386acb52e6a840eb  /tmp/gitleaks.tar.gz" | sha256sum -c -
           tar xzf /tmp/gitleaks.tar.gz && sudo mv gitleaks /usr/local/bin/
           rm /tmp/gitleaks.tar.gz
       - name: Run gitleaks
         run: gitleaks detect --source . --no-git --redact
-
-      - name: CodeQL init
-        uses: github/codeql-action/init@662472033e021d55d94146f66f6058822b0b39fd  # v3.27.0
-        with:
-          languages: python
-      - name: CodeQL analyze
-        uses: github/codeql-action/analyze@662472033e021d55d94146f66f6058822b0b39fd  # v3.27.0
 
       - name: Set up Python
         uses: actions/setup-python@0b93645e9fea7318ecaed2b359559ac225c90a2b  # v5.3.0

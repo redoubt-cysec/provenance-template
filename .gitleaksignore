@@ -1,0 +1,4 @@
+# Gitleaks ignore file - excludes false positives from secret scanning
+
+# Documentation files containing example tokens/credentials (not real secrets)
+docs/distribution/PUBLISHING-GUIDE.md:generic-api-key:589
