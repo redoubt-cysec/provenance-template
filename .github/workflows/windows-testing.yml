@@ -41,6 +41,10 @@ jobs:
               winget validate .\packaging\winget\manifests\OWNER.redoubt.yaml
               winget install --manifest .\packaging\winget\manifests\OWNER.redoubt.yaml `
                 --silent --accept-source-agreements --accept-package-agreements
+              $linkDir = Join-Path $Env:LOCALAPPDATA 'Microsoft\WinGet\Links'
+              if (Test-Path $linkDir) {
+                $Env:PATH = "$linkDir;$Env:PATH"
+              }
               provenance-demo --version
             }
           }
