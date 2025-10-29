@@ -2,7 +2,7 @@
 # Submit to: https://github.com/microsoft/winget-pkgs
 
 PackageIdentifier: redoubt-cysec.ProvenanceDemo
-PackageVersion: 0.1.0
+PackageVersion: 0.0.1-alpha.7
 PackageLocale: en-US
 Publisher: redoubt-cysec
 PublisherUrl: https://github.com/redoubt-cysec
@@ -39,12 +39,12 @@ ReleaseNotes: |-
   - Self-verification command
   - Complete security attestation chain
   - VM-tested installation across platforms
-ReleaseNotesUrl: https://github.com/redoubt-cysec/provenance-template/releases/tag/v0.1.0
+ReleaseNotesUrl: https://github.com/redoubt-cysec/provenance-template/releases/tag/v0.0.1-alpha.7
 Installers:
   - Architecture: x64
     InstallerType: portable
-    InstallerUrl: https://github.com/redoubt-cysec/provenance-template/releases/download/v0.1.0/provenance-demo.pyz
-    InstallerSha256: 0000000000000000000000000000000000000000000000000000000000000000
+    InstallerUrl: https://github.com/redoubt-cysec/provenance-template/releases/download/v0.0.1-alpha.7/provenance-demo.pyz
+    InstallerSha256: 941f327df954fae8bbe2b46395c809a25673e9977c15f986ffbdfd5c5b0c44e7
     Commands:
       - provenance-demo
     Dependencies:
