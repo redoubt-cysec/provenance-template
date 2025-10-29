@@ -38,6 +38,7 @@ jobs:
             "winget" {
               # Enable local manifest support so winget can install from a file
               winget source reset --force
+              winget source add --name winget --arg https://cdn.winget.microsoft.com/cache --type Microsoft.PreIndexed.Package
               winget source remove --name msstore
               winget settings --enable LocalManifestFiles
               winget validate .\packaging\winget\manifests\OWNER.redoubt.yaml
