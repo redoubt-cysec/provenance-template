@@ -37,6 +37,7 @@ jobs:
             }
             "winget" {
               # Enable local manifest support so winget can install from a file
+              winget source disable msstore
               winget settings --enable LocalManifestFiles
               winget validate .\packaging\winget\manifests\OWNER.redoubt.yaml
               winget install --manifest .\packaging\winget\manifests\OWNER.redoubt.yaml `
