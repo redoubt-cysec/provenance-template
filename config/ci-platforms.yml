@@ -1,0 +1,8 @@
+# Configuration for CI platforms
+platforms:
+  winget:
+    enabled: false
+  scoop:
+    enabled: false
+  chocolatey:
+    enabled: false
