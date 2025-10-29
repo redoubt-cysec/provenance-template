@@ -27,7 +27,7 @@ jobs:
 
   test-windows:
     needs: get-platforms
-    if: ${{ fromJson(needs.get-platforms.outputs.matrix).package_manager.length > 0 }}
+    if: ${{ needs.get-platforms.outputs.matrix != '{"package_manager": []}' }}
     runs-on: windows-latest
     strategy:
       matrix: ${{ fromJson(needs.get-platforms.outputs.matrix) }}
