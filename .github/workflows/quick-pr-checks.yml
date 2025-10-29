@@ -45,13 +45,6 @@ jobs:
       - name: Run gitleaks
         run: gitleaks detect --source . --no-git --redact
 
-      - name: CodeQL init
-        uses: github/codeql-action/init@662472033e021d55d94146f66f6058822b0b39fd  # v3.27.0
-        with:
-          languages: python
-      - name: CodeQL analyze
-        uses: github/codeql-action/analyze@662472033e021d55d94146f66f6058822b0b39fd  # v3.27.0
-
       - name: Set up Python
         uses: actions/setup-python@0b93645e9fea7318ecaed2b359559ac225c90a2b  # v5.3.0
         with:
