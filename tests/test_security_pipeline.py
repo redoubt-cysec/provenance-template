@@ -191,9 +191,9 @@ class TestWorkflowSecurity:
         for workflow_file in WORKFLOWS_DIR.glob("*.yml"):
             content = workflow_file.read_text()
 
-            # Find all uses: statements
+            # Find all uses: statements (match only at word boundaries to avoid matching "statuses: none")
             import re
-            uses_statements = re.findall(r'uses:\s+([^\s]+)', content)
+            uses_statements = re.findall(r'(?:^|\s)-?\s*uses:\s+([^\s]+)', content, re.MULTILINE)
 
             for use in uses_statements:
                 # Skip local actions (./)

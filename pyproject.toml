@@ -49,3 +49,7 @@ markers = [
 
 [project.optional-dependencies]
 dev = ["tomli", "pytest", "pytest-cov", "PyYAML"]
+
+[tool.coverage.run]
+relative_files = true
+source = ["src"]
