@@ -5,3 +5,62 @@ permissions:
   contents: read  # Only needs to checkout code for testing
 
 jobs:
+  test-windows:
+    runs-on: windows-latest
+    strategy:
+      matrix:
+        package_manager: ${{ fromJson(steps.read_config.outputs.platforms) }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Read CI platforms configuration
+        id: read_config
+        run: |
+          python -c "
+import yaml
+import json
+with open('config/ci-platforms.yml', 'r') as f:
+    config = yaml.safe_load(f)
+enabled_platforms = [key for key, value in config['platforms'].items() if value['enabled']]
+print(f'enabled_platforms={json.dumps(enabled_platforms)}')
+" >> "$GITHUB_OUTPUT"
+
+      - name: Prep Scoop bucket (local)
+        if: matrix.package_manager == 'scoop'
+        shell: powershell
+        run: |
+          iwr -useb get.scoop.sh | iex
+          scoop bucket add owner "${{ github.workspace }}\packaging\scoop"
+
+      - name: Test ${{ matrix.package_manager }}
+        shell: powershell
+        run: |
+          switch ("${{ matrix.package_manager }}") {
+            "scoop" {
+              scoop install provenance-demo
+              provenance-demo --version
+            }
+            "chocolatey" {
+              choco install chocolatey.server -y
+              Start-Service chocolatey.server -ErrorAction SilentlyContinue
+              # TODO: choco push your .nupkg to http://localhost:8080/ and install:
+              # choco push .\dist\provenance-demo*.nupkg --source http://localhost:8080/
+              # choco install provenance-demo -y --source http://localhost:8080/
+            }
+            "winget" {
+              # Enable local manifest support so winget can install from a file
+              winget source reset --force
+              winget source add --name winget --arg https://cdn.winget.microsoft.com/cache --type Microsoft.PreIndexed.Package
+              winget source remove --name msstore
+              winget settings --enable LocalManifestFiles
+              winget validate .\packaging\winget\manifests\OWNER.redoubt.yaml
+              winget install --manifest .\packaging\winget\manifests\OWNER.redoubt.yaml `
+                --silent --accept-source-agreements --accept-package-agreements
+              $linkDir = Join-Path $Env:LOCALAPPDATA 'Microsoft\WinGet\Links'
+              if (Test-Path $linkDir) {
+                $Env:PATH = "$linkDir;$Env:PATH"
+                Get-ChildItem $linkDir
+              }
+              provenance-demo --version
+            }
+          }
