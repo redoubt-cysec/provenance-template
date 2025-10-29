@@ -35,9 +35,9 @@ jobs:
 
       - name: Install gitleaks
         run: |
-          curl -sSfL https://github.com/gitleaks/gitleaks/releases/download/v8.28.0/gitleaks_linux_x64.tar.gz \
+          curl -sSfL https://github.com/gitleaks/gitleaks/releases/download/v8.28.0/gitleaks_8.28.0_linux_x64.tar.gz \
             -o /tmp/gitleaks.tar.gz
-          echo "0019dfc4b32d63c1392aa264aed2253c1e0c2fb09216f8e2cc269bbfb8bb49b5  /tmp/gitleaks.tar.gz" | sha256sum -c -
+          echo "a65b5253807a68ac0cafa4414031fd740aeb55f54fb7e55f386acb52e6a840eb  /tmp/gitleaks.tar.gz" | sha256sum -c -
           tar xzf /tmp/gitleaks.tar.gz && sudo mv gitleaks /usr/local/bin/
           rm /tmp/gitleaks.tar.gz
       - name: Run gitleaks
