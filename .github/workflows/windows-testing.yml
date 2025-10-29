@@ -5,11 +5,10 @@ permissions:
   contents: read  # Only needs to checkout code for testing
 
 jobs:
-  test-windows:
-    runs-on: windows-latest
-    strategy:
-      matrix:
-        package_manager: ${{ fromJson(steps.read_config.outputs.platforms) }}
+  get-platforms:
+    runs-on: ubuntu-latest
+    outputs:
+      platforms: ${{ steps.read_config.outputs.platforms }}
     steps:
       - uses: actions/checkout@v4
 
@@ -22,8 +21,17 @@ import json
 with open('config/ci-platforms.yml', 'r') as f:
     config = yaml.safe_load(f)
 enabled_platforms = [key for key, value in config['platforms'].items() if value['enabled']]
-print(f'enabled_platforms={json.dumps(enabled_platforms)}')
+print(f'platforms={json.dumps(enabled_platforms)}')
 " >> "$GITHUB_OUTPUT"
+
+  test-windows:
+    needs: get-platforms
+    runs-on: windows-latest
+    strategy:
+      matrix:
+        package_manager: ${{ fromJson(needs.get-platforms.outputs.platforms) }}
+    steps:
+      - uses: actions/checkout@v4
 
       - name: Prep Scoop bucket (local)
         if: matrix.package_manager == 'scoop'
