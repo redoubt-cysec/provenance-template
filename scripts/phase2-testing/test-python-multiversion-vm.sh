@@ -3,6 +3,15 @@
 # Test Python package across multiple Python versions (3.10, 3.11, 3.12, 3.13)
 # Uses Ubuntu VMs with deadsnakes PPA for Python versions
 #
+# NOTE: This script is designed for LOCAL DEVELOPMENT with Multipass VMs.
+# GitHub Actions CI uses Docker containers instead (see .github/workflows/python-compatibility.yml)
+# for faster execution and GitHub runner compatibility.
+#
+# Use this script when:
+# - Testing locally with full VM isolation
+# - Debugging OS-specific issues
+# - Pre-release validation with comprehensive testing
+#
 
 set -euo pipefail
 
