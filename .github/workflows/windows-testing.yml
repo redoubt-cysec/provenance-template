@@ -6,29 +6,39 @@ permissions:
 
 jobs:
   test-windows:
-    # Temporarily disabled - uncomment matrix below to enable
-    if: false
     runs-on: windows-latest
     strategy:
       matrix:
-        # package_manager: [winget]
+        package_manager: [scoop]
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683  # v4.2.2
 
-      - name: Prep Scoop bucket (local)
-        if: matrix.package_manager == 'scoop'
-        shell: powershell
-        run: |
-          iwr -useb get.scoop.sh | iex
-          scoop bucket add owner "${{ github.workspace }}\packaging\scoop"
+      - name: Set up Python
+        uses: actions/setup-python@0b93645e9fea7318ecaed2b359559ac225c90a2b  # v5.3.0
+        with:
+          python-version: '3.11'
 
       - name: Test ${{ matrix.package_manager }}
         shell: powershell
+        env:
+          pythonLocation: ${{ env.pythonLocation }}
         run: |
           switch ("${{ matrix.package_manager }}") {
             "scoop" {
-              scoop install provenance-demo
-              provenance-demo --version
+              # Install Scoop
+              iwr -useb get.scoop.sh | iex
+              # Refresh PATH to include both Scoop and Python
+              $userPath = [System.Environment]::GetEnvironmentVariable("Path","User")
+              $pythonPath = "${{ env.pythonLocation }};${{ env.pythonLocation }}\Scripts"
+              $env:Path = "$pythonPath;$userPath;$env:Path"
+
+              # Install directly from manifest file
+              scoop install "${{ github.workspace }}\packaging\scoop\provenance-demo.json"
+
+              # Test the installation
+              $pyzPath = Join-Path $env:USERPROFILE "scoop\apps\provenance-demo\current\provenance-demo.pyz"
+              Write-Host "Testing: $pyzPath"
+              python $pyzPath --version
             }
             "chocolatey" {
               choco install chocolatey.server -y
