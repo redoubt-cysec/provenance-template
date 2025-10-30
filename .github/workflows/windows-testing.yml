@@ -13,19 +13,20 @@ jobs:
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683  # v4.2.2
 
-      - name: Prep Scoop bucket (local)
+      - name: Install Scoop
         if: matrix.package_manager == 'scoop'
         shell: powershell
         run: |
           iwr -useb get.scoop.sh | iex
-          scoop bucket add owner "${{ github.workspace }}\packaging\scoop"
 
       - name: Test ${{ matrix.package_manager }}
         shell: powershell
         run: |
           switch ("${{ matrix.package_manager }}") {
             "scoop" {
-              scoop install provenance-demo
+              # Install directly from manifest file
+              scoop install "${{ github.workspace }}\packaging\scoop\provenance-demo.json"
+              # Test the installation
               provenance-demo --version
             }
             "chocolatey" {
