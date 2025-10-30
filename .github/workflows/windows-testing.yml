@@ -6,12 +6,10 @@ permissions:
 
 jobs:
   test-windows:
-    # Temporarily disabled - uncomment matrix below to enable
-    if: false
     runs-on: windows-latest
     strategy:
       matrix:
-        # package_manager: [winget]
+        package_manager: [scoop]
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683  # v4.2.2
 

@@ -1,10 +1,10 @@
 {
-    "version": "0.1.0",
+    "version": "0.0.1-alpha.8",
     "description": "Demo CLI showcasing supply chain security and provenance",
     "homepage": "https://github.com/redoubt-cysec/provenance-template",
     "license": "MIT",
-    "url": "https://github.com/redoubt-cysec/provenance-template/releases/download/v0.1.0/provenance-demo.pyz",
-    "hash": "0000000000000000000000000000000000000000000000000000000000000000",
+    "url": "https://github.com/redoubt-cysec/provenance-template/releases/download/v0.0.1-alpha.8/provenance-demo.pyz",
+    "hash": "53e797cc67743b00123b50ced71dd27baaf8089613e5b0126490f88fdf61a489",
     "bin": "provenance-demo.pyz",
     "pre_install": [
         "if (!(Get-Command python -ErrorAction SilentlyContinue)) {",
