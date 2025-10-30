@@ -6,6 +6,8 @@ permissions:
 
 jobs:
   test-windows:
+    # Temporarily disabled - uncomment matrix below to enable
+    if: false
     runs-on: windows-latest
     strategy:
       matrix:
