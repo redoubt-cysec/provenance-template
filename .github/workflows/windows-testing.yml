@@ -29,9 +29,14 @@ jobs:
               $env:Path = [System.Environment]::GetEnvironmentVariable("Path","User") + ";" + [System.Environment]::GetEnvironmentVariable("Path","Machine")
               # Install directly from manifest file
               scoop install "${{ github.workspace }}\packaging\scoop\provenance-demo.json"
-              # Test the installation - use python explicitly with Join-Path
+              # Debug: Check if file exists and test it
               $pyzPath = Join-Path $env:USERPROFILE "scoop\apps\provenance-demo\current\provenance-demo.pyz"
-              python $pyzPath --version
+              Write-Host "Testing pyz at: $pyzPath"
+              Write-Host "File exists: $(Test-Path $pyzPath)"
+              Write-Host "Python version:"
+              python --version
+              Write-Host "Running pyz:"
+              & python $pyzPath --version
             }
             "chocolatey" {
               choco install chocolatey.server -y
