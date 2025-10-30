@@ -29,8 +29,8 @@ jobs:
               $env:Path = [System.Environment]::GetEnvironmentVariable("Path","User") + ";" + [System.Environment]::GetEnvironmentVariable("Path","Machine")
               # Install directly from manifest file
               scoop install "${{ github.workspace }}\packaging\scoop\provenance-demo.json"
-              # Test the installation
-              provenance-demo --version
+              # Test the installation - use python explicitly since shims may not work
+              python "$env:USERPROFILE\scoop\apps\provenance-demo\current\provenance-demo.pyz" --version
             }
             "chocolatey" {
               choco install chocolatey.server -y
