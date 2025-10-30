@@ -45,15 +45,18 @@ jobs:
       - name: Download release artifact
         if: steps.latest.outputs.exists == 'true'
         run: |
-          gh release download ${{ steps.latest.outputs.tag }} -p 'client.pyz' -p 'sbom.cdx.json'
+          gh release download ${{ steps.latest.outputs.tag }} -p 'provenance-demo.pyz' -p 'sbom.cdx.json'
         env:
           GH_TOKEN: ${{ github.token }}
 
       - name: OSV scan SBOM
         if: steps.latest.outputs.exists == 'true'
         run: |
-          curl -sSfL https://github.com/google/osv-scanner/releases/latest/download/osv-scanner_Linux_x86_64.tar.gz \
-          | tar xz && sudo mv ./osv-scanner /usr/local/bin/
+          curl -sSfL https://github.com/google/osv-scanner/releases/download/v2.2.4/osv-scanner_2.2.4_linux_amd64.tar.gz \
+            -o /tmp/osv-scanner.tar.gz
+          tar xzf /tmp/osv-scanner.tar.gz -C /tmp
+          sudo mv /tmp/osv-scanner_2.2.4_linux_amd64/osv-scanner /usr/local/bin/
+          rm -rf /tmp/osv-scanner.tar.gz /tmp/osv-scanner_2.2.4_linux_amd64
           osv-scanner --sbom=sbom.cdx.json --format=sarif > osv-results.sarif || true
 
       - name: Upload SARIF
