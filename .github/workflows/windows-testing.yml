@@ -9,7 +9,7 @@ jobs:
     runs-on: windows-latest
     strategy:
       matrix:
-        package_manager: [scoop, chocolatey]
+        package_manager: [scoop, chocolatey, winget]
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683  # v4.2.2
 
@@ -36,6 +36,27 @@ jobs:
         if: matrix.package_manager == 'chocolatey'
         shell: bash
         run: ./scripts/build_pyz.sh
+
+      - name: Install build dependencies (for WinGet)
+        if: matrix.package_manager == 'winget'
+        shell: powershell
+        run: |
+          # Install rsync (required by build_pyz.sh)
+          choco install rsync -y
+
+          # Install uv
+          Invoke-WebRequest -Uri "https://github.com/astral-sh/uv/releases/download/0.5.11/uv-x86_64-pc-windows-msvc.zip" -OutFile "$env:TEMP\uv.zip"
+          Expand-Archive -Path "$env:TEMP\uv.zip" -DestinationPath "$env:TEMP\uv"
+          New-Item -ItemType Directory -Path "$env:USERPROFILE\.cargo\bin" -Force | Out-Null
+          Move-Item -Path "$env:TEMP\uv\uv.exe" -Destination "$env:USERPROFILE\.cargo\bin\uv.exe" -Force
+          echo "$env:USERPROFILE\.cargo\bin" | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
+
+      - name: Build .pyz and WinGet manifests (for WinGet)
+        if: matrix.package_manager == 'winget'
+        shell: bash
+        run: |
+          ./scripts/build_pyz.sh
+          pwsh -File scripts/build_winget.ps1 -Version "v0.0.1-test" -PyzPath "dist/provenance-demo.pyz"
 
       - name: Test ${{ matrix.package_manager }}
         shell: powershell
@@ -90,20 +111,42 @@ python "%~dp0provenance-demo.pyz" %*
               Write-Host "Testing installation..."
               provenance-demo --version
             }
-            # "winget" {
-            #   # Enable local manifest support so winget can install from a file
-            #   winget source reset --force
-            #   winget source add --name winget --arg https://cdn.winget.microsoft.com/cache --type Microsoft.PreIndexed.Package
-            #   winget source remove --name msstore
-            #   winget settings --enable LocalManifestFiles
-            #   winget validate .\packaging\winget\manifests\OWNER.redoubt.yaml
-            #   winget install --manifest .\packaging\winget\manifests\OWNER.redoubt.yaml `
-            #     --silent --accept-source-agreements --accept-package-agreements
-            #   $linkDir = Join-Path $Env:LOCALAPPDATA 'Microsoft\WinGet\Links'
-            #   if (Test-Path $linkDir) {
-            #     $Env:PATH = "$linkDir;$Env:PATH"
-            #     Get-ChildItem $linkDir
-            #   }
-            #   provenance-demo --version
-            # }
+            "winget" {
+              # Enable local manifest support
+              Write-Host "Enabling local manifest support..."
+              winget settings --enable LocalManifestFiles
+
+              # Validate manifests
+              Write-Host "Validating WinGet manifests..."
+              $manifestDir = "packaging\winget\manifests\0.0.1-test"
+              winget validate --manifest $manifestDir
+
+              # For testing, manually create the portable command setup since the URL doesn't exist
+              Write-Host "Testing WinGet portable installation..."
+
+              # Create WinGet Links directory (where portable apps are linked)
+              $linksDir = Join-Path $Env:LOCALAPPDATA 'Microsoft\WinGet\Links'
+              New-Item -ItemType Directory -Path $linksDir -Force | Out-Null
+
+              # Copy .pyz to Links directory
+              Copy-Item "dist/provenance-demo.pyz" -Destination "$linksDir/provenance-demo.pyz"
+
+              # Create wrapper script
+              $wrapperScript = Join-Path $linksDir "provenance-demo.cmd"
+              @"
+@echo off
+python "%~dp0provenance-demo.pyz" %*
+"@ | Out-File -FilePath $wrapperScript -Encoding ASCII
+
+              # Add to PATH
+              $env:PATH = "$linksDir;$env:PATH"
+
+              # Also add Python to PATH for portable .pyz execution
+              $pythonPath = "${{ env.pythonLocation }};${{ env.pythonLocation }}\Scripts"
+              $env:PATH = "$pythonPath;$env:PATH"
+
+              # Test installation
+              Write-Host "Testing installation..."
+              provenance-demo --version
+            }
           }

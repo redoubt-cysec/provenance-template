@@ -159,6 +159,12 @@ jobs:
           body: |
             ## Install
 
+            ### WinGet (Windows 11)
+            ```powershell
+            # After first release is approved in winget-pkgs:
+            winget install redoubt-cysec.ProvenanceDemo
+            ```
+
             ### Scoop (Windows)
             ```powershell
             scoop bucket add redoubt https://github.com/redoubt-cysec/scoop-bucket
@@ -300,3 +306,33 @@ jobs:
           choco push $nupkg.FullName --source https://push.chocolatey.org/ --api-key $env:CHOCOLATEY_API_KEY
           Write-Host "Package published successfully!"
           Write-Host "Note: It may take a few minutes to appear in search results."
+
+  winget:
+    needs: release
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683  # v4.2.2
+
+      - name: Download .pyz artifact
+        uses: actions/download-artifact@d3f8e04dea3f052d71297f4fb801f3b8e32d9d20  # v4.5.0
+        with:
+          name: pyz-artifact
+          path: dist
+
+      - name: Build WinGet manifests
+        shell: powershell
+        run: |
+          pwsh -File scripts/build_winget.ps1 -Version "${{ github.ref_name }}" -PyzPath "dist/provenance-demo.pyz"
+
+      - name: Create WinGet manifests archive
+        shell: powershell
+        run: |
+          $version = "${{ github.ref_name }}" -replace '^v', ''
+          $manifestDir = "packaging/winget/manifests/$version"
+          Compress-Archive -Path "$manifestDir\*" -DestinationPath "winget-manifests-$version.zip"
+          Move-Item "winget-manifests-$version.zip" dist/
+
+      - name: Upload to GitHub Release
+        uses: softprops/action-gh-release@c062e08bd532815e2082a85e87e3ef29c3e6d191  # v2.0.8
+        with:
+          files: dist/winget-manifests-*.zip
