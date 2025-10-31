@@ -89,9 +89,11 @@ jobs:
               Write-Host "Extracting and testing Chocolatey package..."
               $nupkg = Get-ChildItem -Path dist -Filter "*.nupkg" | Select-Object -First 1
 
-              # Extract the package
+              # Extract the package (rename to .zip first as Expand-Archive doesn't recognize .nupkg)
               $extractDir = "$env:TEMP\choco-test-extract"
-              Expand-Archive -Path $nupkg.FullName -DestinationPath $extractDir -Force
+              $zipPath = "$env:TEMP\package.zip"
+              Copy-Item $nupkg.FullName -Destination $zipPath
+              Expand-Archive -Path $zipPath -DestinationPath $extractDir -Force
 
               # Copy the actual .pyz file into the tools directory
               $toolsDir = Join-Path $extractDir "tools"
@@ -99,10 +101,8 @@ jobs:
 
               # Create the wrapper batch file
               $batFile = Join-Path $toolsDir "provenance-demo.bat"
-              @"
-@echo off
-python "%~dp0provenance-demo.pyz" %*
-"@ | Out-File -FilePath $batFile -Encoding ASCII
+              '@echo off' | Out-File -FilePath $batFile -Encoding ASCII
+              'python "%~dp0provenance-demo.pyz" %*' | Out-File -FilePath $batFile -Encoding ASCII -Append
 
               # Add tools directory to PATH
               $env:Path = "$toolsDir;$env:Path"
@@ -133,10 +133,8 @@ python "%~dp0provenance-demo.pyz" %*
 
               # Create wrapper script
               $wrapperScript = Join-Path $linksDir "provenance-demo.cmd"
-              @"
-@echo off
-python "%~dp0provenance-demo.pyz" %*
-"@ | Out-File -FilePath $wrapperScript -Encoding ASCII
+              '@echo off' | Out-File -FilePath $wrapperScript -Encoding ASCII
+              'python "%~dp0provenance-demo.pyz" %*' | Out-File -FilePath $wrapperScript -Encoding ASCII -Append
 
               # Add to PATH
               $env:PATH = "$linksDir;$env:PATH"
