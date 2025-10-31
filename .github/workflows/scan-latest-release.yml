@@ -56,7 +56,7 @@ jobs:
             -o /tmp/osv-scanner
           chmod +x /tmp/osv-scanner
           sudo mv /tmp/osv-scanner /usr/local/bin/osv-scanner
-          osv-scanner --sbom=sbom.cdx.json --format=sarif > osv-results.sarif || true
+          osv-scanner --sbom=sbom.cdx.json --format=sarif 2>/dev/null > osv-results.sarif || true
 
       - name: Upload SARIF
         if: steps.latest.outputs.exists == 'true'
