@@ -69,6 +69,10 @@ jobs:
               # choco install provenance-demo -y --source http://localhost:8080/
             }
             "winget" {
+              # Enable local manifest support
+              Write-Host "Enabling local manifest support..."
+              winget settings --enable LocalManifestFiles
+
               # Validate manifests
               Write-Host "Validating WinGet manifests..."
               $manifestDir = "packaging\winget\manifests\0.0.1-test"
