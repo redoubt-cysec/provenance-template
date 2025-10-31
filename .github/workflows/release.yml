@@ -167,9 +167,11 @@ jobs:
 
             ### Chocolatey (Windows)
             ```powershell
+            # From Chocolatey Community (recommended)
+            choco install provenance-demo
+
+            # Or from GitHub release:
             choco install provenance-demo --source="'https://github.com/${{ github.repository }}/releases/download/${{ github.ref_name }}'"
-            # Or download .nupkg and install locally:
-            choco install provenance-demo*.nupkg -y
             ```
 
             ### Direct Download (Linux/macOS)
@@ -286,3 +288,15 @@ jobs:
         uses: softprops/action-gh-release@c062e08bd532815e2082a85e87e3ef29c3e6d191  # v2.0.8
         with:
           files: dist/*.nupkg
+
+      - name: Publish to Chocolatey Community
+        if: secrets.CHOCOLATEY_API_KEY != ''
+        shell: powershell
+        env:
+          CHOCOLATEY_API_KEY: ${{ secrets.CHOCOLATEY_API_KEY }}
+        run: |
+          $nupkg = Get-ChildItem -Path dist -Filter "*.nupkg" | Select-Object -First 1
+          Write-Host "Publishing $($nupkg.Name) to Chocolatey Community..."
+          choco push $nupkg.FullName --source https://push.chocolatey.org/ --api-key $env:CHOCOLATEY_API_KEY
+          Write-Host "Package published successfully!"
+          Write-Host "Note: It may take a few minutes to appear in search results."
