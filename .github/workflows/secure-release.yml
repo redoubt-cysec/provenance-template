@@ -8,6 +8,8 @@ on:
 
 permissions:
   contents: write
+  id-token: write  # Required for Sigstore signing
+  attestations: write  # Required for SLSA provenance
 
 jobs:
   release:
@@ -26,6 +28,18 @@ jobs:
       - name: Build .pyz file
         run: ./scripts/build_pyz.sh
 
+      - name: Generate SBOM
+        run: |
+          # Install syft for SBOM generation
+          curl -sSfL https://raw.githubusercontent.com/anchore/syft/main/install.sh | sh -s -- -b /usr/local/bin
+
+          # Generate SBOM in multiple formats
+          syft dir:. -o spdx-json=dist/sbom.spdx.json
+          syft dir:. -o cyclonedx-json=dist/sbom.cyclonedx.json
+
+          echo "Generated SBOM files:"
+          ls -lh dist/sbom.*
+
       - name: Upload .pyz artifact for Windows jobs
         uses: actions/upload-artifact@65c4c4a1ddee5b72f698fdd19549f0f0fb45cf08  # v4.6.0
         with:
@@ -33,10 +47,24 @@ jobs:
           path: dist/*.pyz
           retention-days: 1
 
+      - name: Generate artifact attestation
+        uses: actions/attest-build-provenance@1c608d11d69870c2092266b3f9a6f3abbf17002c  # v1.4.3
+        with:
+          subject-path: 'dist/*.pyz'
+
+      - name: Attest SBOM
+        uses: actions/attest-sbom@5026d3663739160db546203eeaffa6aa1c51a4d6  # v1.4.2
+        with:
+          subject-path: 'dist/*.pyz'
+          sbom-path: 'dist/sbom.spdx.json'
+
       - name: Create GitHub Release
         uses: softprops/action-gh-release@c062e08bd532815e2082a85e87e3ef29c3e6d191  # v2.0.8
         with:
-          files: dist/*.pyz
+          files: |
+            dist/*.pyz
+            dist/sbom.spdx.json
+            dist/sbom.cyclonedx.json
           body: |
             Release ${{ github.ref_name }}
 
@@ -50,6 +78,19 @@ jobs:
             Download the `.pyz` file and run with Python 3.10+:
             ```bash
             python provenance-demo.pyz --version
+            ```
+
+            ## Security & Provenance
+
+            This release includes:
+            - **SBOM** (Software Bill of Materials): `sbom.spdx.json`, `sbom.cyclonedx.json`
+            - **SLSA Provenance**: See attestations below for supply chain verification
+            - **Sigstore Signatures**: Keyless signing for artifact authenticity
+
+            Verify provenance with:
+            ```bash
+            # Install slsa-verifier
+            gh attestation verify provenance-demo.pyz --owner redoubt-cysec
             ```
 
   chocolatey:
@@ -71,6 +112,11 @@ jobs:
           $pyzPath = Get-ChildItem -Path dist -Filter *.pyz | Select-Object -First 1
           Write-Host "Building Chocolatey package for version $version"
           pwsh -File scripts/build_chocolatey.ps1 -Version $version -PyzPath $pyzPath.FullName
+
+      - name: Generate attestation for Chocolatey package
+        uses: actions/attest-build-provenance@1c608d11d69870c2092266b3f9a6f3abbf17002c  # v1.4.3
+        with:
+          subject-path: 'dist/*.nupkg'
 
       - name: Upload Chocolatey package to release
         uses: softprops/action-gh-release@c062e08bd532815e2082a85e87e3ef29c3e6d191  # v2.0.8
