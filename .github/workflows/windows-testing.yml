@@ -18,14 +18,18 @@ jobs:
         with:
           python-version: '3.11'
 
-      - name: Install uv (for Chocolatey build)
+      - name: Install build dependencies (for Chocolatey)
         if: matrix.package_manager == 'chocolatey'
         shell: powershell
         run: |
+          # Install rsync (required by build_pyz.sh)
+          choco install rsync -y
+
+          # Install uv
           Invoke-WebRequest -Uri "https://github.com/astral-sh/uv/releases/download/0.5.11/uv-x86_64-pc-windows-msvc.zip" -OutFile "$env:TEMP\uv.zip"
           Expand-Archive -Path "$env:TEMP\uv.zip" -DestinationPath "$env:TEMP\uv"
-          Move-Item -Path "$env:TEMP\uv\uv.exe" -Destination "$env:USERPROFILE\.cargo\bin\uv.exe" -Force
           New-Item -ItemType Directory -Path "$env:USERPROFILE\.cargo\bin" -Force | Out-Null
+          Move-Item -Path "$env:TEMP\uv\uv.exe" -Destination "$env:USERPROFILE\.cargo\bin\uv.exe" -Force
           echo "$env:USERPROFILE\.cargo\bin" | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
 
       - name: Build .pyz (for Chocolatey)
