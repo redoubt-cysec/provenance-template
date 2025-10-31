@@ -99,10 +99,8 @@ jobs:
 
               # Create the wrapper batch file
               $batFile = Join-Path $toolsDir "provenance-demo.bat"
-              @"
-@echo off
-python "%~dp0provenance-demo.pyz" %*
-"@ | Out-File -FilePath $batFile -Encoding ASCII
+              '@echo off' | Out-File -FilePath $batFile -Encoding ASCII
+              'python "%~dp0provenance-demo.pyz" %*' | Out-File -FilePath $batFile -Encoding ASCII -Append
 
               # Add tools directory to PATH
               $env:Path = "$toolsDir;$env:Path"
@@ -133,10 +131,8 @@ python "%~dp0provenance-demo.pyz" %*
 
               # Create wrapper script
               $wrapperScript = Join-Path $linksDir "provenance-demo.cmd"
-              @"
-@echo off
-python "%~dp0provenance-demo.pyz" %*
-"@ | Out-File -FilePath $wrapperScript -Encoding ASCII
+              '@echo off' | Out-File -FilePath $wrapperScript -Encoding ASCII
+              'python "%~dp0provenance-demo.pyz" %*' | Out-File -FilePath $wrapperScript -Encoding ASCII -Append
 
               # Add to PATH
               $env:PATH = "$linksDir;$env:PATH"
