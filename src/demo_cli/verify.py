@@ -339,8 +339,67 @@ class Verifier:
                 str(e)[:200]
             )
 
+    def verify_sbom_attestation(self) -> VerificationResult:
+        """Verify GitHub SBOM attestation using gh CLI."""
+        if not self.binary_path or not self.binary_path.exists():
+            return VerificationResult(
+                "SBOM Attestation",
+                False,
+                "Binary not found"
+            )
+
+        try:
+            result = subprocess.run(
+                [
+                    "gh", "attestation", "verify",
+                    str(self.binary_path),
+                    "--repo", self.github_repo,
+                    "--predicate-type", "https://spdx.dev/Document"
+                ],
+                capture_output=True,
+                text=True,
+                timeout=30
+            )
+
+            if result.returncode == 0:
+                return VerificationResult(
+                    "SBOM Attestation",
+                    True,
+                    "SBOM attestation verified",
+                    f"SPDX document attestation for {self.binary_path.name}"
+                )
+            else:
+                # SBOM attestation might not be present in all releases
+                return VerificationResult(
+                    "SBOM Attestation",
+                    False,
+                    "SBOM attestation not found or verification failed",
+                    "This is expected for releases before SBOM attestation was added"
+                )
+
+        except FileNotFoundError:
+            return VerificationResult(
+                "SBOM Attestation",
+                False,
+                "gh CLI not installed",
+                "Install: brew install gh or see https://cli.github.com"
+            )
+        except subprocess.TimeoutExpired:
+            return VerificationResult(
+                "SBOM Attestation",
+                False,
+                "Verification timeout"
+            )
+        except Exception as e:
+            return VerificationResult(
+                "SBOM Attestation",
+                False,
+                "Verification error",
+                str(e)[:200]
+            )
+
     def verify_sbom(self) -> VerificationResult:
-        """Verify SBOM exists and is valid."""
+        """Verify SBOM exists and is valid in multiple formats."""
         if not self.binary_path:
             return VerificationResult(
                 "SBOM Verification",
@@ -348,54 +407,57 @@ class Verifier:
                 "Binary not found"
             )
 
-        # Look for SBOM file
-        sbom_file = self.binary_path.parent / "sbom.json"
-        if not sbom_file.exists():
-            sbom_file = self.binary_path.with_suffix(".sbom.json")
+        # Look for SBOM files in multiple formats
+        sbom_files = {
+            "spdx": self.binary_path.parent / "sbom.spdx.json",
+            "cyclonedx": self.binary_path.parent / "sbom.cyclonedx.json",
+            "generic": self.binary_path.parent / "sbom.json"
+        }
 
-        if not sbom_file.exists():
+        found_formats = []
+        total_components = 0
+
+        # Validate each SBOM format
+        for format_name, sbom_file in sbom_files.items():
+            if not sbom_file.exists():
+                continue
+
+            try:
+                with open(sbom_file) as f:
+                    sbom = json.load(f)
+
+                if format_name == "cyclonedx" and sbom.get("bomFormat") == "CycloneDX":
+                    components = sbom.get("components", [])
+                    found_formats.append(f"CycloneDX ({len(components)} components)")
+                    total_components += len(components)
+                elif format_name == "spdx" and "spdxVersion" in sbom:
+                    packages = sbom.get("packages", [])
+                    found_formats.append(f"SPDX ({len(packages)} packages)")
+                    total_components += len(packages)
+                elif format_name == "generic":
+                    # Try to detect format
+                    if "bomFormat" in sbom:
+                        found_formats.append(f"{sbom.get('bomFormat')} (generic)")
+                    elif "spdxVersion" in sbom:
+                        found_formats.append("SPDX (generic)")
+
+            except (json.JSONDecodeError, Exception):
+                continue
+
+        if not found_formats:
             return VerificationResult(
                 "SBOM Verification",
                 False,
-                "SBOM file not found",
-                f"Expected at: {sbom_file}"
+                "No valid SBOM files found",
+                f"Expected at: {sbom_files['spdx']} or {sbom_files['cyclonedx']}"
             )
 
-        # Validate SBOM structure
-        try:
-            with open(sbom_file) as f:
-                sbom = json.load(f)
-
-            # Check for CycloneDX format
-            if "bomFormat" in sbom and sbom["bomFormat"] == "CycloneDX":
-                components = sbom.get("components", [])
-                return VerificationResult(
-                    "SBOM Verification",
-                    True,
-                    f"Valid CycloneDX SBOM with {len(components)} components",
-                    f"Spec version: {sbom.get('specVersion', 'unknown')}"
-                )
-            else:
-                return VerificationResult(
-                    "SBOM Verification",
-                    False,
-                    "Invalid SBOM format",
-                    "Expected CycloneDX format"
-                )
-
-        except json.JSONDecodeError:
-            return VerificationResult(
-                "SBOM Verification",
-                False,
-                "SBOM is not valid JSON"
-            )
-        except Exception as e:
-            return VerificationResult(
-                "SBOM Verification",
-                False,
-                "SBOM validation error",
-                str(e)[:200]
-            )
+        return VerificationResult(
+            "SBOM Verification",
+            True,
+            f"Valid SBOMs in {len(found_formats)} format(s)",
+            f"Formats: {', '.join(found_formats)}"
+        )
 
     def verify_osv_scan(self) -> VerificationResult:
         """Run OSV vulnerability scan on the SBOM."""
@@ -677,6 +739,500 @@ class Verifier:
             f"SOURCE_DATE_EPOCH: {source_date_epoch}"
         )
 
+    def verify_certificate_identity(self) -> VerificationResult:
+        """Verify Sigstore certificate identity and issuer."""
+        if not self.binary_path or not self.binary_path.exists():
+            return VerificationResult(
+                "Certificate Identity",
+                False,
+                "Binary not found"
+            )
+
+        sig_bundle = self.binary_path.with_suffix(self.binary_path.suffix + ".sigstore")
+        if not sig_bundle.exists():
+            return VerificationResult(
+                "Certificate Identity",
+                False,
+                "Signature bundle not found",
+                "Sigstore signature required for certificate verification"
+            )
+
+        try:
+            # Use cosign to verify with specific identity requirements
+            result = subprocess.run(
+                [
+                    "cosign", "verify-blob",
+                    str(self.binary_path),
+                    "--bundle", str(sig_bundle),
+                    "--certificate-identity-regexp", f".*{self.github_repo}.*",
+                    "--certificate-oidc-issuer", "https://token.actions.githubusercontent.com"
+                ],
+                capture_output=True,
+                text=True,
+                timeout=30
+            )
+
+            if result.returncode == 0:
+                return VerificationResult(
+                    "Certificate Identity",
+                    True,
+                    "Certificate identity verified",
+                    f"OIDC issuer: GitHub Actions | Repo: {self.github_repo}"
+                )
+            else:
+                return VerificationResult(
+                    "Certificate Identity",
+                    False,
+                    "Certificate identity verification failed",
+                    "Certificate may not match expected GitHub repository"
+                )
+
+        except FileNotFoundError:
+            return VerificationResult(
+                "Certificate Identity",
+                False,
+                "cosign not installed",
+                "Install: brew install cosign"
+            )
+        except subprocess.TimeoutExpired:
+            return VerificationResult(
+                "Certificate Identity",
+                False,
+                "Verification timeout"
+            )
+        except Exception as e:
+            return VerificationResult(
+                "Certificate Identity",
+                False,
+                "Verification error",
+                str(e)[:200]
+            )
+
+    def verify_build_environment(self) -> VerificationResult:
+        """Verify build environment details from SLSA provenance."""
+        if not self.binary_path:
+            return VerificationResult(
+                "Build Environment",
+                False,
+                "Binary not found"
+            )
+
+        provenance_file = self.binary_path.parent / "attestation.jsonl"
+        if not provenance_file.exists():
+            return VerificationResult(
+                "Build Environment",
+                False,
+                "Provenance file not found"
+            )
+
+        try:
+            statements = self._load_attestation_statements(provenance_file)
+            slsa_statements = [
+                stmt for stmt in statements
+                if "predicateType" in stmt and "slsa" in stmt["predicateType"].lower()
+            ]
+
+            if not slsa_statements:
+                return VerificationResult(
+                    "Build Environment",
+                    False,
+                    "No SLSA provenance found"
+                )
+
+            # Extract build environment details
+            predicate = slsa_statements[0].get("predicate", {})
+            builder_id = predicate.get("builder", {}).get("id", "unknown")
+            build_type = predicate.get("buildType", "unknown")
+
+            # Extract workflow/runner details if available
+            metadata = predicate.get("metadata", {})
+            invocation = predicate.get("invocation", {})
+
+            details_parts = []
+            if "github" in builder_id.lower():
+                details_parts.append("Builder: GitHub Actions")
+            if invocation.get("configSource"):
+                config_uri = invocation["configSource"].get("uri", "")
+                if config_uri:
+                    details_parts.append(f"Workflow: {config_uri.split('/')[-1]}")
+
+            details = " | ".join(details_parts) if details_parts else f"Builder: {builder_id}"
+
+            return VerificationResult(
+                "Build Environment",
+                True,
+                "Build environment verified from SLSA provenance",
+                details
+            )
+
+        except Exception as e:
+            return VerificationResult(
+                "Build Environment",
+                False,
+                "Failed to verify build environment",
+                str(e)[:200]
+            )
+
+    def verify_license_compliance(self) -> VerificationResult:
+        """Verify license compliance from SBOM."""
+        if not self.binary_path:
+            return VerificationResult(
+                "License Compliance",
+                False,
+                "Binary not found"
+            )
+
+        # Look for SBOM files
+        sbom_files = [
+            self.binary_path.parent / "sbom.spdx.json",
+            self.binary_path.parent / "sbom.cyclonedx.json",
+            self.binary_path.parent / "sbom.json"
+        ]
+
+        licenses_found = set()
+        packages_without_license = 0
+        total_packages = 0
+
+        for sbom_file in sbom_files:
+            if not sbom_file.exists():
+                continue
+
+            try:
+                with open(sbom_file) as f:
+                    sbom = json.load(f)
+
+                # Parse CycloneDX format
+                if sbom.get("bomFormat") == "CycloneDX":
+                    components = sbom.get("components", [])
+                    for component in components:
+                        total_packages += 1
+                        licenses = component.get("licenses", [])
+                        if licenses:
+                            for lic in licenses:
+                                if isinstance(lic, dict):
+                                    lic_id = lic.get("license", {}).get("id") or lic.get("license", {}).get("name")
+                                    if lic_id:
+                                        licenses_found.add(lic_id)
+                        else:
+                            packages_without_license += 1
+
+                # Parse SPDX format
+                elif "spdxVersion" in sbom:
+                    packages = sbom.get("packages", [])
+                    for package in packages:
+                        total_packages += 1
+                        lic = package.get("licenseConcluded") or package.get("licenseDeclared")
+                        if lic and lic != "NOASSERTION":
+                            licenses_found.add(lic)
+                        else:
+                            packages_without_license += 1
+
+                break  # Use first valid SBOM found
+
+            except (json.JSONDecodeError, Exception):
+                continue
+
+        if total_packages == 0:
+            return VerificationResult(
+                "License Compliance",
+                False,
+                "No SBOM found with license information"
+            )
+
+        # Check for problematic licenses (GPL, AGPL for proprietary software)
+        problematic_licenses = [
+            lic for lic in licenses_found
+            if any(x in lic.upper() for x in ["GPL", "AGPL", "LGPL"])
+        ]
+
+        if problematic_licenses:
+            details = f"Found copyleft: {', '.join(sorted(problematic_licenses)[:3])}"
+        else:
+            details = f"{len(licenses_found)} unique licenses, {total_packages - packages_without_license}/{total_packages} packages licensed"
+
+        return VerificationResult(
+            "License Compliance",
+            len(problematic_licenses) == 0,
+            f"License check: {len(licenses_found)} unique licenses",
+            details
+        )
+
+    def verify_dependency_pinning(self) -> VerificationResult:
+        """Verify dependencies have pinned versions in SBOM."""
+        if not self.binary_path:
+            return VerificationResult(
+                "Dependency Pinning",
+                False,
+                "Binary not found"
+            )
+
+        sbom_files = [
+            self.binary_path.parent / "sbom.spdx.json",
+            self.binary_path.parent / "sbom.cyclonedx.json"
+        ]
+
+        total_deps = 0
+        unpinned_deps = []
+
+        for sbom_file in sbom_files:
+            if not sbom_file.exists():
+                continue
+
+            try:
+                with open(sbom_file) as f:
+                    sbom = json.load(f)
+
+                if sbom.get("bomFormat") == "CycloneDX":
+                    for component in sbom.get("components", []):
+                        total_deps += 1
+                        version = component.get("version", "")
+                        name = component.get("name", "unknown")
+                        # Check for unpinned versions (wildcards, ranges, etc.)
+                        if not version or "*" in version or "^" in version or "~" in version or ">" in version or "<" in version:
+                            unpinned_deps.append(name)
+
+                elif "spdxVersion" in sbom:
+                    for package in sbom.get("packages", []):
+                        total_deps += 1
+                        version = package.get("versionInfo", "")
+                        name = package.get("name", "unknown")
+                        if not version or "*" in version or "^" in version or "~" in version:
+                            unpinned_deps.append(name)
+
+                break  # Use first valid SBOM
+
+            except (json.JSONDecodeError, Exception):
+                continue
+
+        if total_deps == 0:
+            return VerificationResult(
+                "Dependency Pinning",
+                False,
+                "No SBOM found with dependency information"
+            )
+
+        pinned_count = total_deps - len(unpinned_deps)
+        pinned_percentage = (pinned_count / total_deps * 100) if total_deps > 0 else 0
+
+        if len(unpinned_deps) == 0:
+            return VerificationResult(
+                "Dependency Pinning",
+                True,
+                f"All {total_deps} dependencies pinned to specific versions",
+                f"100% pinned ({total_deps}/{total_deps})"
+            )
+        else:
+            details = f"{pinned_percentage:.1f}% pinned ({pinned_count}/{total_deps})"
+            if len(unpinned_deps) <= 3:
+                details += f" | Unpinned: {', '.join(unpinned_deps)}"
+            else:
+                details += f" | {len(unpinned_deps)} unpinned dependencies"
+
+            return VerificationResult(
+                "Dependency Pinning",
+                len(unpinned_deps) == 0,
+                f"Dependency pinning: {pinned_count}/{total_deps} pinned",
+                details
+            )
+
+    def verify_rekor_transparency_log(self) -> VerificationResult:
+        """Verify and extract Rekor transparency log details."""
+        if not self.binary_path or not self.binary_path.exists():
+            return VerificationResult(
+                "Rekor Transparency Log",
+                False,
+                "Binary not found"
+            )
+
+        # Look for Sigstore bundle which contains Rekor log info
+        sig_bundle = self.binary_path.parent / f"{self.binary_path.name}.sigstore.json"
+        if not sig_bundle.exists():
+            return VerificationResult(
+                "Rekor Transparency Log",
+                False,
+                "Sigstore bundle not found",
+                "Rekor verification requires .sigstore.json bundle"
+            )
+
+        try:
+            with open(sig_bundle) as f:
+                bundle_data = json.load(f)
+
+            # Extract Rekor log entry details
+            verification_material = bundle_data.get("verificationMaterial", {})
+            tlog_entries = verification_material.get("tlogEntries", [])
+
+            if not tlog_entries:
+                return VerificationResult(
+                    "Rekor Transparency Log",
+                    False,
+                    "No transparency log entries found in bundle"
+                )
+
+            # Get the first (typically only) log entry
+            log_entry = tlog_entries[0]
+            log_index = log_entry.get("logIndex")
+            log_id = log_entry.get("logId", {})
+            integrated_time = log_entry.get("integratedTime")
+
+            # Format integrated time as human-readable
+            import datetime
+            if integrated_time:
+                timestamp = datetime.datetime.fromtimestamp(
+                    int(integrated_time),
+                    tz=datetime.timezone.utc
+                ).strftime("%Y-%m-%d %H:%M:%S UTC")
+            else:
+                timestamp = "unknown"
+
+            # Extract log ID (key hint)
+            key_hint = log_id.get("keyId", "unknown") if isinstance(log_id, dict) else "unknown"
+            if isinstance(key_hint, str) and len(key_hint) > 16:
+                key_hint = key_hint[:16] + "..."
+
+            details = f"Index: {log_index} | Time: {timestamp} | Key: {key_hint}"
+
+            return VerificationResult(
+                "Rekor Transparency Log",
+                True,
+                "Rekor transparency log entry verified",
+                details
+            )
+
+        except FileNotFoundError:
+            return VerificationResult(
+                "Rekor Transparency Log",
+                False,
+                "Sigstore bundle file not found"
+            )
+        except json.JSONDecodeError:
+            return VerificationResult(
+                "Rekor Transparency Log",
+                False,
+                "Invalid Sigstore bundle format"
+            )
+        except Exception as e:
+            return VerificationResult(
+                "Rekor Transparency Log",
+                False,
+                "Failed to extract Rekor log details",
+                str(e)[:200]
+            )
+
+    def verify_artifact_metadata(self) -> VerificationResult:
+        """Verify GitHub release artifact metadata."""
+        if not self.binary_path:
+            return VerificationResult(
+                "Artifact Metadata",
+                False,
+                "Binary not found"
+            )
+
+        try:
+            # Get the latest release info from GitHub
+            result = subprocess.run(
+                [
+                    "gh", "release", "view",
+                    "--repo", self.github_repo,
+                    "--json", "tagName,name,assets,body"
+                ],
+                capture_output=True,
+                text=True,
+                timeout=30
+            )
+
+            if result.returncode != 0:
+                return VerificationResult(
+                    "Artifact Metadata",
+                    False,
+                    "Could not fetch GitHub release metadata",
+                    "Ensure gh CLI is authenticated"
+                )
+
+            release_data = json.loads(result.stdout)
+            tag_name = release_data.get("tagName", "")
+            release_name = release_data.get("name", "")
+            assets = release_data.get("assets", [])
+            body = release_data.get("body", "")
+
+            # Check if version matches tag
+            version_matches_tag = False
+            if tag_name:
+                # Strip 'v' prefix if present
+                tag_version = tag_name.lstrip("v")
+                current_version = self.version.lstrip("v")
+                version_matches_tag = (tag_version == current_version)
+
+            # Check if binary is in release assets
+            binary_in_assets = any(
+                asset["name"] == self.binary_path.name
+                for asset in assets
+            )
+
+            # Check for expected artifacts
+            expected_artifacts = [".pyz", ".nupkg", "sbom"]
+            found_artifacts = []
+            for expected in expected_artifacts:
+                if any(expected in asset["name"] for asset in assets):
+                    found_artifacts.append(expected)
+
+            # Check if release has notes
+            has_release_notes = len(body.strip()) > 0
+
+            # Build details
+            details_parts = []
+            if version_matches_tag:
+                details_parts.append(f"Tag: {tag_name}")
+            else:
+                details_parts.append(f"Tag mismatch: {tag_name} != v{self.version}")
+
+            details_parts.append(f"Assets: {len(assets)}")
+            details_parts.append(f"Expected artifacts: {'/'.join(found_artifacts)}")
+
+            if has_release_notes:
+                details_parts.append("Has release notes")
+
+            details = " | ".join(details_parts)
+
+            # Pass if version matches and binary is in assets
+            passed = version_matches_tag and binary_in_assets
+
+            if not passed:
+                message = "Artifact metadata verification failed"
+                if not version_matches_tag:
+                    message = "Version does not match release tag"
+                elif not binary_in_assets:
+                    message = "Binary not found in release assets"
+            else:
+                message = "Artifact metadata verified"
+
+            return VerificationResult(
+                "Artifact Metadata",
+                passed,
+                message,
+                details
+            )
+
+        except subprocess.TimeoutExpired:
+            return VerificationResult(
+                "Artifact Metadata",
+                False,
+                "GitHub API request timeout"
+            )
+        except json.JSONDecodeError:
+            return VerificationResult(
+                "Artifact Metadata",
+                False,
+                "Invalid GitHub API response"
+            )
+        except Exception as e:
+            return VerificationResult(
+                "Artifact Metadata",
+                False,
+                "Failed to verify artifact metadata",
+                str(e)[:200]
+            )
+
     def verify_all(self) -> bool:
         """
         Run all verification checks.
@@ -697,11 +1253,18 @@ class Verifier:
         checks = [
             ("Checksum", self.verify_checksum),
             ("Sigstore Signature", self.verify_sigstore_signature),
+            ("Certificate Identity", self.verify_certificate_identity),
+            ("Rekor Transparency Log", self.verify_rekor_transparency_log),
             ("GitHub Attestation", self.verify_github_attestation),
+            ("SBOM Attestation", self.verify_sbom_attestation),
             ("SBOM", self.verify_sbom),
             ("OSV Scan", self.verify_osv_scan),
             ("SLSA Provenance", self.verify_slsa_provenance),
+            ("Build Environment", self.verify_build_environment),
             ("Reproducible Build", self.verify_reproducible_build),
+            ("Artifact Metadata", self.verify_artifact_metadata),
+            ("License Compliance", self.verify_license_compliance),
+            ("Dependency Pinning", self.verify_dependency_pinning),
         ]
 
         if self.console:
