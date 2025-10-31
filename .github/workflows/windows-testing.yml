@@ -89,9 +89,11 @@ jobs:
               Write-Host "Extracting and testing Chocolatey package..."
               $nupkg = Get-ChildItem -Path dist -Filter "*.nupkg" | Select-Object -First 1
 
-              # Extract the package
+              # Extract the package (rename to .zip first as Expand-Archive doesn't recognize .nupkg)
               $extractDir = "$env:TEMP\choco-test-extract"
-              Expand-Archive -Path $nupkg.FullName -DestinationPath $extractDir -Force
+              $zipPath = "$env:TEMP\package.zip"
+              Copy-Item $nupkg.FullName -Destination $zipPath
+              Expand-Archive -Path $zipPath -DestinationPath $extractDir -Force
 
               # Copy the actual .pyz file into the tools directory
               $toolsDir = Join-Path $extractDir "tools"
