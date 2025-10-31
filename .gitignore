@@ -66,3 +66,4 @@ revocation-cert.asc
 # OS
 .DS_Store
 Thumbs.db
+src/demo_cli/_version.py
