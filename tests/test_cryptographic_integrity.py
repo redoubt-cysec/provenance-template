@@ -19,7 +19,7 @@ class TestCosignConfiguration:
 
     def test_keyless_signing_only(self):
         """Verify only keyless signing is used (no private keys in repo)."""
-        release_workflow = WORKFLOWS_DIR / "release.yml"
+        release_workflow = WORKFLOWS_DIR / "secure-release.yml"
         content = release_workflow.read_text()
 
         # Must use keyless
@@ -39,7 +39,7 @@ class TestCosignConfiguration:
 
     def test_rekor_transparency_log_enabled(self):
         """Verify signatures are logged to Rekor transparency log."""
-        release_workflow = WORKFLOWS_DIR / "release.yml"
+        release_workflow = WORKFLOWS_DIR / "secure-release.yml"
         content = release_workflow.read_text()
 
         # Should NOT disable Rekor
@@ -50,7 +50,7 @@ class TestCosignConfiguration:
 
     def test_fulcio_certificate_authority_used(self):
         """Verify Fulcio CA is used for keyless certificates."""
-        release_workflow = WORKFLOWS_DIR / "release.yml"
+        release_workflow = WORKFLOWS_DIR / "secure-release.yml"
         content = release_workflow.read_text()
 
         # Keyless signing should use Fulcio
@@ -60,7 +60,7 @@ class TestCosignConfiguration:
 
     def test_correct_oidc_issuer_for_github(self):
         """Verify correct OIDC issuer for GitHub Actions."""
-        release_workflow = WORKFLOWS_DIR / "release.yml"
+        release_workflow = WORKFLOWS_DIR / "secure-release.yml"
         content = release_workflow.read_text()
 
         # Correct issuer for GitHub Actions
@@ -69,7 +69,7 @@ class TestCosignConfiguration:
 
     def test_certificate_identity_validation(self):
         """Verify certificate identity matches workflow."""
-        release_workflow = WORKFLOWS_DIR / "release.yml"
+        release_workflow = WORKFLOWS_DIR / "secure-release.yml"
         content = release_workflow.read_text()
 
         # Should include identity validation in verification instructions
@@ -84,7 +84,7 @@ class TestChecksumSecurity:
 
     def test_sha256_algorithm_used(self):
         """Verify SHA-256 is used (not weaker algorithms)."""
-        release_workflow = WORKFLOWS_DIR / "release.yml"
+        release_workflow = WORKFLOWS_DIR / "secure-release.yml"
         content = release_workflow.read_text()
 
         assert "SHA256" in content or "sha256sum" in content, \
@@ -99,7 +99,7 @@ class TestChecksumSecurity:
 
     def test_checksums_signed(self):
         """Verify checksums file itself is signed."""
-        release_workflow = WORKFLOWS_DIR / "release.yml"
+        release_workflow = WORKFLOWS_DIR / "secure-release.yml"
         content = release_workflow.read_text()
 
         # The SHA256SUMS file should be signed
@@ -112,7 +112,7 @@ class TestAttestationSecurity:
 
     def test_build_provenance_attestation(self):
         """Verify build provenance is attested."""
-        release_workflow = WORKFLOWS_DIR / "release.yml"
+        release_workflow = WORKFLOWS_DIR / "secure-release.yml"
         content = release_workflow.read_text()
 
         assert "actions/attest-build-provenance" in content, \
@@ -120,7 +120,7 @@ class TestAttestationSecurity:
 
     def test_attestation_for_all_artifacts(self):
         """Verify all release artifacts are attested."""
-        release_workflow = WORKFLOWS_DIR / "release.yml"
+        release_workflow = WORKFLOWS_DIR / "secure-release.yml"
         content = release_workflow.read_text()
 
         # Should attest multiple artifacts
@@ -134,7 +134,7 @@ class TestAttestationSecurity:
     def test_slsa_provenance_format(self):
         """Verify SLSA provenance format is generated."""
         # GitHub's attest-build-provenance generates SLSA v1.0 provenance
-        release_workflow = WORKFLOWS_DIR / "release.yml"
+        release_workflow = WORKFLOWS_DIR / "secure-release.yml"
         content = release_workflow.read_text()
 
         # GitHub attestation action produces in-toto predicates in SLSA format
@@ -163,7 +163,7 @@ class TestPermissionHardening:
                         break
 
             # Critical workflows MUST have explicit permissions
-            critical_workflows = ["release.yml", "main-verify.yml"]
+            critical_workflows = ["secure-release.yml", "main-verify.yml"]
             if workflow_file.name in critical_workflows:
                 assert has_permissions, \
                     f"{workflow_file.name} must explicitly declare permissions"
@@ -391,7 +391,7 @@ class TestSupplyChainSecurity:
 
     def test_runner_environment_isolation(self):
         """Verify runners don't persist credentials."""
-        release_workflow = WORKFLOWS_DIR / "release.yml"
+        release_workflow = WORKFLOWS_DIR / "secure-release.yml"
         content = release_workflow.read_text()
 
         # Should not persist credentials
@@ -422,7 +422,7 @@ class TestSupplyChainSecurity:
 
     def test_environment_protection_for_releases(self):
         """Verify release workflow uses environment protection."""
-        release_workflow = WORKFLOWS_DIR / "release.yml"
+        release_workflow = WORKFLOWS_DIR / "secure-release.yml"
 
         with open(release_workflow) as f:
             workflow = yaml.safe_load(f)
@@ -448,7 +448,7 @@ class TestSBOMQuality:
 
     def test_sbom_includes_all_dependencies(self):
         """Verify SBOM generation includes all dependency types."""
-        release_workflow = WORKFLOWS_DIR / "release.yml"
+        release_workflow = WORKFLOWS_DIR / "secure-release.yml"
         content = release_workflow.read_text()
 
         if "cyclonedx" in content.lower():
@@ -459,7 +459,7 @@ class TestSBOMQuality:
 
     def test_sbom_uploaded_with_release(self):
         """Verify SBOM is uploaded as release artifact."""
-        release_workflow = WORKFLOWS_DIR / "release.yml"
+        release_workflow = WORKFLOWS_DIR / "secure-release.yml"
         content = release_workflow.read_text()
 
         # SBOM file should be uploaded
@@ -472,7 +472,7 @@ class TestReproducibilityGuarantees:
 
     def test_source_date_epoch_set(self):
         """Verify SOURCE_DATE_EPOCH is set for reproducible builds."""
-        release_workflow = WORKFLOWS_DIR / "release.yml"
+        release_workflow = WORKFLOWS_DIR / "secure-release.yml"
         content = release_workflow.read_text()
 
         assert "SOURCE_DATE_EPOCH" in content, \
@@ -480,7 +480,7 @@ class TestReproducibilityGuarantees:
 
     def test_locale_environment_fixed(self):
         """Verify locale environment is fixed for reproducibility."""
-        release_workflow = WORKFLOWS_DIR / "release.yml"
+        release_workflow = WORKFLOWS_DIR / "secure-release.yml"
         content = release_workflow.read_text()
 
         # Should set LC_ALL, LANG, TZ
@@ -491,7 +491,7 @@ class TestReproducibilityGuarantees:
 
     def test_python_hash_seed_fixed(self):
         """Verify PYTHONHASHSEED is set for reproducible Python builds."""
-        release_workflow = WORKFLOWS_DIR / "release.yml"
+        release_workflow = WORKFLOWS_DIR / "secure-release.yml"
         content = release_workflow.read_text()
 
         assert "PYTHONHASHSEED" in content, \
