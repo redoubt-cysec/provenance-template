@@ -67,7 +67,7 @@ jobs:
               # Install from local package
               Write-Host "Installing Chocolatey package..."
               $nupkg = Get-ChildItem -Path dist -Filter "*.nupkg" | Select-Object -First 1
-              choco install provenance-demo --version="0.0.1-test" --prerelease -y --source="$($nupkg.DirectoryName)" --force
+              choco install provenance-demo --version="0.0.1-test" --prerelease -y --source="$($nupkg.DirectoryName)" --ignore-dependencies --force
 
               # Test installation
               Write-Host "Testing installation..."
