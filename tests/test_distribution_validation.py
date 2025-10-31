@@ -401,10 +401,11 @@ class TestRepositoryConfiguration:
         content = release_workflow.read_text()
 
         # Should upload these critical files
+        # Note: SHA256SUMS not needed as attestations provide cryptographic integrity
         important_assets = [
             '.pyz',
-            'SHA256SUMS',
             'sbom',
+            '.nupkg',  # Chocolatey package
         ]
 
         for asset in important_assets:
