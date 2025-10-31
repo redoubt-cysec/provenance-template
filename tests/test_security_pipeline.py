@@ -130,7 +130,7 @@ class TestVulnerabilityScanning:
 
     def test_scheduled_scanning_exists(self):
         """Verify scheduled vulnerability scanning is configured."""
-        scan_workflow = WORKFLOWS_DIR / "scan-latest-secure-release.yml"
+        scan_workflow = WORKFLOWS_DIR / "scan-latest-release.yml"
         assert scan_workflow.exists(), "Scheduled vulnerability scanning must be configured"
 
         content = scan_workflow.read_text()
