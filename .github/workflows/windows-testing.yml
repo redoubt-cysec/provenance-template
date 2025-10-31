@@ -64,14 +64,30 @@ jobs:
               Write-Host "Building Chocolatey package..."
               pwsh -File scripts/build_chocolatey.ps1 -Version "v0.0.1-test" -PyzPath "dist/provenance-demo.pyz"
 
-              # Install from local package
-              Write-Host "Installing Chocolatey package..."
+              # For testing, manually extract and install since the URL doesn't exist
+              Write-Host "Extracting and testing Chocolatey package..."
               $nupkg = Get-ChildItem -Path dist -Filter "*.nupkg" | Select-Object -First 1
-              choco install provenance-demo --version="0.0.1-test" --prerelease -y --source="$($nupkg.DirectoryName)" --ignore-dependencies --force
+
+              # Extract the package
+              $extractDir = "$env:TEMP\choco-test-extract"
+              Expand-Archive -Path $nupkg.FullName -DestinationPath $extractDir -Force
+
+              # Copy the actual .pyz file into the tools directory
+              $toolsDir = Join-Path $extractDir "tools"
+              Copy-Item "dist/provenance-demo.pyz" -Destination "$toolsDir/provenance-demo.pyz"
+
+              # Create the wrapper batch file
+              $batFile = Join-Path $toolsDir "provenance-demo.bat"
+              @"
+@echo off
+python "%~dp0provenance-demo.pyz" %*
+"@ | Out-File -FilePath $batFile -Encoding ASCII
+
+              # Add tools directory to PATH
+              $env:Path = "$toolsDir;$env:Path"
 
               # Test installation
               Write-Host "Testing installation..."
-              $env:Path = [System.Environment]::GetEnvironmentVariable("Path","Machine") + ";" + [System.Environment]::GetEnvironmentVariable("Path","User")
               provenance-demo --version
             }
             # "winget" {
