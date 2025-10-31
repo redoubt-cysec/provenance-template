@@ -52,11 +52,10 @@ jobs:
       - name: OSV scan SBOM
         if: steps.latest.outputs.exists == 'true'
         run: |
-          curl -sSfL https://github.com/google/osv-scanner/releases/download/v2.2.4/osv-scanner_2.2.4_linux_amd64.tar.gz \
-            -o /tmp/osv-scanner.tar.gz
-          tar xzf /tmp/osv-scanner.tar.gz -C /tmp
-          sudo mv /tmp/osv-scanner_2.2.4_linux_amd64/osv-scanner /usr/local/bin/
-          rm -rf /tmp/osv-scanner.tar.gz /tmp/osv-scanner_2.2.4_linux_amd64
+          curl -sSfL https://github.com/google/osv-scanner/releases/download/v2.2.4/osv-scanner_linux_amd64 \
+            -o /tmp/osv-scanner
+          chmod +x /tmp/osv-scanner
+          sudo mv /tmp/osv-scanner /usr/local/bin/osv-scanner
           osv-scanner --sbom=sbom.cdx.json --format=sarif > osv-results.sarif || true
 
       - name: Upload SARIF
