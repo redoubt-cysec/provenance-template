@@ -438,7 +438,8 @@ class TestSupplyChainSecurity:
         has_environment = "environment" in release_job
 
         # Verify workflow is triggered by tags (which provides protection)
-        on_config = workflow.get("on", {})
+        # Note: YAML parses 'on' as boolean True (reserved word)
+        on_config = workflow.get(True, workflow.get("on", {}))
         triggered_by_tags = False
         if isinstance(on_config, dict):
             if "push" in on_config:
