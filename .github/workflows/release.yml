@@ -158,16 +158,24 @@ jobs:
           generate_release_notes: true
           body: |
             ## Install
+
+            ### Scoop (Windows)
+            ```powershell
+            scoop bucket add redoubt https://github.com/redoubt-cysec/scoop-bucket
+            scoop install provenance-demo
+            ```
+
+            ### Direct Download (Linux/macOS)
             ```bash
             TAG=${{ github.ref_name }}
             REPO=${{ github.repository }}
-            curl -LO https://github.com/$REPO/releases/download/$TAG/client.pyz
-            chmod +x client.pyz && ./client.pyz --version
+            curl -LO https://github.com/$REPO/releases/download/$TAG/provenance-demo.pyz
+            chmod +x provenance-demo.pyz && ./provenance-demo.pyz --version
             ```
 
             ## Verify (attestation)
             ```bash
-            gh attestation verify client.pyz --repo ${{ github.repository }}
+            gh attestation verify provenance-demo.pyz --repo ${{ github.repository }}
             ```
 
             ## Verify (checksums + cosign)
@@ -185,6 +193,60 @@ jobs:
             ## Rebuild from source
             ```bash
             git clone https://github.com/${{ github.repository }}.git && cd $(basename ${{ github.repository }})
-            ./scripts/verify_build.sh ${{ github.ref_name }} ${{ github.repository_owner }} $(basename ${{ github.repository }}) client.pyz
-            ./scripts/verify_provenance.sh ${{ github.ref_name }} ${{ github.repository_owner }} $(basename ${{ github.repository }}) client.pyz
+            ./scripts/verify_build.sh ${{ github.ref_name }} ${{ github.repository_owner }} $(basename ${{ github.repository }}) provenance-demo.pyz
+            ./scripts/verify_provenance.sh ${{ github.ref_name }} ${{ github.repository_owner }} $(basename ${{ github.repository }}) provenance-demo.pyz
             ```
+
+      - name: Update Scoop bucket
+        if: vars.SCOOP_BUCKET_REPO != ''
+        run: |
+          # Clone scoop bucket repo
+          BUCKET_REPO="${{ vars.SCOOP_BUCKET_REPO }}"
+          git clone "https://x-access-token:${{ secrets.SCOOP_BUCKET_TOKEN }}@github.com/${BUCKET_REPO}.git" /tmp/scoop-bucket
+
+          cd /tmp/scoop-bucket
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+          # Calculate SHA256 of the .pyz file
+          PYZ_SHA256=$(sha256sum dist/provenance-demo.pyz | awk '{print $1}')
+          VERSION="${{ github.ref_name }}"
+          VERSION="${VERSION#v}"  # Remove 'v' prefix
+
+          # Update manifest
+          cat > bucket/provenance-demo.json <<EOF
+          {
+              "version": "${VERSION}",
+              "description": "Demo CLI showcasing supply chain security and provenance",
+              "homepage": "https://github.com/${{ github.repository }}",
+              "license": "MIT",
+              "url": "https://github.com/${{ github.repository }}/releases/download/${{ github.ref_name }}/provenance-demo.pyz",
+              "hash": "${PYZ_SHA256}",
+              "bin": "provenance-demo.pyz",
+              "pre_install": [
+                  "if (!(Get-Command python -ErrorAction SilentlyContinue)) {",
+                  "    Write-Host 'Python 3.10+ is required. Install with: scoop install python'",
+                  "    exit 1",
+                  "}"
+              ],
+              "checkver": {
+                  "github": "https://github.com/${{ github.repository }}"
+              },
+              "autoupdate": {
+                  "url": "https://github.com/${{ github.repository }}/releases/download/v\$version/provenance-demo.pyz"
+              },
+              "notes": [
+                  "Run 'provenance-demo verify' to validate all security attestations!",
+                  "",
+                  "Available commands:",
+                  "  provenance-demo hello <name>  - Say hello",
+                  "  provenance-demo verify        - Verify binary attestations",
+                  "  provenance-demo --version     - Show version"
+              ]
+          }
+          EOF
+
+          # Commit and push
+          git add bucket/provenance-demo.json
+          git commit -m "chore: Update provenance-demo to ${VERSION}" || exit 0
+          git push
