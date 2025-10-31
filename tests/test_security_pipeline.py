@@ -93,8 +93,8 @@ class TestSBOMGeneration:
 
     def test_release_workflow_generates_sbom(self):
         """Verify release workflow includes SBOM generation step."""
-        release_workflow = WORKFLOWS_DIR / "release.yml"
-        assert release_workflow.exists(), "release.yml must exist"
+        release_workflow = WORKFLOWS_DIR / "secure-release.yml"
+        assert release_workflow.exists(), "secure-release.yml must exist"
 
         content = release_workflow.read_text()
         assert "cyclonedx-python" in content or "sbom" in content.lower(), \
@@ -102,7 +102,7 @@ class TestSBOMGeneration:
 
     def test_sbom_validation_configured(self):
         """Verify SBOM is validated as valid CycloneDX."""
-        release_workflow = WORKFLOWS_DIR / "release.yml"
+        release_workflow = WORKFLOWS_DIR / "secure-release.yml"
         content = release_workflow.read_text()
         # Should validate the SBOM is well-formed
         assert "cyclonedx" in content.lower(), "Should use CycloneDX format for SBOM"
@@ -114,7 +114,7 @@ class TestVulnerabilityScanning:
     def test_osv_scanner_configured(self):
         """Verify OSV scanner is configured in workflows."""
         # Check if OSV is in release or main-verify workflow
-        workflows_to_check = ["release.yml", "main-verify.yml"]
+        workflows_to_check = ["secure-release.yml", "main-verify.yml"]
         osv_found = False
 
         for workflow_name in workflows_to_check:
@@ -130,7 +130,7 @@ class TestVulnerabilityScanning:
 
     def test_scheduled_scanning_exists(self):
         """Verify scheduled vulnerability scanning is configured."""
-        scan_workflow = WORKFLOWS_DIR / "scan-latest-release.yml"
+        scan_workflow = WORKFLOWS_DIR / "scan-latest-secure-release.yml"
         assert scan_workflow.exists(), "Scheduled vulnerability scanning must be configured"
 
         content = scan_workflow.read_text()
@@ -143,14 +143,14 @@ class TestAttestationAndSigning:
 
     def test_github_attestation_configured(self):
         """Verify GitHub attestation is used."""
-        release_workflow = WORKFLOWS_DIR / "release.yml"
+        release_workflow = WORKFLOWS_DIR / "secure-release.yml"
         content = release_workflow.read_text()
         assert "actions/attest-build-provenance" in content, \
             "Must use GitHub's attestation action"
 
     def test_cosign_signing_configured(self):
         """Verify cosign keyless signing is configured."""
-        release_workflow = WORKFLOWS_DIR / "release.yml"
+        release_workflow = WORKFLOWS_DIR / "secure-release.yml"
         content = release_workflow.read_text()
         assert "cosign" in content.lower() and "sign-blob" in content, \
             "Must use cosign for signing"
@@ -160,7 +160,7 @@ class TestAttestationAndSigning:
 
     def test_permissions_are_minimal(self):
         """Verify workflow permissions follow least privilege."""
-        release_workflow = WORKFLOWS_DIR / "release.yml"
+        release_workflow = WORKFLOWS_DIR / "secure-release.yml"
 
         with open(release_workflow) as f:
             workflow = yaml.safe_load(f)
@@ -172,7 +172,7 @@ class TestAttestationAndSigning:
 
     def test_id_token_permission_for_signing(self):
         """Verify id-token: write permission for keyless signing."""
-        release_workflow = WORKFLOWS_DIR / "release.yml"
+        release_workflow = WORKFLOWS_DIR / "secure-release.yml"
 
         with open(release_workflow) as f:
             workflow = yaml.safe_load(f)
@@ -213,7 +213,7 @@ class TestWorkflowSecurity:
 
     def test_harden_runner_configured(self):
         """Verify step-security/harden-runner is used in release workflow."""
-        release_workflow = WORKFLOWS_DIR / "release.yml"
+        release_workflow = WORKFLOWS_DIR / "secure-release.yml"
         content = release_workflow.read_text()
         assert "step-security/harden-runner" in content, \
             "Release workflow should use harden-runner for network egress control"

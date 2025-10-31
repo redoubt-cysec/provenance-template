@@ -381,9 +381,9 @@ class TestRepositoryConfiguration:
 
     def test_github_releases_configured(self):
         """Verify release workflow creates GitHub releases."""
-        release_workflow = REPO_ROOT / ".github" / "workflows" / "release.yml"
+        release_workflow = REPO_ROOT / ".github" / "workflows" / "secure-release.yml"
 
-        assert release_workflow.exists(), "release.yml must exist"
+        assert release_workflow.exists(), "secure-release.yml must exist"
 
         content = release_workflow.read_text()
 
@@ -397,7 +397,7 @@ class TestRepositoryConfiguration:
 
     def test_release_assets_configured(self):
         """Verify correct assets are uploaded to releases."""
-        release_workflow = REPO_ROOT / ".github" / "workflows" / "release.yml"
+        release_workflow = REPO_ROOT / ".github" / "workflows" / "secure-release.yml"
         content = release_workflow.read_text()
 
         # Should upload these critical files
