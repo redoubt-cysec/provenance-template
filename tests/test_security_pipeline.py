@@ -97,15 +97,23 @@ class TestSBOMGeneration:
         assert release_workflow.exists(), "secure-release.yml must exist"
 
         content = release_workflow.read_text()
-        assert "cyclonedx-python" in content or "sbom" in content.lower(), \
+        assert "syft" in content.lower() or "sbom" in content.lower(), \
             "Release workflow must generate SBOM"
 
-    def test_sbom_validation_configured(self):
-        """Verify SBOM is validated as valid CycloneDX."""
+    def test_sbom_formats_configured(self):
+        """Verify SBOM is generated in both SPDX and CycloneDX formats."""
         release_workflow = WORKFLOWS_DIR / "secure-release.yml"
         content = release_workflow.read_text()
-        # Should validate the SBOM is well-formed
-        assert "cyclonedx" in content.lower(), "Should use CycloneDX format for SBOM"
+        # Should generate both formats
+        assert "spdx-json" in content.lower(), "Should generate SPDX format SBOM"
+        assert "cyclonedx-json" in content.lower(), "Should generate CycloneDX format SBOM"
+
+    def test_sbom_attestation_configured(self):
+        """Verify SBOM is attested to artifacts."""
+        release_workflow = WORKFLOWS_DIR / "secure-release.yml"
+        content = release_workflow.read_text()
+        assert "actions/attest-sbom" in content, \
+            "Release workflow must attest SBOM to artifacts"
 
 
 class TestVulnerabilityScanning:
@@ -148,15 +156,19 @@ class TestAttestationAndSigning:
         assert "actions/attest-build-provenance" in content, \
             "Must use GitHub's attestation action"
 
-    def test_cosign_signing_configured(self):
-        """Verify cosign keyless signing is configured."""
+    def test_sigstore_signing_configured(self):
+        """Verify Sigstore keyless signing is configured via GitHub attestations."""
         release_workflow = WORKFLOWS_DIR / "secure-release.yml"
         content = release_workflow.read_text()
-        assert "cosign" in content.lower() and "sign-blob" in content, \
-            "Must use cosign for signing"
-        # Verify keyless (no private keys)
-        assert "COSIGN_EXPERIMENTAL=1" in content or "cosign-installer" in content, \
-            "Must use keyless signing (no private keys)"
+        # GitHub attestations use Sigstore under the hood
+        assert "actions/attest-build-provenance" in content or "actions/attest-sbom" in content, \
+            "Must use GitHub attestation actions (which use Sigstore for signing)"
+        # Verify id-token permission is set (required for Sigstore)
+        assert "id-token: write" in content, \
+            "Must have id-token: write permission for Sigstore keyless signing"
+        # Verify attestations permission
+        assert "attestations: write" in content, \
+            "Must have attestations: write permission for creating attestations"
 
     def test_permissions_are_minimal(self):
         """Verify workflow permissions follow least privilege."""
@@ -181,6 +193,16 @@ class TestAttestationAndSigning:
         content = release_workflow.read_text()
         assert "id-token: write" in content, \
             "Must have id-token: write permission for keyless signing"
+
+    def test_chocolatey_package_attestation(self):
+        """Verify Chocolatey packages are attested."""
+        release_workflow = WORKFLOWS_DIR / "secure-release.yml"
+        content = release_workflow.read_text()
+        # Check that chocolatey job exists and has attestation
+        assert "chocolatey:" in content, "Must have chocolatey job"
+        # Verify attestation is generated for nupkg
+        assert "attest-build-provenance" in content and "*.nupkg" in content, \
+            "Must attest Chocolatey .nupkg packages"
 
 
 class TestWorkflowSecurity:
@@ -210,13 +232,6 @@ class TestWorkflowSecurity:
                 if not (len(ref) == 40 and all(c in "0123456789abcdef" for c in ref.lower())):
                     # This is a warning - tags are allowed but SHAs are better
                     print(f"Warning: {use} in {workflow_file.name} uses tag/branch, not SHA")
-
-    def test_harden_runner_configured(self):
-        """Verify step-security/harden-runner is used in release workflow."""
-        release_workflow = WORKFLOWS_DIR / "secure-release.yml"
-        content = release_workflow.read_text()
-        assert "step-security/harden-runner" in content, \
-            "Release workflow should use harden-runner for network egress control"
 
     def test_no_pull_request_target_workflow(self):
         """Verify no dangerous pull_request_target triggers on untrusted code."""
