@@ -22,6 +22,7 @@
 
           nativeBuildInputs = with python.pkgs; [
             hatchling
+            hatch-vcs
           ];
 
           # No runtime dependencies for this simple CLI

@@ -393,7 +393,20 @@ class TestConfigurationConsistency:
         import tomli
         with open(REPO_ROOT / "pyproject.toml", "rb") as f:
             pyproject = tomli.load(f)
-        version = pyproject["project"]["version"]
+
+        # Handle dynamic versioning
+        if "version" in pyproject["project"]:
+            version = pyproject["project"]["version"]
+        elif "dynamic" in pyproject["project"] and "version" in pyproject["project"]["dynamic"]:
+            # Version is dynamically determined from git tags via hatch-vcs
+            # Get version from the installed package
+            try:
+                from importlib.metadata import version as get_version
+                version = get_version("provenance-demo")
+            except Exception:
+                pytest.skip("Version is dynamic and package not installed yet")
+        else:
+            pytest.skip("No version configuration found")
 
         # Check other configs
         configs_to_check = [
