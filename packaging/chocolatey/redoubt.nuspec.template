@@ -2,7 +2,7 @@
 <package xmlns="http://schemas.microsoft.com/packaging/2015/06/nuspec.xsd">
   <metadata>
     <id>provenance-demo</id>
-    <version>0.0.1-alpha.10</version>
+    <version>{{VERSION_NO_V}}</version>
     <packageSourceUrl>https://github.com/redoubt-cysec/provenance-template</packageSourceUrl>
     <owners>redoubt-cysec</owners>
     <title>Provenance Demo - Secure CLI</title>
@@ -43,7 +43,7 @@ provenance-demo --version
 
 Install Python: `choco install python`
     </description>
-    <releaseNotes>https://github.com/redoubt-cysec/provenance-template/releases/tag/v0.0.1-alpha.10</releaseNotes>
+    <releaseNotes>https://github.com/redoubt-cysec/provenance-template/releases/tag/{{VERSION}}</releaseNotes>
     <dependencies>
       <dependency id="python" version="3.10.0" />
     </dependencies>
