@@ -18,7 +18,7 @@ Bootstrap your Python CLI project with battle-tested security features, comprehe
 - **SBOM:** CycloneDX Software Bill of Materials with OSV vulnerability scanning
 - **Reproducible Builds:** Deterministic builds with hash verification
 - **Hardened CI:** Egress firewall (StepSecurity Harden-Runner), pinned GitHub Actions
-- **Verification Suite:** 25+ automated security tests, cryptographic integrity checks
+- **Verification Suite:** 60+ automated security tests, cryptographic integrity checks
 - **Runtime Security:** Built-in `verify` command to check attestations after installation
 
 ### Distribution Support
@@ -172,7 +172,7 @@ Replace the demo code in `src/demo_cli/` with your own application.
 
 - [Supply Chain Security](docs/security/SUPPLY-CHAIN.md) - Verify releases with attestations
 - [Verification Example](docs/security/VERIFICATION-EXAMPLE.md) - Hands-on verification walkthrough
-- [Security Testing](docs/security/SECURITY-TESTING.md) - Details on 25+ security tests
+- [Security Testing](docs/security/SECURITY-TESTING.md) - Details on 60+ security tests
 - [Security Checklist](docs/security/COMPLETE-SECURITY-CHECKLIST.md) - Complete security validation
 - [GitHub Action Pinning](docs/security/GITHUB-ACTION-PINS.md) - Pin Actions to commit SHAs
 - [Security Policy](docs/security/SECURITY.md) - Vulnerability disclosure and reporting
@@ -210,7 +210,7 @@ Replace the demo code in `src/demo_cli/` with your own application.
 
 ### Comprehensive Testing
 
-- **25+ Security Tests:** Cryptographic integrity, pipeline configuration, runtime security
+- **60+ Security Tests:** Cryptographic integrity, pipeline configuration, runtime security
 - **Distribution Testing:** Phase 1 (fast) + Phase 2 (comprehensive VM) tests
 - **Platform Coverage:** 18 distribution methods tested automatically
 - **Meta-Test Enforcement:** Ensures all distribution tests verify attestations
