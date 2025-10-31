@@ -1,0 +1,44 @@
+# Created using winget-create
+# yaml-language-server: $schema=https://aka.ms/winget-manifest.defaultLocale.1.6.0.schema.json
+
+PackageIdentifier: redoubt-cysec.ProvenanceDemo
+PackageVersion: {{VERSION_NO_V}}
+PackageLocale: en-US
+Publisher: Redoubt CySec
+PublisherUrl: https://github.com/redoubt-cysec
+PublisherSupportUrl: https://github.com/redoubt-cysec/provenance-template/issues
+Author: Redoubt CySec
+PackageName: Provenance Demo
+PackageUrl: https://github.com/redoubt-cysec/provenance-template
+License: MIT
+LicenseUrl: https://github.com/redoubt-cysec/provenance-template/blob/main/LICENSE
+ShortDescription: Demo CLI showcasing supply chain security and provenance
+Description: |-
+  Provenance Demo demonstrates production-grade supply chain security for CLI applications.
+
+  Features:
+  - Reproducible, deterministic builds
+  - Sigstore signatures and GitHub attestations
+  - SLSA provenance and SBOM generation
+  - OSV vulnerability scanning
+  - Complete supply chain security validation
+
+  Run 'provenance-demo verify' to validate all security attestations!
+
+  Requirements:
+  - Python 3.10 or higher
+Moniker: provenance-demo
+Tags:
+  - cli
+  - security
+  - slsa
+  - sigstore
+  - supply-chain
+  - attestation
+  - sbom
+  - verification
+  - provenance
+ReleaseNotes: See release notes at GitHub
+ReleaseNotesUrl: https://github.com/redoubt-cysec/provenance-template/releases/tag/{{VERSION}}
+ManifestType: defaultLocale
+ManifestVersion: 1.6.0
