@@ -1,8 +1,8 @@
 # Provenance Demo
 
-[![Main Verify](https://github.com/redoubt-cysec/provenance-demo/actions/workflows/main-verify.yml/badge.svg)](https://github.com/redoubt-cysec/provenance-demo/actions/workflows/main-verify.yml)
-[![Secure Release](https://github.com/redoubt-cysec/provenance-demo/actions/workflows/secure-release.yml/badge.svg)](https://github.com/redoubt-cysec/provenance-demo/actions/workflows/secure-release.yml)
-[![Coverage](https://img.shields.io/badge/coverage-100%25-brightgreen.svg)](https://github.com/redoubt-cysec/provenance-demo/actions/workflows/coverage.yml)
+[![Main Verify](https://github.com/redoubt-cysec/provenance-template/actions/workflows/main-verify.yml/badge.svg)](https://github.com/redoubt-cysec/provenance-template/actions/workflows/main-verify.yml)
+[![Secure Release](https://github.com/redoubt-cysec/provenance-template/actions/workflows/secure-release.yml/badge.svg)](https://github.com/redoubt-cysec/provenance-template/actions/workflows/secure-release.yml)
+[![codecov](https://codecov.io/gh/redoubt-cysec/provenance-template/branch/main/graph/badge.svg)](https://codecov.io/gh/redoubt-cysec/provenance-template)
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 
 **Production-ready Python CLI template with enterprise-grade supply chain security.**
@@ -355,8 +355,8 @@ Built with modern security best practices:
 
 ## Support
 
-- **Issues:** [GitHub Issues](https://github.com/redoubt-cysec/provenance-demo/issues)
-- **Discussions:** [GitHub Discussions](https://github.com/redoubt-cysec/provenance-demo/discussions)
+- **Issues:** [GitHub Issues](https://github.com/redoubt-cysec/provenance-template/issues)
+- **Discussions:** [GitHub Discussions](https://github.com/redoubt-cysec/provenance-template/discussions)
 - **Security:** See [SECURITY.md](SECURITY.md) for vulnerability reporting
 
 ---
