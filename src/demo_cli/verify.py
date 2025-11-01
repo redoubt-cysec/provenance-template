@@ -1113,13 +1113,13 @@ class Verifier:
             )
 
         # Look for Sigstore bundle which contains Rekor log info
-        sig_bundle = self.binary_path.parent / f"{self.binary_path.name}.sigstore.json"
+        sig_bundle = self.binary_path.parent / f"{self.binary_path.name}.sigstore"
         if not sig_bundle.exists():
             return VerificationResult(
                 "Rekor Transparency Log",
                 False,
                 "Sigstore bundle not found",
-                "Rekor verification requires .sigstore.json bundle"
+                "Rekor verification requires .sigstore bundle"
             )
 
         try:
