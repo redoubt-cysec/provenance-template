@@ -20,6 +20,38 @@ class ProvenanceDemo < Formula
     bin.install "provenance-demo.pyz" => "provenance-demo"
   end
 
+  def caveats
+    <<~EOS
+      🎉 provenance-demo has been installed!
+
+      Quick Start:
+        provenance-demo --version
+        provenance-demo hello world
+
+      Verify Installation Security:
+        # Download the latest release artifacts
+        gh release download v0.1.0 --repo redoubt-cysec/provenance-template
+
+        # Run 14-check verification
+        export GITHUB_REPOSITORY=redoubt-cysec/provenance-template
+        provenance-demo verify
+
+      To install required verification tools (optional):
+        brew install cosign gh osv-scanner
+
+      Documentation:
+        • Quick Start Guide: https://github.com/redoubt-cysec/provenance-template/blob/main/docs/distribution/quickstart/HOMEBREW.md
+        • Verification Example: https://github.com/redoubt-cysec/provenance-template/blob/main/docs/security/VERIFICATION-EXAMPLE.md
+        • Platform Support: https://github.com/redoubt-cysec/provenance-template/blob/main/docs/distribution/PLATFORM-SUPPORT.md
+
+      Upgrade:
+        brew upgrade provenance-demo
+
+      Questions or Issues:
+        https://github.com/redoubt-cysec/provenance-template/issues
+    EOS
+  end
+
   test do
     system "#{bin}/provenance-demo", "--version"
     system "#{bin}/provenance-demo", "hello", "world"

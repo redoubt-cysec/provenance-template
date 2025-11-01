@@ -13,12 +13,19 @@ the complete security toolchain:
 
 import base64
 import hashlib
+import io
 import json
 import os
 import subprocess
 import sys
 from pathlib import Path
 from typing import Dict, List, Optional, Tuple
+
+# Fix Windows encoding for emoji/Unicode characters
+if sys.platform == "win32":
+    # Reconfigure stdout and stderr to use UTF-8 encoding on Windows
+    sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8', errors='replace')
+    sys.stderr = io.TextIOWrapper(sys.stderr.buffer, encoding='utf-8', errors='replace')
 
 try:
     from rich.console import Console
@@ -62,6 +69,35 @@ class Verifier:
         # GitHub repo info (will be replaced during setup)
         self.github_repo = os.getenv("GITHUB_REPOSITORY", "OWNER/REPO")
         self.version = self._get_version()
+
+        # Detect platform for installation guidance
+        self.platform = sys.platform
+
+    @staticmethod
+    def _get_install_command(tool: str) -> str:
+        """Get platform-specific installation command for a tool."""
+        platform = sys.platform
+
+        install_commands = {
+            "cosign": {
+                "darwin": "brew install cosign",
+                "linux": "brew install cosign  # or: wget https://github.com/sigstore/cosign/releases/latest/download/cosign-linux-amd64",
+                "win32": "winget install Sigstore.Cosign",
+            },
+            "gh": {
+                "darwin": "brew install gh",
+                "linux": "brew install gh  # or: sudo apt install gh / sudo dnf install gh",
+                "win32": "winget install GitHub.cli",
+            },
+            "osv-scanner": {
+                "darwin": "brew install osv-scanner",
+                "linux": "brew install osv-scanner  # or: go install github.com/google/osv-scanner/cmd/osv-scanner@latest",
+                "win32": "go install github.com/google/osv-scanner/cmd/osv-scanner@latest",
+            },
+        }
+
+        commands = install_commands.get(tool, {})
+        return commands.get(platform, commands.get("linux", f"See https://docs.{tool}.dev"))
 
     def _find_running_binary(self) -> Optional[Path]:
         """Find the .pyz file we're running from."""
@@ -177,7 +213,9 @@ class Verifier:
                 "Checksum Verification",
                 False,
                 "Release checksum manifest not found",
-                f"Expected one of: {', '.join(str(p) for p in candidates)}"
+                f"Expected one of: {', '.join(str(p.name) for p in candidates)}\n"
+                f"💡 Download checksum file from GitHub release:\n"
+                f"   gh release download <tag> --repo {self.github_repo} --pattern 'checksums.txt'"
             )
 
         expected_checksum = None
@@ -235,8 +273,15 @@ class Verifier:
             return VerificationResult(
                 "Checksum Verification",
                 False,
-                "SHA256 checksum mismatch",
-                f"Calculated {checksum[:16]}…, expected {expected_checksum[:16]}…"
+                "⚠️  SHA256 checksum mismatch - file may be corrupted or tampered",
+                f"Calculated: {checksum[:16]}…\n"
+                f"Expected:   {expected_checksum[:16]}…\n"
+                f"💡 Possible causes:\n"
+                f"   • File was modified after download\n"
+                f"   • Incomplete or corrupted download\n"
+                f"   • Wrong version of checksum file\n"
+                f"   • Security: Potential supply chain attack\n"
+                f"⚠️  DO NOT USE this binary. Re-download from official source."
             )
 
         return VerificationResult(
@@ -265,7 +310,9 @@ class Verifier:
                 "Sigstore Signature",
                 False,
                 "No signature bundle found",
-                f"Expected at: {sig_bundle}"
+                f"Expected at: {sig_bundle.name}\n"
+                f"💡 Download signature from GitHub release:\n"
+                f"   gh release download <tag> --repo {self.github_repo} --pattern '*.sigstore'"
             )
 
         # Try to verify using cosign CLI (preferred for full verification)
@@ -299,18 +346,25 @@ class Verifier:
                 )
 
         except FileNotFoundError:
+            install_cmd = self._get_install_command("cosign")
             return VerificationResult(
                 "Sigstore Signature",
                 False,
-                "cosign not installed",
-                "Install: brew install cosign or see https://docs.sigstore.dev"
+                "cosign not installed - required for signature verification",
+                f"💡 Install cosign:\n"
+                f"   {install_cmd}\n"
+                f"   Or see: https://docs.sigstore.dev/cosign/installation"
             )
         except subprocess.TimeoutExpired:
             return VerificationResult(
                 "Sigstore Signature",
                 False,
-                "Verification timeout",
-                "Rekor transparency log query timed out"
+                "Verification timeout - Rekor transparency log query timed out",
+                f"💡 Troubleshooting:\n"
+                f"   • Check network connectivity: curl -I https://rekor.sigstore.dev\n"
+                f"   • If behind proxy, configure: export HTTPS_PROXY=<proxy_url>\n"
+                f"   • Retry the verification\n"
+                f"   • Check Sigstore status: https://status.sigstore.dev"
             )
         except Exception as e:
             return VerificationResult(
@@ -357,17 +411,26 @@ class Verifier:
                 )
 
         except FileNotFoundError:
+            install_cmd = self._get_install_command("gh")
             return VerificationResult(
                 "GitHub Attestation",
                 False,
-                "gh CLI not installed",
-                "Install: brew install gh or see https://cli.github.com"
+                "gh CLI not installed - required for attestation verification",
+                f"💡 Install GitHub CLI:\n"
+                f"   {install_cmd}\n"
+                f"   Then authenticate: gh auth login\n"
+                f"   Or see: https://cli.github.com"
             )
         except subprocess.TimeoutExpired:
             return VerificationResult(
                 "GitHub Attestation",
                 False,
-                "Verification timeout"
+                "Verification timeout - GitHub API request timed out",
+                f"💡 Troubleshooting:\n"
+                f"   • Check network connectivity: curl -I https://api.github.com\n"
+                f"   • Check authentication: gh auth status\n"
+                f"   • If behind proxy, configure: export HTTPS_PROXY=<proxy_url>\n"
+                f"   • Retry the verification"
             )
         except Exception as e:
             return VerificationResult(
@@ -416,17 +479,22 @@ class Verifier:
                 )
 
         except FileNotFoundError:
+            install_cmd = self._get_install_command("gh")
             return VerificationResult(
                 "SBOM Attestation",
                 False,
                 "gh CLI not installed",
-                "Install: brew install gh or see https://cli.github.com"
+                f"💡 Install GitHub CLI:\n"
+                f"   {install_cmd}\n"
+                f"   Then authenticate: gh auth login"
             )
         except subprocess.TimeoutExpired:
             return VerificationResult(
                 "SBOM Attestation",
                 False,
-                "Verification timeout"
+                "Verification timeout",
+                f"💡 Check network and retry:\n"
+                f"   curl -I https://api.github.com"
             )
         except Exception as e:
             return VerificationResult(
@@ -487,7 +555,9 @@ class Verifier:
                 "SBOM Verification",
                 False,
                 "No valid SBOM files found",
-                f"Expected at: {sbom_files['spdx']} or {sbom_files['cyclonedx']}"
+                f"Expected: sbom.spdx.json or sbom.cyclonedx.json\n"
+                f"💡 Download SBOM from GitHub release:\n"
+                f"   gh release download <tag> --repo {self.github_repo} --pattern 'sbom*.json'"
             )
 
         return VerificationResult(
@@ -542,7 +612,9 @@ class Verifier:
             return VerificationResult(
                 "OSV Vulnerability Scan",
                 False,
-                "SBOM not found for scanning"
+                "SBOM not found for scanning",
+                f"💡 Download SBOM first:\n"
+                f"   gh release download <tag> --repo {self.github_repo} --pattern 'sbom*.json'"
             )
 
         try:
@@ -588,17 +660,24 @@ class Verifier:
                 )
 
         except FileNotFoundError:
+            install_cmd = self._get_install_command("osv-scanner")
             return VerificationResult(
                 "OSV Vulnerability Scan",
                 False,
-                "osv-scanner not installed",
-                "Install: brew install osv-scanner or see https://google.github.io/osv-scanner/"
+                "osv-scanner not installed - required for vulnerability scanning",
+                f"💡 Install OSV Scanner:\n"
+                f"   {install_cmd}\n"
+                f"   Or see: https://google.github.io/osv-scanner/installation"
             )
         except subprocess.TimeoutExpired:
             return VerificationResult(
                 "OSV Vulnerability Scan",
                 False,
-                "Scan timeout"
+                "Scan timeout - OSV database query timed out",
+                f"💡 Troubleshooting:\n"
+                f"   • Check network connectivity: curl -I https://api.osv.dev\n"
+                f"   • If behind proxy, configure: export HTTPS_PROXY=<proxy_url>\n"
+                f"   • Retry with smaller SBOM or increase timeout"
             )
         except Exception as e:
             return VerificationResult(
@@ -735,7 +814,11 @@ class Verifier:
                 "SLSA Provenance",
                 False,
                 "Attestation bundle not found",
-                f"Expected at: {attestation_file}"
+                f"Expected: attestation.jsonl\n"
+                f"💡 Download attestation bundle:\n"
+                f"   gh attestation download {self.binary_path.name} --repo {self.github_repo}\n"
+                f"   Or from GitHub release:\n"
+                f"   gh release download <tag> --repo {self.github_repo} --pattern 'attestation.jsonl'"
             )
 
         try:
@@ -934,7 +1017,9 @@ class Verifier:
                 "Certificate Identity",
                 False,
                 "Signature bundle not found",
-                "Sigstore signature required for certificate verification"
+                f"Expected: {self.binary_path.name}.sigstore\n"
+                f"💡 Download signature from GitHub release:\n"
+                f"   gh release download <tag> --repo {self.github_repo} --pattern '*.sigstore'"
             )
 
         try:
@@ -968,17 +1053,21 @@ class Verifier:
                 )
 
         except FileNotFoundError:
+            install_cmd = self._get_install_command("cosign")
             return VerificationResult(
                 "Certificate Identity",
                 False,
                 "cosign not installed",
-                "Install: brew install cosign"
+                f"💡 Install cosign:\n"
+                f"   {install_cmd}"
             )
         except subprocess.TimeoutExpired:
             return VerificationResult(
                 "Certificate Identity",
                 False,
-                "Verification timeout"
+                "Verification timeout",
+                f"💡 Check network connectivity and retry:\n"
+                f"   curl -I https://rekor.sigstore.dev"
             )
         except Exception as e:
             return VerificationResult(
@@ -1002,7 +1091,9 @@ class Verifier:
             return VerificationResult(
                 "Build Environment",
                 False,
-                "Provenance file not found"
+                "Provenance file not found",
+                f"💡 Download attestation bundle:\n"
+                f"   gh release download <tag> --repo {self.github_repo} --pattern 'attestation.jsonl'"
             )
 
         try:
@@ -1237,7 +1328,9 @@ class Verifier:
                 "Rekor Transparency Log",
                 False,
                 "Sigstore bundle not found",
-                "Rekor verification requires .sigstore bundle"
+                f"Expected: {self.binary_path.name}.sigstore\n"
+                f"💡 Download signature from GitHub release:\n"
+                f"   gh release download <tag> --repo {self.github_repo} --pattern '*.sigstore'"
             )
 
         try:
@@ -1348,7 +1441,10 @@ class Verifier:
                     "Artifact Metadata",
                     False,
                     "Could not fetch GitHub release list",
-                    "Ensure gh CLI is authenticated"
+                    f"💡 Troubleshooting:\n"
+                    f"   • Check authentication: gh auth status\n"
+                    f"   • Re-authenticate: gh auth login\n"
+                    f"   • Check repository access: gh repo view {self.github_repo}"
                 )
 
             releases = json.loads(result.stdout)
@@ -1558,6 +1654,10 @@ class Verifier:
                 self.console.print("[dim]  • You're running a development build (not a release)[/dim]")
                 self.console.print("[dim]  • Security tools (cosign, gh, osv-scanner) are not installed[/dim]")
                 self.console.print("[dim]  • Attestation files are not present locally[/dim]")
+                self.console.print("\n[cyan]💡 For detailed troubleshooting:[/cyan]")
+                self.console.print(f"[dim]   • Review error messages above for specific guidance[/dim]")
+                self.console.print(f"[dim]   • See: docs/security/VERIFICATION-EXAMPLE.md[/dim]")
+                self.console.print(f"[dim]   • Download all release artifacts: gh release download <tag> --repo {self.github_repo}[/dim]")
         else:
             status = "✓" if all_passed else "✗"
             print(f"{status} {passed}/{total} checks passed")
@@ -1568,6 +1668,10 @@ class Verifier:
                 print("  • You're running a development build (not a release)")
                 print("  • Security tools (cosign, gh, osv-scanner) are not installed")
                 print("  • Attestation files are not present locally")
+                print("\n💡 For detailed troubleshooting:")
+                print("   • Review error messages above for specific guidance")
+                print("   • See: docs/security/VERIFICATION-EXAMPLE.md")
+                print(f"   • Download all release artifacts: gh release download <tag> --repo {self.github_repo}")
 
         return all_passed
 
