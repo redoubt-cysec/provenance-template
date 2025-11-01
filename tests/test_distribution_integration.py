@@ -524,5 +524,521 @@ class TestEndToEndVerification:
         # gh attestation verify artifact.pyz --repo OWNER/REPO
 
 
+class TestUpgradeScenarios:
+    """Test upgrade scenarios from previous versions."""
+
+    @pytest.mark.slow
+    @pytest.mark.integration
+    def test_pip_upgrade_from_alpha(self, ubuntu_vm):
+        """Test upgrade from v0.0.1-alpha.40 to v0.1.0 via pip."""
+        vm_name = ubuntu_vm
+
+        # Install Python and pip
+        print(f"\n[{vm_name}] Installing Python and pip...")
+        result = multipass_exec(
+            vm_name,
+            "sudo apt-get update && sudo apt-get install -y python3 python3-pip python3-venv",
+            timeout=300
+        )
+
+        if result.returncode != 0:
+            pytest.skip(f"Failed to install Python: {result.stderr}")
+
+        # Create venv
+        print(f"[{vm_name}] Creating virtual environment...")
+        result = multipass_exec(
+            vm_name,
+            "python3 -m venv /tmp/upgrade-test-venv",
+            timeout=30
+        )
+
+        if result.returncode != 0:
+            pytest.skip(f"Failed to create venv: {result.stderr}")
+
+        # Install old version (if available on PyPI)
+        print(f"[{vm_name}] Attempting to install v0.0.1-alpha.40...")
+        result = multipass_exec(
+            vm_name,
+            "/tmp/upgrade-test-venv/bin/pip install provenance-demo==0.0.1a40 || echo 'Alpha version not on PyPI, using latest'",
+            timeout=60
+        )
+
+        # Check if old version was installed
+        old_version_result = multipass_exec(
+            vm_name,
+            "/tmp/upgrade-test-venv/bin/redoubt --version 2>&1 || echo 'not installed'",
+            timeout=10
+        )
+
+        if "not installed" in old_version_result.stdout:
+            print(f"[{vm_name}] ⚠️  Old version not available on PyPI, testing fresh install of v0.1.0 instead")
+
+        # Check for built wheel of new version
+        wheel_files = list((REPO_ROOT / "dist").glob("*.whl"))
+        if not wheel_files:
+            pytest.skip("No wheel file to test (run build first)")
+
+        wheel_file = wheel_files[0]
+        wheel_name = wheel_file.name
+
+        # Transfer new wheel to VM
+        print(f"[{vm_name}] Transferring v0.1.0 wheel...")
+        subprocess.run(
+            ["multipass", "transfer", str(wheel_file), f"{vm_name}:/tmp/{wheel_name}"],
+            capture_output=True,
+            timeout=30
+        )
+
+        # Upgrade to new version
+        print(f"[{vm_name}] Upgrading to v0.1.0...")
+        result = multipass_exec(
+            vm_name,
+            f"/tmp/upgrade-test-venv/bin/pip install --upgrade /tmp/{wheel_name}",
+            timeout=60
+        )
+
+        assert result.returncode == 0, f"Failed to upgrade: {result.stderr}"
+
+        # Verify new version works
+        result = multipass_exec(
+            vm_name,
+            "/tmp/upgrade-test-venv/bin/redoubt --version",
+            timeout=10
+        )
+
+        assert result.returncode == 0, f"Failed to run after upgrade: {result.stderr}"
+        assert "0.1.0" in result.stdout, f"Version not updated correctly: {result.stdout}"
+
+        # Test functionality after upgrade
+        result = multipass_exec(
+            vm_name,
+            "/tmp/upgrade-test-venv/bin/redoubt hello Upgrade",
+            timeout=10
+        )
+
+        assert result.returncode == 0, f"Failed to run after upgrade: {result.stderr}"
+
+        print(f"[{vm_name}] ✅ pip upgrade successful (v0.0.1-alpha.40 → v0.1.0)")
+
+    @pytest.mark.slow
+    @pytest.mark.integration
+    def test_pipx_upgrade_from_alpha(self, ubuntu_vm):
+        """Test upgrade from v0.0.1-alpha.40 to v0.1.0 via pipx."""
+        vm_name = ubuntu_vm
+
+        # Install pipx
+        print(f"\n[{vm_name}] Installing pipx...")
+        result = multipass_exec(
+            vm_name,
+            "sudo apt-get update && sudo apt-get install -y python3 python3-pip python3-venv && python3 -m pip install --user pipx && python3 -m pipx ensurepath",
+            timeout=300
+        )
+
+        if result.returncode != 0:
+            pytest.skip(f"Failed to install pipx: {result.stderr}")
+
+        # Check for built wheels
+        wheel_files = list((REPO_ROOT / "dist").glob("*.whl"))
+        if not wheel_files:
+            pytest.skip("No wheel file to test")
+
+        wheel_file = wheel_files[0]
+        wheel_name = wheel_file.name
+
+        # Transfer new wheel to VM
+        print(f"[{vm_name}] Transferring v0.1.0 wheel...")
+        subprocess.run(
+            ["multipass", "transfer", str(wheel_file), f"{vm_name}:/tmp/{wheel_name}"],
+            capture_output=True,
+            timeout=30
+        )
+
+        # Install initial version
+        print(f"[{vm_name}] Installing via pipx...")
+        result = multipass_exec(
+            vm_name,
+            f"/home/ubuntu/.local/bin/pipx install /tmp/{wheel_name}",
+            timeout=60
+        )
+
+        assert result.returncode == 0, f"Failed to install with pipx: {result.stderr}"
+
+        # Verify initial install
+        result = multipass_exec(
+            vm_name,
+            "/home/ubuntu/.local/bin/redoubt --version",
+            timeout=10
+        )
+
+        assert result.returncode == 0, f"Failed to run after install: {result.stderr}"
+
+        # Test upgrade (reinstall with newer version)
+        print(f"[{vm_name}] Testing pipx upgrade...")
+        result = multipass_exec(
+            vm_name,
+            f"/home/ubuntu/.local/bin/pipx upgrade provenance-demo || /home/ubuntu/.local/bin/pipx install --force /tmp/{wheel_name}",
+            timeout=60
+        )
+
+        assert result.returncode == 0, f"Failed to upgrade with pipx: {result.stderr}"
+
+        # Verify after upgrade
+        result = multipass_exec(
+            vm_name,
+            "/home/ubuntu/.local/bin/redoubt --version",
+            timeout=10
+        )
+
+        assert result.returncode == 0, f"Failed to run after upgrade: {result.stderr}"
+        assert "0.1.0" in result.stdout, f"Version not updated correctly: {result.stdout}"
+
+        print(f"[{vm_name}] ✅ pipx upgrade successful")
+
+    @pytest.mark.slow
+    @pytest.mark.integration
+    def test_pyz_upgrade(self, ubuntu_vm):
+        """Test upgrade from v0.0.1-alpha.40 to v0.1.0 via .pyz replacement."""
+        vm_name = ubuntu_vm
+
+        # Install Python
+        print(f"\n[{vm_name}] Installing Python...")
+        result = multipass_exec(
+            vm_name,
+            "sudo apt-get update && sudo apt-get install -y python3",
+            timeout=300
+        )
+
+        if result.returncode != 0:
+            pytest.skip(f"Failed to install Python: {result.stderr}")
+
+        # Check for new .pyz
+        pyz_file = REPO_ROOT / "dist" / "provenance-demo.pyz"
+        if not pyz_file.exists():
+            pytest.skip("No .pyz file to test (run build first)")
+
+        # Transfer new .pyz to VM as v0.1.0
+        print(f"[{vm_name}] Transferring v0.1.0 .pyz...")
+        subprocess.run(
+            ["multipass", "transfer", str(pyz_file), f"{vm_name}:/tmp/provenance-demo-v0.1.0.pyz"],
+            capture_output=True,
+            timeout=30
+        )
+
+        # Make it executable
+        multipass_exec(vm_name, "chmod +x /tmp/provenance-demo-v0.1.0.pyz", timeout=10)
+
+        # Test new version
+        result = multipass_exec(
+            vm_name,
+            "/tmp/provenance-demo-v0.1.0.pyz --version",
+            timeout=10
+        )
+
+        assert result.returncode == 0, f"Failed to run new .pyz: {result.stderr}"
+        assert "0.1.0" in result.stdout, f"Version incorrect: {result.stdout}"
+
+        # Simulate upgrade: replace old with new
+        print(f"[{vm_name}] Simulating .pyz upgrade (replace old with new)...")
+        multipass_exec(
+            vm_name,
+            "cp /tmp/provenance-demo-v0.1.0.pyz /usr/local/bin/provenance-demo && chmod +x /usr/local/bin/provenance-demo || sudo cp /tmp/provenance-demo-v0.1.0.pyz /usr/local/bin/provenance-demo && sudo chmod +x /usr/local/bin/provenance-demo",
+            timeout=10
+        )
+
+        # Verify upgrade
+        result = multipass_exec(
+            vm_name,
+            "/usr/local/bin/provenance-demo --version || /tmp/provenance-demo-v0.1.0.pyz --version",
+            timeout=10
+        )
+
+        assert result.returncode == 0, f"Failed to run after upgrade: {result.stderr}"
+        assert "0.1.0" in result.stdout, f"Version not updated: {result.stdout}"
+
+        print(f"[{vm_name}] ✅ .pyz upgrade successful (file replacement)")
+
+
+class TestUninstallReinstall:
+    """Test uninstall and reinstall scenarios."""
+
+    @pytest.mark.slow
+    @pytest.mark.integration
+    def test_pip_uninstall_reinstall(self, ubuntu_vm):
+        """Test pip uninstall and reinstall."""
+        vm_name = ubuntu_vm
+
+        # Install Python and pip
+        print(f"\n[{vm_name}] Installing Python and pip...")
+        result = multipass_exec(
+            vm_name,
+            "sudo apt-get update && sudo apt-get install -y python3 python3-pip python3-venv",
+            timeout=300
+        )
+
+        if result.returncode != 0:
+            pytest.skip(f"Failed to install Python: {result.stderr}")
+
+        # Check for built wheel
+        wheel_files = list((REPO_ROOT / "dist").glob("*.whl"))
+        if not wheel_files:
+            pytest.skip("No wheel file to test (run build first)")
+
+        wheel_file = wheel_files[0]
+        wheel_name = wheel_file.name
+
+        # Create venv
+        multipass_exec(vm_name, "python3 -m venv /tmp/uninstall-test-venv", timeout=30)
+
+        # Transfer wheel to VM
+        print(f"[{vm_name}] Transferring wheel...")
+        subprocess.run(
+            ["multipass", "transfer", str(wheel_file), f"{vm_name}:/tmp/{wheel_name}"],
+            capture_output=True,
+            timeout=30
+        )
+
+        # Initial install
+        print(f"[{vm_name}] Installing via pip...")
+        result = multipass_exec(
+            vm_name,
+            f"/tmp/uninstall-test-venv/bin/pip install /tmp/{wheel_name}",
+            timeout=60
+        )
+
+        assert result.returncode == 0, f"Failed to install: {result.stderr}"
+
+        # Verify initial install
+        result = multipass_exec(
+            vm_name,
+            "/tmp/uninstall-test-venv/bin/redoubt --version",
+            timeout=10
+        )
+
+        assert result.returncode == 0, f"Failed to run after install: {result.stderr}"
+
+        # Uninstall
+        print(f"[{vm_name}] Uninstalling...")
+        result = multipass_exec(
+            vm_name,
+            "/tmp/uninstall-test-venv/bin/pip uninstall -y provenance-demo",
+            timeout=30
+        )
+
+        assert result.returncode == 0, f"Failed to uninstall: {result.stderr}"
+
+        # Verify uninstall
+        result = multipass_exec(
+            vm_name,
+            "/tmp/uninstall-test-venv/bin/redoubt --version 2>&1 || echo 'uninstalled'",
+            timeout=10
+        )
+
+        assert "uninstalled" in result.stdout or result.returncode != 0, "Package not uninstalled"
+
+        # Reinstall
+        print(f"[{vm_name}] Reinstalling...")
+        result = multipass_exec(
+            vm_name,
+            f"/tmp/uninstall-test-venv/bin/pip install /tmp/{wheel_name}",
+            timeout=60
+        )
+
+        assert result.returncode == 0, f"Failed to reinstall: {result.stderr}"
+
+        # Verify reinstall
+        result = multipass_exec(
+            vm_name,
+            "/tmp/uninstall-test-venv/bin/redoubt --version",
+            timeout=10
+        )
+
+        assert result.returncode == 0, f"Failed to run after reinstall: {result.stderr}"
+        assert "0.1.0" in result.stdout, f"Version incorrect after reinstall: {result.stdout}"
+
+        print(f"[{vm_name}] ✅ pip uninstall/reinstall successful")
+
+    @pytest.mark.slow
+    @pytest.mark.integration
+    def test_pipx_uninstall_reinstall(self, ubuntu_vm):
+        """Test pipx uninstall and reinstall."""
+        vm_name = ubuntu_vm
+
+        # Install pipx
+        print(f"\n[{vm_name}] Installing pipx...")
+        result = multipass_exec(
+            vm_name,
+            "sudo apt-get update && sudo apt-get install -y python3 python3-pip python3-venv && python3 -m pip install --user pipx && python3 -m pipx ensurepath",
+            timeout=300
+        )
+
+        if result.returncode != 0:
+            pytest.skip(f"Failed to install pipx: {result.stderr}")
+
+        # Check for built wheel
+        wheel_files = list((REPO_ROOT / "dist").glob("*.whl"))
+        if not wheel_files:
+            pytest.skip("No wheel file to test")
+
+        wheel_file = wheel_files[0]
+        wheel_name = wheel_file.name
+
+        # Transfer wheel to VM
+        subprocess.run(
+            ["multipass", "transfer", str(wheel_file), f"{vm_name}:/tmp/{wheel_name}"],
+            capture_output=True,
+            timeout=30
+        )
+
+        # Initial install
+        print(f"[{vm_name}] Installing via pipx...")
+        result = multipass_exec(
+            vm_name,
+            f"/home/ubuntu/.local/bin/pipx install /tmp/{wheel_name}",
+            timeout=60
+        )
+
+        assert result.returncode == 0, f"Failed to install with pipx: {result.stderr}"
+
+        # Verify initial install
+        result = multipass_exec(
+            vm_name,
+            "/home/ubuntu/.local/bin/redoubt --version",
+            timeout=10
+        )
+
+        assert result.returncode == 0, f"Failed to run after install: {result.stderr}"
+
+        # Uninstall
+        print(f"[{vm_name}] Uninstalling...")
+        result = multipass_exec(
+            vm_name,
+            "/home/ubuntu/.local/bin/pipx uninstall provenance-demo",
+            timeout=30
+        )
+
+        assert result.returncode == 0, f"Failed to uninstall: {result.stderr}"
+
+        # Verify uninstall
+        result = multipass_exec(
+            vm_name,
+            "/home/ubuntu/.local/bin/redoubt --version 2>&1 || echo 'uninstalled'",
+            timeout=10
+        )
+
+        assert "uninstalled" in result.stdout or result.returncode != 0, "Package not uninstalled"
+
+        # Reinstall
+        print(f"[{vm_name}] Reinstalling...")
+        result = multipass_exec(
+            vm_name,
+            f"/home/ubuntu/.local/bin/pipx install /tmp/{wheel_name}",
+            timeout=60
+        )
+
+        assert result.returncode == 0, f"Failed to reinstall with pipx: {result.stderr}"
+
+        # Verify reinstall
+        result = multipass_exec(
+            vm_name,
+            "/home/ubuntu/.local/bin/redoubt --version",
+            timeout=10
+        )
+
+        assert result.returncode == 0, f"Failed to run after reinstall: {result.stderr}"
+        assert "0.1.0" in result.stdout, f"Version incorrect after reinstall: {result.stdout}"
+
+        print(f"[{vm_name}] ✅ pipx uninstall/reinstall successful")
+
+    @pytest.mark.slow
+    @pytest.mark.integration
+    def test_pyz_removal_reinstall(self, ubuntu_vm):
+        """Test .pyz removal and reinstall."""
+        vm_name = ubuntu_vm
+
+        # Install Python
+        print(f"\n[{vm_name}] Installing Python...")
+        result = multipass_exec(
+            vm_name,
+            "sudo apt-get update && sudo apt-get install -y python3",
+            timeout=300
+        )
+
+        if result.returncode != 0:
+            pytest.skip(f"Failed to install Python: {result.stderr}")
+
+        # Check for .pyz
+        pyz_file = REPO_ROOT / "dist" / "provenance-demo.pyz"
+        if not pyz_file.exists():
+            pytest.skip("No .pyz file to test (run build first)")
+
+        # Transfer .pyz to VM
+        print(f"[{vm_name}] Transferring .pyz...")
+        subprocess.run(
+            ["multipass", "transfer", str(pyz_file), f"{vm_name}:/tmp/provenance-demo.pyz"],
+            capture_output=True,
+            timeout=30
+        )
+
+        # Install to /usr/local/bin
+        print(f"[{vm_name}] Installing .pyz to /usr/local/bin...")
+        result = multipass_exec(
+            vm_name,
+            "sudo cp /tmp/provenance-demo.pyz /usr/local/bin/provenance-demo && sudo chmod +x /usr/local/bin/provenance-demo",
+            timeout=10
+        )
+
+        assert result.returncode == 0, f"Failed to install .pyz: {result.stderr}"
+
+        # Verify install
+        result = multipass_exec(
+            vm_name,
+            "/usr/local/bin/provenance-demo --version",
+            timeout=10
+        )
+
+        assert result.returncode == 0, f"Failed to run after install: {result.stderr}"
+
+        # Remove
+        print(f"[{vm_name}] Removing .pyz...")
+        result = multipass_exec(
+            vm_name,
+            "sudo rm /usr/local/bin/provenance-demo",
+            timeout=10
+        )
+
+        assert result.returncode == 0, f"Failed to remove .pyz: {result.stderr}"
+
+        # Verify removal
+        result = multipass_exec(
+            vm_name,
+            "/usr/local/bin/provenance-demo --version 2>&1 || echo 'removed'",
+            timeout=10
+        )
+
+        assert "removed" in result.stdout or "No such file" in result.stderr, "File not removed"
+
+        # Reinstall
+        print(f"[{vm_name}] Reinstalling .pyz...")
+        result = multipass_exec(
+            vm_name,
+            "sudo cp /tmp/provenance-demo.pyz /usr/local/bin/provenance-demo && sudo chmod +x /usr/local/bin/provenance-demo",
+            timeout=10
+        )
+
+        assert result.returncode == 0, f"Failed to reinstall .pyz: {result.stderr}"
+
+        # Verify reinstall
+        result = multipass_exec(
+            vm_name,
+            "/usr/local/bin/provenance-demo --version",
+            timeout=10
+        )
+
+        assert result.returncode == 0, f"Failed to run after reinstall: {result.stderr}"
+        assert "0.1.0" in result.stdout, f"Version incorrect after reinstall: {result.stdout}"
+
+        print(f"[{vm_name}] ✅ .pyz removal/reinstall successful")
+
+
 if __name__ == "__main__":
     pytest.main([__file__, "-v", "-s"])

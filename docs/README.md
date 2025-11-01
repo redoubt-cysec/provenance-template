@@ -38,6 +38,7 @@ Learn about the comprehensive testing strategy:
 
 Distribute your CLI across multiple platforms:
 
+- **[Quick Start Guides](distribution/quickstart/README.md)** - Platform-specific installation guides (7 production platforms)
 - **[Platform Status](distribution/PLATFORM-STATUS.md)** - Complete status table with testing coverage and readiness
 - **[Platform Support](distribution/PLATFORM-SUPPORT.md)** - Installation instructions for each platform
 - **[Publishing Guide](distribution/PUBLISHING-GUIDE.md)** - How to publish to registries

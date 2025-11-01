@@ -4,7 +4,9 @@
 
 > **📊 For complete platform status, testing coverage, and production readiness details, see [PLATFORM-STATUS.md](PLATFORM-STATUS.md)**
 >
-> This guide focuses on **installation instructions**. For **status, testing, and roadmap**, see the status document.
+> **🚀 For detailed quick start guides with validation scripts, see [Quick Start Guides](quickstart/README.md)**
+>
+> This guide focuses on **installation instructions**. For **status, testing, and roadmap**, see the status document. For **step-by-step guides**, see the quick start directory.
 
 Provenance Demo can be installed through various package managers and distribution methods. Below are installation instructions for each supported platform.
 
@@ -24,6 +26,20 @@ Provenance Demo can be installed through various package managers and distributi
 
 ## 📦 Supported Platforms
 
+### GitHub Releases (All Platforms)
+
+All releases are published to GitHub Releases with complete attestations and verification artifacts.
+
+**Quick Start Guide:** [GitHub Releases](quickstart/GITHUB-RELEASES.md)
+
+This guide covers:
+- Downloading release artifacts
+- Verifying checksums and signatures
+- Complete 14-check verification workflow
+- Platform-agnostic installation
+
+---
+
 ### Linux
 
 #### **Homebrew (Linuxbrew)**
@@ -34,12 +50,16 @@ brew install redoubt
 redoubt --version
 ```
 
+**Quick Start Guide:** [Homebrew](quickstart/HOMEBREW.md)
+
 #### **Snap Store**
 
 ```bash
 snap install provenance-demo
 redoubt --version
 ```
+
+**Quick Start Guide:** [Snap](quickstart/SNAP.md)
 
 #### **APT (Debian/Ubuntu)**
 
@@ -111,6 +131,8 @@ chmod +x provenance-demo.pyz
 ./provenance-demo.pyz --version
 ```
 
+**Quick Start Guide:** [Direct .pyz Execution](quickstart/PYZ.md)
+
 #### **pip/pipx (Universal)**
 
 ```bash
@@ -123,6 +145,8 @@ pipx install provenance-demo
 redoubt --version
 ```
 
+**Quick Start Guides:** [PyPI (pip/uv)](quickstart/PYPI.md) | [pipx](quickstart/PIPX.md)
+
 ### macOS
 
 #### **Homebrew**
@@ -132,6 +156,8 @@ brew tap OWNER/tap
 brew install redoubt
 redoubt --version
 ```
+
+**Quick Start Guide:** [Homebrew](quickstart/HOMEBREW.md)
 
 #### **Direct .pyz Download**
 
@@ -199,6 +225,8 @@ docker run OWNER/redoubt hello world
 docker run OWNER/redoubt verify
 ```
 
+**Quick Start Guide:** [Docker/OCI](quickstart/DOCKER.md)
+
 #### **GitHub Container Registry**
 
 ```bash
@@ -206,6 +234,8 @@ docker pull ghcr.io/OWNER/redoubt:latest
 docker run ghcr.io/OWNER/redoubt hello world
 docker run ghcr.io/OWNER/redoubt verify
 ```
+
+**Quick Start Guide:** [Docker/OCI](quickstart/DOCKER.md)
 
 #### **Build Locally**
 
