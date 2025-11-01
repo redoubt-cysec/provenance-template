@@ -95,7 +95,7 @@ def detect_current_config() -> Dict[str, str]:
         config["description"] = match.group(1)
 
     # Extract CLI command from scripts section
-    if match := re.search(r'\[project\.scripts\]\s*(\w+)\s*=', content):
+    if match := re.search(r'\[project\.scripts\]\s*([a-z][a-z0-9-]*)\s*=', content):
         config["cli_command"] = match.group(1)
 
     # Try to detect repo owner/name from URLs
