@@ -410,6 +410,130 @@ class TestColoredOutput:
         assert callable(init_template.print_info)
 
 
+class TestGitHubSecretsHelpers:
+    """Test GitHub secrets helper functions."""
+
+    def test_check_gh_cli_installed(self, monkeypatch):
+        """Test detecting when gh CLI is installed."""
+        import subprocess
+
+        def mock_run(*args, **kwargs):
+            class Result:
+                returncode = 0
+            return Result()
+
+        monkeypatch.setattr(subprocess, "run", mock_run)
+        assert init_template.check_gh_cli() is True
+
+    def test_check_gh_cli_not_installed(self, monkeypatch):
+        """Test detecting when gh CLI is not installed."""
+        import subprocess
+
+        def mock_run(*args, **kwargs):
+            raise FileNotFoundError()
+
+        monkeypatch.setattr(subprocess, "run", mock_run)
+        assert init_template.check_gh_cli() is False
+
+    def test_list_github_secrets_success(self, monkeypatch):
+        """Test listing GitHub secrets successfully."""
+        import subprocess
+
+        def mock_run(*args, **kwargs):
+            class Result:
+                returncode = 0
+                stdout = "PYPI_API_TOKEN\t2024-01-01\nHOMEBREW_TAP_TOKEN\t2024-01-02\n"
+            return Result()
+
+        monkeypatch.setattr(subprocess, "run", mock_run)
+        secrets = init_template.list_github_secrets()
+
+        assert secrets is not None
+        assert len(secrets) == 2
+        assert "PYPI_API_TOKEN" in secrets
+        assert "HOMEBREW_TAP_TOKEN" in secrets
+
+    def test_list_github_secrets_failure(self, monkeypatch):
+        """Test when listing secrets fails."""
+        import subprocess
+
+        def mock_run(*args, **kwargs):
+            class Result:
+                returncode = 1
+                stdout = ""
+            return Result()
+
+        monkeypatch.setattr(subprocess, "run", mock_run)
+        secrets = init_template.list_github_secrets()
+
+        assert secrets is None
+
+    def test_list_github_secrets_no_secrets(self, monkeypatch):
+        """Test listing secrets when none exist."""
+        import subprocess
+
+        def mock_run(*args, **kwargs):
+            class Result:
+                returncode = 0
+                stdout = ""
+            return Result()
+
+        monkeypatch.setattr(subprocess, "run", mock_run)
+        secrets = init_template.list_github_secrets()
+
+        assert secrets is not None
+        assert len(secrets) == 0
+
+    def test_list_github_secrets_not_installed(self, monkeypatch):
+        """Test listing secrets when gh CLI is not installed."""
+        import subprocess
+
+        def mock_run(*args, **kwargs):
+            raise FileNotFoundError()
+
+        monkeypatch.setattr(subprocess, "run", mock_run)
+        secrets = init_template.list_github_secrets()
+
+        assert secrets is None
+
+
+class TestSecretsConfigurationFlow:
+    """Test secrets configuration workflow (integration-style tests)."""
+
+    def test_configure_secrets_gh_not_installed(self, monkeypatch, capsys):
+        """Test secrets config when gh CLI is not installed."""
+        monkeypatch.setattr(init_template, "check_gh_cli", lambda: False)
+
+        config = {"package_name": "test_pkg"}
+        init_template.configure_github_secrets(config)
+
+        captured = capsys.readouterr()
+        assert "GitHub CLI (gh) is not installed" in captured.out
+        assert "brew install gh" in captured.out
+
+    def test_configure_secrets_not_authenticated(self, monkeypatch, capsys):
+        """Test secrets config when not authenticated."""
+        import subprocess
+
+        monkeypatch.setattr(init_template, "check_gh_cli", lambda: True)
+
+        def mock_run(cmd, **kwargs):
+            if "auth" in cmd:
+                class Result:
+                    returncode = 1
+                return Result()
+            return None
+
+        monkeypatch.setattr(subprocess, "run", mock_run)
+
+        config = {"package_name": "test_pkg"}
+        init_template.configure_github_secrets(config)
+
+        captured = capsys.readouterr()
+        assert "Not authenticated with GitHub CLI" in captured.out
+        assert "gh auth login" in captured.out
+
+
 # Integration test placeholder
 class TestEndToEndScenario:
     """
@@ -421,6 +545,7 @@ class TestEndToEndScenario:
     3. Verify all files were updated correctly
     4. Verify package directory was renamed
     5. Verify the result is idempotent (running again detects custom config)
+    6. Verify secrets configuration flow
 
     Note: These are more complex and would require mocking user input
     and potentially running the full script in a subprocess.

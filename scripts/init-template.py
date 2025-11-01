@@ -367,6 +367,192 @@ def apply_configuration(config: Dict[str, str]) -> None:
 
     print_success("\nConfiguration applied successfully!")
 
+def check_gh_cli() -> bool:
+    """Check if GitHub CLI (gh) is installed."""
+    try:
+        result = subprocess.run(
+            ["gh", "--version"],
+            capture_output=True,
+            text=True,
+            timeout=5
+        )
+        return result.returncode == 0
+    except (FileNotFoundError, subprocess.TimeoutExpired):
+        return False
+
+
+def list_github_secrets() -> Optional[List[str]]:
+    """List GitHub secrets for the current repository."""
+    try:
+        result = subprocess.run(
+            ["gh", "secret", "list"],
+            capture_output=True,
+            text=True,
+            timeout=10
+        )
+        if result.returncode == 0:
+            # Parse output - format is "NAME\tUPDATED"
+            secrets = []
+            for line in result.stdout.strip().split("\n"):
+                if line:
+                    secret_name = line.split("\t")[0]
+                    secrets.append(secret_name)
+            return secrets
+        return None
+    except (FileNotFoundError, subprocess.TimeoutExpired):
+        return None
+
+
+def configure_github_secrets(config: Dict[str, str]) -> None:
+    """Guide user through GitHub secrets configuration."""
+    print_header("GITHUB SECRETS CONFIGURATION")
+
+    # Check if gh CLI is available
+    if not check_gh_cli():
+        print_warning("GitHub CLI (gh) is not installed or not in PATH")
+        print("\nTo configure secrets later, install gh CLI:")
+        print("  brew install gh  # macOS")
+        print("  # or visit: https://cli.github.com/\n")
+        print("Then run: gh secret set SECRET_NAME\n")
+        return
+
+    # Check if authenticated
+    try:
+        result = subprocess.run(
+            ["gh", "auth", "status"],
+            capture_output=True,
+            text=True,
+            timeout=5
+        )
+        if result.returncode != 0:
+            print_warning("Not authenticated with GitHub CLI")
+            print("\nRun: gh auth login\n")
+            return
+    except subprocess.TimeoutExpired:
+        print_warning("Could not check GitHub authentication status")
+        return
+
+    # List existing secrets
+    print_info("Checking existing secrets...")
+    existing_secrets = list_github_secrets()
+
+    if existing_secrets is None:
+        print_warning("Could not list secrets. Make sure you're in a GitHub repository.")
+        return
+
+    if existing_secrets:
+        print_success(f"Found {len(existing_secrets)} existing secret(s):")
+        for secret in existing_secrets:
+            print(f"  • {secret}")
+        print()
+    else:
+        print_info("No secrets configured yet.\n")
+
+    # Platform-specific secrets
+    platform_secrets = {
+        "Homebrew": {
+            "secrets": ["HOMEBREW_TAP_TOKEN"],
+            "description": "Personal access token for Homebrew tap repository",
+            "docs": "docs/distribution/quickstart/HOMEBREW.md"
+        },
+        "Chocolatey": {
+            "secrets": ["CHOCOLATEY_API_KEY"],
+            "description": "API key from chocolatey.org",
+            "docs": "docs/distribution/quickstart/CHOCOLATEY.md"
+        },
+        "WinGet": {
+            "secrets": ["WINGET_TOKEN"],
+            "description": "GitHub token with workflow permissions",
+            "docs": "docs/distribution/quickstart/WINGET.md"
+        },
+        "Snap": {
+            "secrets": ["SNAPCRAFT_STORE_CREDENTIALS"],
+            "description": "Credentials from snapcraft export-login",
+            "docs": "docs/distribution/quickstart/SNAP.md"
+        },
+        "PyPI": {
+            "secrets": ["PYPI_API_TOKEN"],
+            "description": "API token from pypi.org",
+            "docs": "docs/distribution/quickstart/PYPI.md"
+        },
+        "Docker/GHCR": {
+            "secrets": ["GHCR_TOKEN"],
+            "description": "GitHub token for container registry",
+            "docs": "docs/distribution/quickstart/DOCKER.md"
+        }
+    }
+
+    print("Would you like to configure secrets for distribution platforms?\n")
+    print("Available platforms:")
+    for i, (platform, info) in enumerate(platform_secrets.items(), 1):
+        # Check if secrets already exist
+        has_secrets = all(s in existing_secrets for s in info["secrets"])
+        status = "✓ configured" if has_secrets else "not configured"
+        print(f"  {i}. {platform} ({status})")
+    print(f"  {len(platform_secrets) + 1}. Skip (configure later)\n")
+
+    # Ask user which platforms to configure
+    while True:
+        choice = input("Enter platform number(s) to configure (comma-separated) or 'skip': ").strip().lower()
+
+        if choice == "skip" or choice == str(len(platform_secrets) + 1):
+            print_info("Skipping secrets configuration. You can configure them later.")
+            return
+
+        # Parse choices
+        try:
+            if "," in choice:
+                choices = [int(c.strip()) for c in choice.split(",")]
+            else:
+                choices = [int(choice)]
+
+            if all(1 <= c <= len(platform_secrets) for c in choices):
+                break
+            else:
+                print_warning("Invalid choice. Please enter numbers 1-{} or 'skip'".format(len(platform_secrets) + 1))
+        except ValueError:
+            print_warning("Invalid input. Please enter numbers or 'skip'")
+
+    # Configure selected platforms
+    print()
+    platforms_list = list(platform_secrets.items())
+    for choice_num in choices:
+        platform, info = platforms_list[choice_num - 1]
+        print(colored(f"\n{platform}", Colors.BOLD))
+        print(f"Description: {info['description']}")
+        print(f"Documentation: {info['docs']}\n")
+
+        for secret_name in info["secrets"]:
+            if secret_name in existing_secrets:
+                update = input(f"Secret {secret_name} already exists. Update? [y/N]: ").strip().lower()
+                if update not in ["y", "yes"]:
+                    print_info(f"Keeping existing {secret_name}")
+                    continue
+
+            print(f"\nSet {secret_name}:")
+            print("  Enter the secret value when prompted by gh CLI")
+            print(f"  (The value will be hidden for security)\n")
+
+            try:
+                # Use gh secret set with interactive input
+                result = subprocess.run(
+                    ["gh", "secret", "set", secret_name],
+                    timeout=300  # 5 minutes timeout
+                )
+                if result.returncode == 0:
+                    print_success(f"Secret {secret_name} configured successfully!")
+                else:
+                    print_error(f"Failed to configure {secret_name}")
+            except subprocess.TimeoutExpired:
+                print_error(f"Timeout while configuring {secret_name}")
+            except KeyboardInterrupt:
+                print_warning("\nSecret configuration cancelled")
+                break
+
+    print()
+    print_success("Secrets configuration complete!")
+
+
 def show_next_steps(config: Dict[str, str]) -> None:
     """Show next steps after configuration."""
     print_header("NEXT STEPS")
@@ -389,12 +575,7 @@ def show_next_steps(config: Dict[str, str]) -> None:
     print("   • Update tests in tests/")
     print("   • Customize documentation in docs/\n")
 
-    print(colored("5. Configure Distribution (Optional)", Colors.BOLD))
-    print("   • Set up platform-specific secrets in GitHub")
-    print("   • Review .github/workflows/ for publishing workflows")
-    print("   • Update packaging/ configs with your package details\n")
-
-    print(colored("6. Commit Changes", Colors.BOLD))
+    print(colored("5. Commit Changes", Colors.BOLD))
     print("   git add .")
     print(f"   git commit -m 'chore: Initialize template for {config['project_name']}'")
     print("   git push\n")
@@ -402,6 +583,7 @@ def show_next_steps(config: Dict[str, str]) -> None:
     print_info("For more help, see:")
     print("  • docs/contributing/DEVELOPER-GUIDE.md")
     print("  • docs/distribution/PLATFORM-SUPPORT.md")
+    print("\nTo configure more secrets later, run: gh secret set SECRET_NAME")
 
 def main() -> int:
     """Main entry point."""
@@ -435,6 +617,14 @@ def main() -> int:
 
     # Apply configuration
     apply_configuration(config)
+
+    # Configure GitHub secrets (optional)
+    print("\n")
+    configure_secrets = input("Would you like to configure GitHub secrets now? [y/N]: ").strip().lower()
+    if configure_secrets in ["y", "yes"]:
+        configure_github_secrets(config)
+    else:
+        print_info("Skipping secrets configuration. You can configure them later with: gh secret set SECRET_NAME")
 
     # Show next steps
     show_next_steps(config)
