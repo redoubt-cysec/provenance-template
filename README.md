@@ -7,7 +7,7 @@
 
 **Production-ready Python CLI template with enterprise-grade supply chain security.**
 
-Bootstrap your Python CLI project with battle-tested security features, 7 production-ready distribution platforms (plus configuration templates for 6 more), and a fully automated secure release pipeline. Built for developers who take supply chain security seriously.
+Bootstrap your Python CLI project with battle-tested security features, 10 production-ready distribution platforms (plus configuration templates for 6 more), and a fully automated secure release pipeline. Built for developers who take supply chain security seriously.
 
 ## What You Get
 
@@ -26,12 +26,12 @@ Bootstrap your Python CLI project with battle-tested security features, 7 produc
 **Production-ready platforms with full testing:**
 - **Python:** PyPI (pip/uv), pipx, direct .pyz execution
 - **Package Managers:** Homebrew (macOS/Linux), Snap
+- **Windows:** Chocolatey, WinGet, Scoop
 - **Containers:** Docker, OCI registries (GHCR)
 - **Direct:** GitHub Releases
 
 **Configuration templates ready (testing in progress):**
 - **Linux:** Flatpak, APT/Debian, RPM/Fedora, AUR/Arch, AppImage, Nix/NixOS
-- **Windows:** Chocolatey, WinGet, Scoop
 
 **📊 [Complete Platform Status & Roadmap](docs/distribution/PLATFORM-STATUS.md)** - Detailed status table with test coverage, workflows, and production readiness for each platform.
 
@@ -84,6 +84,7 @@ The wizard will interactively prompt you for:
 - CLI command name
 - GitHub repository owner/name
 - Project metadata (description, author)
+- GitHub secrets for distribution platforms (optional)
 
 It's **idempotent** - safe to run multiple times and will detect your current configuration.
 
@@ -146,7 +147,7 @@ Now that the template is configured, add your application logic:
 1. **Add Your Code:** Replace `src/demo_cli/` with your application logic
 2. **Update Tests:** Modify `tests/` to test your code
 3. **Update Documentation:** Customize docs and examples for your project
-4. **Configure Secrets:** (Optional) Add distribution platform secrets (see below)
+4. **Configure Secrets:** (Optional) The `just init` wizard can set these up, or see [Platform Status](docs/distribution/PLATFORM-STATUS.md)
 
 See the [Developer Guide](docs/contributing/DEVELOPER-GUIDE.md) for detailed development instructions.
 
@@ -254,7 +255,7 @@ Replace the demo code in `src/demo_cli/` with your own application.
 
 ### Distribution
 
-- [Quick Start Guides](docs/distribution/quickstart/README.md) - Platform-specific installation guides (7 platforms)
+- [Quick Start Guides](docs/distribution/quickstart/README.md) - Platform-specific installation guides (10 platforms)
 - [Platform Status](docs/distribution/PLATFORM-STATUS.md) - Complete platform readiness & testing status
 - [Platform Support](docs/distribution/PLATFORM-SUPPORT.md) - Installation on 18+ platforms
 - [Publishing Guide](docs/distribution/PUBLISHING-GUIDE.md) - Publish to registries
@@ -281,7 +282,7 @@ Replace the demo code in `src/demo_cli/` with your own application.
 ### Comprehensive Testing
 
 - **178 Security Tests:** Cryptographic integrity, pipeline configuration, runtime security (far exceeds 60+ claimed)
-- **Distribution Testing:** Phase 1 validation (13 platforms) + Phase 2 integration (7 platforms)
+- **Distribution Testing:** Phase 1 validation (16 platforms) + Phase 2 integration (10 platforms)
 - **Platform Coverage:** 48 Phase 1 tests + 8 Phase 2 integration tests
 - **Meta-Test Enforcement:** Ensures all distribution tests verify attestations
 - **Integration Tests:** VM-based testing with Multipass (Ubuntu, macOS)
@@ -289,13 +290,13 @@ Replace the demo code in `src/demo_cli/` with your own application.
 
 ### Multi-Platform Distribution
 
-**Production-ready with automated workflows (7 platforms):**
+**Production-ready with automated workflows (10 platforms):**
 - PyPI (pip/uv), pipx, GitHub Releases, direct .pyz
 - Homebrew (macOS/Linux), Snap, Docker/OCI
+- Chocolatey, WinGet, Scoop (Windows)
 
-**Configuration templates in `packaging/` directory (13 platforms):**
+**Configuration templates in `packaging/` directory (6 platforms):**
 - Flatpak, APT/Debian, RPM/Fedora, AUR/Arch, AppImage, Nix/NixOS
-- Chocolatey, WinGet, Scoop
 
 **Status:** See [PLATFORM-STATUS.md](docs/distribution/PLATFORM-STATUS.md) for complete details on each platform's readiness, testing coverage, and automation status.
 
@@ -304,8 +305,8 @@ Replace the demo code in `src/demo_cli/` with your own application.
 **Production Ready:** This template powers real-world secure releases and has been battle-tested with:
 
 - ✅ 178 security tests passing (100% pass rate)
-- ✅ 7 production platforms fully tested with Phase 2 integration tests
-- ✅ 13 platforms with Phase 1 validation and configuration templates
+- ✅ 10 production platforms fully tested with Phase 2 integration tests
+- ✅ 6 platforms with Phase 1 validation and configuration templates
 - ✅ Zero security test failures
 - ✅ Reproducible builds verified
 - ✅ All supply chain security best practices implemented
