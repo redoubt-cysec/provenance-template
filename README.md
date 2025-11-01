@@ -66,7 +66,25 @@ brew install just  # macOS
 
 ### 3. Configure the Template
 
-Run the setup script to replace placeholder values:
+**Option A: Interactive Wizard (Recommended)**
+
+Run the initialization wizard to customize the template for your project:
+
+```bash
+python3 scripts/init-template.py
+```
+
+The wizard will interactively prompt you for:
+- Package name (Python module)
+- CLI command name
+- GitHub repository owner/name
+- Project metadata (description, author)
+
+It's **idempotent** - safe to run multiple times and will detect your current configuration.
+
+**Option B: Manual Setup**
+
+Alternatively, use the shell script to replace placeholder values:
 
 ```bash
 ./scripts/setup_local_config.sh
