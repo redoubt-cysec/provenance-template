@@ -19,10 +19,11 @@ Understand the security features and how to verify releases:
 - **[Security Policy](security/SECURITY.md)** - Vulnerability reporting and security support
 - **[Private Vulnerability Reporting Setup](security/PRIVATE-VULNERABILITY-REPORTING-SETUP.md)** - Enable GitHub's private reporting feature
 - **[Supply Chain Security](security/SUPPLY-CHAIN.md)** - Verification instructions for releases
-- **[Security Testing](security/SECURITY-TESTING.md)** - Details on the 25+ security tests
+- **[Security Testing](security/SECURITY-TESTING.md)** - Details on the 178 security tests
 - **[Complete Security Checklist](security/COMPLETE-SECURITY-CHECKLIST.md)** - Pre-release security validation
 - **[GitHub Action Pinning](security/GITHUB-ACTION-PINS.md)** - How to pin Actions to commit SHAs
 - **[Verification Example](security/VERIFICATION-EXAMPLE.md)** - Hands-on verification walkthrough
+- **[Verify Command Examples](security/VERIFY-COMMAND-EXAMPLES.md)** - Advanced verification features and CI/CD integration
 
 ### Testing
 

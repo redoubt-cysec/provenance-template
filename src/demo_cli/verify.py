@@ -18,6 +18,7 @@ import json
 import os
 import subprocess
 import sys
+import time
 from pathlib import Path
 from typing import Dict, List, Optional, Tuple
 
@@ -40,22 +41,37 @@ except ImportError:
 class VerificationResult:
     """Result of a verification check."""
 
-    def __init__(self, name: str, passed: bool, message: str, details: Optional[str] = None):
+    def __init__(self, name: str, passed: bool, message: str, details: Optional[str] = None, duration_ms: Optional[float] = None):
         self.name = name
         self.passed = passed
         self.message = message
         self.details = details
+        self.duration_ms = duration_ms
+
+    def to_dict(self) -> Dict:
+        """Convert result to dictionary for JSON export."""
+        result = {
+            "check": self.name,
+            "passed": self.passed,
+            "message": self.message
+        }
+        if self.details:
+            result["details"] = self.details
+        if self.duration_ms is not None:
+            result["duration_ms"] = round(self.duration_ms, 2)
+        return result
 
 
 class Verifier:
     """Handles all verification operations for the CLI binary."""
 
-    def __init__(self, binary_path: Optional[Path] = None):
+    def __init__(self, binary_path: Optional[Path] = None, verbose: bool = False):
         """
         Initialize verifier.
 
         Args:
             binary_path: Path to the binary to verify. If None, uses the running binary.
+            verbose: Enable verbose output with timing information.
         """
         if binary_path:
             self.binary_path = binary_path
@@ -65,6 +81,7 @@ class Verifier:
 
         self.console = Console() if RICH_AVAILABLE else None
         self.results: List[VerificationResult] = []
+        self.verbose = verbose
 
         # GitHub repo info (will be replaced during setup)
         self.github_repo = os.getenv("GITHUB_REPOSITORY", "OWNER/REPO")
@@ -161,12 +178,14 @@ class Verifier:
         """Print a verification result."""
         if self.console:
             status = "[green]✓[/green]" if result.passed else "[red]✗[/red]"
-            self.console.print(f"{status} {result.name}: {result.message}")
+            timing = f" [dim]({result.duration_ms:.0f}ms)[/dim]" if self.verbose and result.duration_ms else ""
+            self.console.print(f"{status} {result.name}: {result.message}{timing}")
             if result.details:
                 self.console.print(f"  [dim]{result.details}[/dim]")
         else:
             status = "✓" if result.passed else "✗"
-            print(f"{status} {result.name}: {result.message}")
+            timing = f" ({result.duration_ms:.0f}ms)" if self.verbose and result.duration_ms else ""
+            print(f"{status} {result.name}: {result.message}{timing}")
             if result.details:
                 print(f"  {result.details}")
 
@@ -1584,9 +1603,12 @@ class Verifier:
                 str(e)[:200]
             )
 
-    def verify_all(self) -> bool:
+    def verify_all(self, selected_checks: Optional[List[str]] = None) -> bool:
         """
-        Run all verification checks.
+        Run all verification checks (or selected checks).
+
+        Args:
+            selected_checks: List of check names to run. If None, run all checks.
 
         Returns:
             True if all checks passed, False otherwise.
@@ -1600,24 +1622,44 @@ class Verifier:
             print(f"Version: {self.version}")
             print(f"Repository: {self.github_repo}")
 
-        # Run all checks
-        checks = [
-            ("Checksum", self.verify_checksum),
-            ("Sigstore Signature", self.verify_sigstore_signature),
-            ("Certificate Identity", self.verify_certificate_identity),
-            ("Rekor Transparency Log", self.verify_rekor_transparency_log),
-            ("GitHub Attestation", self.verify_github_attestation),
-            ("SBOM Attestation", self.verify_sbom_attestation),
-            ("SBOM", self.verify_sbom),
-            ("OSV Scan", self.verify_osv_scan),
-            ("SLSA Provenance", self.verify_slsa_provenance),
-            ("Build Environment", self.verify_build_environment),
-            ("Reproducible Build", self.verify_reproducible_build),
-            ("Artifact Metadata", self.verify_artifact_metadata),
-            ("License Compliance", self.verify_license_compliance),
-            ("Dependency Pinning", self.verify_dependency_pinning),
+        # Define all available checks with their keys
+        all_checks = [
+            ("checksum", "Checksum", self.verify_checksum),
+            ("signature", "Sigstore Signature", self.verify_sigstore_signature),
+            ("certificate", "Certificate Identity", self.verify_certificate_identity),
+            ("rekor", "Rekor Transparency Log", self.verify_rekor_transparency_log),
+            ("attestation", "GitHub Attestation", self.verify_github_attestation),
+            ("sbom-attestation", "SBOM Attestation", self.verify_sbom_attestation),
+            ("sbom", "SBOM", self.verify_sbom),
+            ("osv", "OSV Scan", self.verify_osv_scan),
+            ("slsa", "SLSA Provenance", self.verify_slsa_provenance),
+            ("build-env", "Build Environment", self.verify_build_environment),
+            ("reproducible", "Reproducible Build", self.verify_reproducible_build),
+            ("metadata", "Artifact Metadata", self.verify_artifact_metadata),
+            ("license", "License Compliance", self.verify_license_compliance),
+            ("dependencies", "Dependency Pinning", self.verify_dependency_pinning),
         ]
 
+        # Filter checks if selected_checks is provided
+        if selected_checks:
+            selected_keys = set(c.lower().strip() for c in selected_checks)
+            checks_to_run = [
+                (key, name, func) for key, name, func in all_checks
+                if key in selected_keys or name.lower() in selected_keys
+            ]
+            if len(checks_to_run) == 0:
+                if self.console:
+                    self.console.print(f"[red]No valid checks found in: {', '.join(selected_checks)}[/red]")
+                    self.console.print(f"[dim]Available checks: {', '.join([key for key, _, _ in all_checks])}[/dim]")
+                else:
+                    print(f"No valid checks found in: {', '.join(selected_checks)}")
+                    print(f"Available checks: {', '.join([key for key, _, _ in all_checks])}")
+                return False
+            checks = [(name, func) for _, name, func in checks_to_run]
+        else:
+            checks = [(name, func) for _, name, func in all_checks]
+
+        # Run checks with timing if verbose
         if self.console:
             with Progress(
                 SpinnerColumn(),
@@ -1627,14 +1669,20 @@ class Verifier:
             ) as progress:
                 for name, check_func in checks:
                     task = progress.add_task(f"Checking {name}...", total=None)
+                    start_time = time.time()
                     result = check_func()
+                    duration_ms = (time.time() - start_time) * 1000
+                    result.duration_ms = duration_ms
                     self.results.append(result)
                     progress.remove_task(task)
                     self._print_result(result)
         else:
             for name, check_func in checks:
                 print(f"\nChecking {name}...")
+                start_time = time.time()
                 result = check_func()
+                duration_ms = (time.time() - start_time) * 1000
+                result.duration_ms = duration_ms
                 self.results.append(result)
                 self._print_result(result)
 
@@ -1682,7 +1730,76 @@ def verify_command(args) -> int:
     if hasattr(args, 'file') and args.file:
         binary_path = Path(args.file)
 
-    verifier = Verifier(binary_path)
-    success = verifier.verify_all()
+    # Parse selected checks
+    selected_checks = None
+    if hasattr(args, 'checks') and args.checks:
+        selected_checks = [c.strip() for c in args.checks.split(',')]
+
+    # Determine verbose mode
+    verbose = hasattr(args, 'verbose') and args.verbose
+
+    # Create verifier
+    verifier = Verifier(binary_path, verbose=verbose)
+
+    # JSON output mode
+    if hasattr(args, 'json') and args.json:
+        success = verifier.verify_all(selected_checks=selected_checks)
+
+        # Build JSON output
+        output = {
+            "binary": str(verifier.binary_path) if verifier.binary_path else None,
+            "version": verifier.version,
+            "repository": verifier.github_repo,
+            "timestamp": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
+            "passed": success,
+            "summary": {
+                "total": len(verifier.results),
+                "passed": sum(1 for r in verifier.results if r.passed),
+                "failed": sum(1 for r in verifier.results if not r.passed),
+            },
+            "checks": [r.to_dict() for r in verifier.results]
+        }
+
+        json_str = json.dumps(output, indent=2)
+
+        # Output to file or stdout
+        if hasattr(args, 'output') and args.output:
+            try:
+                Path(args.output).write_text(json_str)
+                print(f"Verification report saved to: {args.output}", file=sys.stderr)
+            except Exception as e:
+                print(f"Error saving report: {e}", file=sys.stderr)
+                return 1
+        else:
+            print(json_str)
+
+        return 0 if success else 1
+
+    # Normal output mode
+    success = verifier.verify_all(selected_checks=selected_checks)
+
+    # Save report to file if requested
+    if hasattr(args, 'output') and args.output:
+        try:
+            output = {
+                "binary": str(verifier.binary_path) if verifier.binary_path else None,
+                "version": verifier.version,
+                "repository": verifier.github_repo,
+                "timestamp": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
+                "passed": success,
+                "summary": {
+                    "total": len(verifier.results),
+                    "passed": sum(1 for r in verifier.results if r.passed),
+                    "failed": sum(1 for r in verifier.results if not r.passed),
+                },
+                "checks": [r.to_dict() for r in verifier.results]
+            }
+            Path(args.output).write_text(json.dumps(output, indent=2))
+            if verifier.console:
+                verifier.console.print(f"\n[dim]Verification report saved to: {args.output}[/dim]")
+            else:
+                print(f"\nVerification report saved to: {args.output}")
+        except Exception as e:
+            print(f"Error saving report: {e}", file=sys.stderr)
 
     return 0 if success else 1

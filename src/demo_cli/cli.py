@@ -87,6 +87,24 @@ def main():
         "--file",
         help="Path to binary to verify (default: running binary)"
     )
+    verify_parser.add_argument(
+        "--checks",
+        help="Run specific checks only (comma-separated, e.g., checksum,signature)"
+    )
+    verify_parser.add_argument(
+        "--json",
+        action="store_true",
+        help="Output results in JSON format"
+    )
+    verify_parser.add_argument(
+        "--verbose", "-v",
+        action="store_true",
+        help="Show detailed output with timing information"
+    )
+    verify_parser.add_argument(
+        "--output", "-o",
+        help="Save verification report to file"
+    )
 
     # Hello subcommand
     hello_parser = subparsers.add_parser(
