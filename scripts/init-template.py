@@ -66,7 +66,7 @@ REPO_ROOT = Path(__file__).parent.parent.resolve()
 
 # Default/placeholder values to detect
 DEFAULT_VALUES = {
-    "package_name": "demo_cli",
+    "package_name": "provenance-demo",
     "cli_command": "demo",
     "repo_owner": "OWNER",
     "repo_name": "provenance-template",
@@ -80,9 +80,21 @@ def detect_current_config() -> Dict[str, str]:
 
     if not pyproject_path.exists():
         print_error("pyproject.toml not found!")
+        print_info(f"Expected location: {pyproject_path}")
+        print_info("Make sure you're running this script from the repository root:")
+        print(f"  cd {REPO_ROOT}")
+        print("  python3 scripts/init-template.py")
         sys.exit(1)
 
-    content = pyproject_path.read_text()
+    try:
+        content = pyproject_path.read_text()
+    except PermissionError:
+        print_error(f"Permission denied reading {pyproject_path}")
+        print_info("Check file permissions and try again")
+        sys.exit(1)
+    except Exception as e:
+        print_error(f"Failed to read pyproject.toml: {e}")
+        sys.exit(1)
 
     config = {}
 
@@ -94,9 +106,11 @@ def detect_current_config() -> Dict[str, str]:
     if match := re.search(r'description\s*=\s*"([^"]+)"', content):
         config["description"] = match.group(1)
 
-    # Extract CLI command from scripts section
-    if match := re.search(r'\[project\.scripts\]\s*([a-z][a-z0-9-]*)\s*=', content):
+    # Extract CLI command and package directory from scripts section
+    # Format: cli-command = "package_dir.module:main"
+    if match := re.search(r'\[project\.scripts\]\s*([a-z][a-z0-9-]*)\s*=\s*"([a-z_][a-z0-9_]*)', content):
         config["cli_command"] = match.group(1)
+        config["package_dir"] = match.group(2)  # Actual directory name
 
     # Try to detect repo owner/name from URLs
     if match := re.search(r'github\.com/([^/]+)/([^/"]+)', content):
@@ -133,7 +147,12 @@ def validate_package_name(name: str) -> bool:
     """Validate Python package name."""
     # Must be valid Python identifier
     if not re.match(r'^[a-z_][a-z0-9_]*$', name):
-        print_error("Package name must be lowercase, start with letter/underscore, contain only letters/numbers/underscores")
+        print_error(f"Invalid package name: '{name}'")
+        print_info("Package name requirements:")
+        print("  • Must be lowercase")
+        print("  • Start with letter or underscore")
+        print("  • Contain only letters, numbers, and underscores")
+        print("  • Examples: my_cli, secure_tool, cli_app")
         return False
     return True
 
@@ -141,7 +160,12 @@ def validate_cli_command(name: str) -> bool:
     """Validate CLI command name."""
     # Can contain hyphens, must be lowercase
     if not re.match(r'^[a-z][a-z0-9-]*$', name):
-        print_error("CLI command must be lowercase, start with letter, contain only letters/numbers/hyphens")
+        print_error(f"Invalid CLI command: '{name}'")
+        print_info("CLI command requirements:")
+        print("  • Must be lowercase")
+        print("  • Start with a letter")
+        print("  • Contain only letters, numbers, and hyphens")
+        print("  • Examples: my-cli, secure-tool, cli-app")
         return False
     return True
 
@@ -211,28 +235,36 @@ def get_project_config() -> Dict[str, str]:
     )
 
     # Author (optional)
-    git_user = subprocess.run(
-        ["git", "config", "user.name"],
-        capture_output=True,
-        text=True
-    ).stdout.strip()
+    try:
+        git_user = subprocess.run(
+            ["git", "config", "user.name"],
+            capture_output=True,
+            text=True,
+            timeout=5
+        ).stdout.strip()
+    except (FileNotFoundError, subprocess.TimeoutExpired):
+        git_user = ""
 
     config["author"] = prompt_with_default(
         "Author name (optional)",
-        git_user,
+        git_user or "",
         required=False
     )
 
     # Email (optional)
-    git_email = subprocess.run(
-        ["git", "config", "user.email"],
-        capture_output=True,
-        text=True
-    ).stdout.strip()
+    try:
+        git_email = subprocess.run(
+            ["git", "config", "user.email"],
+            capture_output=True,
+            text=True,
+            timeout=5
+        ).stdout.strip()
+    except (FileNotFoundError, subprocess.TimeoutExpired):
+        git_email = ""
 
     config["author_email"] = prompt_with_default(
         "Author email (optional)",
-        git_email,
+        git_email or "",
         required=False
     )
 
@@ -263,15 +295,34 @@ def replace_in_file(file_path: Path, replacements: Dict[str, str]) -> bool:
     if not file_path.exists():
         return False
 
-    content = file_path.read_text()
+    try:
+        content = file_path.read_text()
+    except PermissionError:
+        print_warning(f"Permission denied reading {file_path.relative_to(REPO_ROOT)}")
+        return False
+    except UnicodeDecodeError:
+        # Skip binary files
+        return False
+    except Exception as e:
+        print_warning(f"Error reading {file_path.relative_to(REPO_ROOT)}: {e}")
+        return False
+
     original = content
 
     for old, new in replacements.items():
         content = content.replace(old, new)
 
     if content != original:
-        file_path.write_text(content)
-        return True
+        try:
+            file_path.write_text(content)
+            return True
+        except PermissionError:
+            print_error(f"Permission denied writing to {file_path.relative_to(REPO_ROOT)}")
+            print_info("Check file permissions: chmod u+w " + str(file_path))
+            return False
+        except Exception as e:
+            print_error(f"Error writing to {file_path.relative_to(REPO_ROOT)}: {e}")
+            return False
 
     return False
 
@@ -280,12 +331,34 @@ def rename_package_directory(old_name: str, new_name: str) -> None:
     old_path = REPO_ROOT / "src" / old_name
     new_path = REPO_ROOT / "src" / new_name
 
-    if old_path.exists() and old_path != new_path:
-        if new_path.exists():
-            print_warning(f"Directory {new_path} already exists, skipping rename")
-        else:
-            old_path.rename(new_path)
-            print_success(f"Renamed package directory: {old_name} → {new_name}")
+    if not old_path.exists():
+        print_warning(f"Source directory not found: {old_path.relative_to(REPO_ROOT)}")
+        print_info("The package directory may have already been renamed or moved")
+        return
+
+    if old_path == new_path:
+        print_info(f"Package directory name unchanged: {old_name}")
+        return
+
+    if new_path.exists():
+        print_error(f"Target directory already exists: {new_path.relative_to(REPO_ROOT)}")
+        print_info("Please manually resolve the conflict:")
+        print(f"  • Remove or rename: {new_path}")
+        print(f"  • Then run this wizard again")
+        return
+
+    try:
+        old_path.rename(new_path)
+        print_success(f"Renamed package directory: {old_name} → {new_name}")
+    except PermissionError:
+        print_error(f"Permission denied renaming directory")
+        print_info(f"  From: {old_path.relative_to(REPO_ROOT)}")
+        print_info(f"  To:   {new_path.relative_to(REPO_ROOT)}")
+        print_info("Check directory permissions and try again")
+    except Exception as e:
+        print_error(f"Failed to rename directory: {e}")
+        print_info("You may need to manually rename:")
+        print(f"  mv {old_path} {new_path}")
 
 def apply_configuration(config: Dict[str, str]) -> None:
     """Apply configuration changes across the repository."""
@@ -360,10 +433,10 @@ def apply_configuration(config: Dict[str, str]) -> None:
 
     # Rename package directory if needed
     if config["package_name"] != current.get("package_name"):
-        rename_package_directory(
-            current.get("package_name", DEFAULT_VALUES["package_name"]),
-            config["package_name"]
-        )
+        # Use detected package_dir if available, otherwise convert package name
+        old_dir_name = current.get("package_dir") or current.get("package_name", DEFAULT_VALUES["package_name"]).replace("-", "_")
+        new_dir_name = config["package_name"].replace("-", "_")
+        rename_package_directory(old_dir_name, new_dir_name)
 
     print_success("\nConfiguration applied successfully!")
 
@@ -410,10 +483,15 @@ def configure_github_secrets(config: Dict[str, str]) -> None:
     # Check if gh CLI is available
     if not check_gh_cli():
         print_warning("GitHub CLI (gh) is not installed or not in PATH")
-        print("\nTo configure secrets later, install gh CLI:")
-        print("  brew install gh  # macOS")
-        print("  # or visit: https://cli.github.com/\n")
-        print("Then run: gh secret set SECRET_NAME\n")
+        print("\nTo configure secrets, you need to install GitHub CLI:")
+        print("\n  macOS:        brew install gh")
+        print("  Linux:        See https://github.com/cli/cli/blob/trunk/docs/install_linux.md")
+        print("  Windows:      winget install GitHub.cli")
+        print("  Or visit:     https://cli.github.com/\n")
+        print("After installing, authenticate with:")
+        print("  gh auth login\n")
+        print("Then run this wizard again or manually configure secrets:")
+        print("  gh secret set SECRET_NAME\n")
         return
 
     # Check if authenticated
@@ -426,10 +504,18 @@ def configure_github_secrets(config: Dict[str, str]) -> None:
         )
         if result.returncode != 0:
             print_warning("Not authenticated with GitHub CLI")
-            print("\nRun: gh auth login\n")
+            print("\nAuthenticate with GitHub:")
+            print("  gh auth login")
+            print("\nChoose:")
+            print("  • GitHub.com (for public repositories)")
+            print("  • Login with web browser (easiest)")
+            print("  • HTTPS protocol")
+            print("\nThen run this wizard again.\n")
             return
     except subprocess.TimeoutExpired:
-        print_warning("Could not check GitHub authentication status")
+        print_error("Timeout checking GitHub authentication")
+        print_info("This might indicate a network issue or gh CLI problem")
+        print("Try running manually: gh auth status")
         return
 
     # List existing secrets
@@ -437,7 +523,13 @@ def configure_github_secrets(config: Dict[str, str]) -> None:
     existing_secrets = list_github_secrets()
 
     if existing_secrets is None:
-        print_warning("Could not list secrets. Make sure you're in a GitHub repository.")
+        print_warning("Could not list secrets")
+        print_info("Common causes:")
+        print("  • Not in a GitHub repository")
+        print("  • No push access to the repository")
+        print("  • Network connectivity issues")
+        print("\nTry manually:")
+        print("  gh secret list")
         return
 
     if existing_secrets:
