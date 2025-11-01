@@ -89,7 +89,7 @@ jobs:
           ARTIFACT_NAME=$(ls dist/*.pyz | head -1)
 
           # Download attestations and save as JSONL
-          gh attestation download "$ARTIFACT_NAME" --owner ${{ github.repository_owner }} --repo ${{ github.repository }} > dist/attestation.jsonl || echo "Failed to download attestations"
+          gh attestation download "$ARTIFACT_NAME" --repo ${{ github.repository }} > dist/attestation.jsonl || echo "Failed to download attestations"
 
           if [ -s dist/attestation.jsonl ]; then
             echo "Downloaded attestations to dist/attestation.jsonl"
