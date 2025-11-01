@@ -1112,22 +1112,36 @@ class Verifier:
             with open(sig_bundle) as f:
                 bundle_data = json.load(f)
 
-            # Extract Rekor log entry details
+            # Extract Rekor log entry details - handle both bundle formats
+            # Format 1: verificationMaterial.tlogEntries (newer format)
             verification_material = bundle_data.get("verificationMaterial", {})
             tlog_entries = verification_material.get("tlogEntries", [])
 
-            if not tlog_entries:
+            # Format 2: rekorBundle (older/cosign sign-blob format)
+            rekor_bundle = bundle_data.get("rekorBundle", {})
+
+            log_index = None
+            log_id = None
+            integrated_time = None
+
+            if tlog_entries:
+                # Use verificationMaterial format
+                log_entry = tlog_entries[0]
+                log_index = log_entry.get("logIndex")
+                log_id = log_entry.get("logId", {})
+                integrated_time = log_entry.get("integratedTime")
+            elif rekor_bundle:
+                # Use rekorBundle format
+                payload = rekor_bundle.get("Payload", {})
+                log_index = payload.get("logIndex")
+                log_id = payload.get("logID")
+                integrated_time = payload.get("integratedTime")
+            else:
                 return VerificationResult(
                     "Rekor Transparency Log",
                     False,
                     "No transparency log entries found in bundle"
                 )
-
-            # Get the first (typically only) log entry
-            log_entry = tlog_entries[0]
-            log_index = log_entry.get("logIndex")
-            log_id = log_entry.get("logId", {})
-            integrated_time = log_entry.get("integratedTime")
 
             # Format integrated time as human-readable
             import datetime

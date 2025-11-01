@@ -88,12 +88,17 @@ jobs:
           # Get the artifact name
           ARTIFACT_NAME=$(ls dist/*.pyz | head -1)
 
-          # Download attestations and save as JSONL
-          gh attestation download "$ARTIFACT_NAME" --repo ${{ github.repository }} > dist/attestation.jsonl || echo "Failed to download attestations"
+          # Download attestations - gh writes to sha256-<hash>.jsonl or sha256:<hash>.jsonl
+          cd dist
+          gh attestation download "../$ARTIFACT_NAME" --repo ${{ github.repository }} || echo "Failed to download attestations"
 
-          if [ -s dist/attestation.jsonl ]; then
-            echo "Downloaded attestations to dist/attestation.jsonl"
-            wc -l dist/attestation.jsonl
+          # Find the generated file and rename it
+          # On Linux/Mac it's sha256:<hash>.jsonl, on Windows it's sha256-<hash>.jsonl
+          ATTESTATION_FILE=$(ls sha256*.jsonl 2>/dev/null | head -1)
+          if [ -n "$ATTESTATION_FILE" ] && [ -f "$ATTESTATION_FILE" ]; then
+            mv "$ATTESTATION_FILE" attestation.jsonl
+            echo "Downloaded attestations to attestation.jsonl"
+            wc -l attestation.jsonl
           else
             echo "Warning: No attestations downloaded"
           fi
