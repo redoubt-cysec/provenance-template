@@ -50,3 +50,13 @@ with open('dist/provenance-demo.pyz', 'wb') as f:
     f.write(b'#!/usr/bin/env python3\n' + content)
 "
 chmod +x dist/provenance-demo.pyz
+
+# Create build metadata with SOURCE_DATE_EPOCH for reproducibility verification
+cat > dist/build-metadata.json <<EOF
+{
+  "SOURCE_DATE_EPOCH": "${SOURCE_DATE_EPOCH}",
+  "build_timestamp": "$(date -u -d @${SOURCE_DATE_EPOCH} '+%Y-%m-%dT%H:%M:%SZ' 2>/dev/null || date -u -r ${SOURCE_DATE_EPOCH} '+%Y-%m-%dT%H:%M:%SZ')",
+  "git_commit": "$(git rev-parse HEAD 2>/dev/null || echo 'unknown')",
+  "git_tag": "$(git describe --tags --exact-match 2>/dev/null || echo 'none')"
+}
+EOF

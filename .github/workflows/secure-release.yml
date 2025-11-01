@@ -40,6 +40,13 @@ jobs:
           echo "Generated SBOM files:"
           ls -lh dist/sbom.*
 
+      - name: Generate checksums
+        run: |
+          cd dist
+          sha256sum *.pyz *.json > checksums.txt
+          echo "Generated checksums:"
+          cat checksums.txt
+
       - name: Upload .pyz artifact for Windows jobs
         uses: actions/upload-artifact@65c4c4a1ddee5b72f698fdd19549f0f0fb45cf08  # v4.6.0
         with:
@@ -65,6 +72,8 @@ jobs:
             dist/*.pyz
             dist/sbom.spdx.json
             dist/sbom.cyclonedx.json
+            dist/checksums.txt
+            dist/build-metadata.json
           body: |
             Release ${{ github.ref_name }}
 

@@ -1004,18 +1004,24 @@ class Verifier:
 
                 if sbom.get("bomFormat") == "CycloneDX":
                     for component in sbom.get("components", []):
+                        name = component.get("name", "unknown")
+                        # Skip the package itself - it's not a dependency
+                        if name in ("provenance-demo", ".", "demo_cli"):
+                            continue
                         total_deps += 1
                         version = component.get("version", "")
-                        name = component.get("name", "unknown")
                         # Check for unpinned versions (wildcards, ranges, etc.)
                         if not version or "*" in version or "^" in version or "~" in version or ">" in version or "<" in version:
                             unpinned_deps.append(name)
 
                 elif "spdxVersion" in sbom:
                     for package in sbom.get("packages", []):
+                        name = package.get("name", "unknown")
+                        # Skip the package itself - it's not a dependency
+                        if name in ("provenance-demo", ".", "demo_cli"):
+                            continue
                         total_deps += 1
                         version = package.get("versionInfo", "")
-                        name = package.get("name", "unknown")
                         if not version or "*" in version or "^" in version or "~" in version:
                             unpinned_deps.append(name)
 
