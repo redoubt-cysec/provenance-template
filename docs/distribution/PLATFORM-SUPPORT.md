@@ -186,6 +186,8 @@ scoop install redoubt
 redoubt --version
 ```
 
+**Quick Start Guide:** [Scoop](quickstart/SCOOP.md)
+
 #### **WinGet**
 
 ```powershell
@@ -193,12 +195,16 @@ winget install OWNER.Redoubt
 redoubt --version
 ```
 
+**Quick Start Guide:** [WinGet](quickstart/WINGET.md)
+
 #### **Chocolatey**
 
 ```powershell
 choco install redoubt
 redoubt --version
 ```
+
+**Quick Start Guide:** [Chocolatey](quickstart/CHOCOLATEY.md)
 
 #### **pip/pipx**
 
