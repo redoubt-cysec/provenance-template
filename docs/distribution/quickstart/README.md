@@ -2,7 +2,7 @@
 
 **Production-Ready Platforms | Complete Installation & Validation**
 
-This directory contains comprehensive quick start guides for all 7 production-ready platforms. Each guide includes installation instructions, validation scripts, troubleshooting, and best practices.
+This directory contains comprehensive quick start guides for 10 platforms. Each guide includes installation instructions, validation scripts, troubleshooting, and best practices.
 
 ## Choose Your Platform
 
@@ -55,6 +55,26 @@ This directory contains comprehensive quick start guides for all 7 production-re
 - Best for: Manual installation, verification-first approach, offline distribution
 - Validation: [validate-github-releases.sh](../../../scripts/validation/validate-github-releases.sh)
 - Status: ✅ Production Ready | Phase 1 + Phase 2 Tested
+
+### Windows Users
+
+**[Chocolatey](CHOCOLATEY.md)** - Windows package manager
+- Installation: `choco install provenance-demo`
+- Best for: Windows developers, system-wide installations, dependency management
+- Validation: [validate-chocolatey.ps1](../../../scripts/validation/validate-chocolatey.ps1)
+- Status: ⏳ Configuration Ready | Phase 1 Tested
+
+**[WinGet](WINGET.md)** - Official Windows Package Manager
+- Installation: `winget install redoubt-cysec.ProvenanceDemo`
+- Best for: Windows 10/11 users, official Microsoft support, modern Windows
+- Validation: [validate-winget.ps1](../../../scripts/validation/validate-winget.ps1)
+- Status: ⏳ Configuration Ready | Phase 1 Tested
+
+**[Scoop](SCOOP.md)** - Windows command-line installer
+- Installation: `scoop install provenance-demo`
+- Best for: User-space installations, no admin rights needed, portable apps
+- Validation: [validate-scoop.ps1](../../../scripts/validation/validate-scoop.ps1)
+- Status: ⏳ Configuration Ready | Phase 1 Tested
 
 ## Platform Comparison
 
