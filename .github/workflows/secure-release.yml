@@ -80,6 +80,26 @@ jobs:
           subject-path: 'dist/*.pyz'
           sbom-path: 'dist/sbom.spdx.json'
 
+      - name: Download attestations as files
+        run: |
+          # Wait a moment for attestations to be processed
+          sleep 5
+
+          # Get the artifact name
+          ARTIFACT_NAME=$(ls dist/*.pyz | head -1)
+
+          # Download attestations and save as JSONL
+          gh attestation download "$ARTIFACT_NAME" --owner ${{ github.repository_owner }} --repo ${{ github.repository }} > dist/attestation.jsonl || echo "Failed to download attestations"
+
+          if [ -s dist/attestation.jsonl ]; then
+            echo "Downloaded attestations to dist/attestation.jsonl"
+            wc -l dist/attestation.jsonl
+          else
+            echo "Warning: No attestations downloaded"
+          fi
+        env:
+          GH_TOKEN: ${{ github.token }}
+
       - name: Create GitHub Release
         uses: softprops/action-gh-release@c062e08bd532815e2082a85e87e3ef29c3e6d191  # v2.0.8
         with:
@@ -91,6 +111,7 @@ jobs:
             dist/build-metadata.json
             dist/osv-scan-results.json
             dist/osv-scan-report.txt
+            dist/attestation.jsonl
           body: |
             Release ${{ github.ref_name }}
 
