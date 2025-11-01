@@ -488,7 +488,35 @@ class Verifier:
                 "Binary not found"
             )
 
-        sbom_file = self.binary_path.parent / "sbom.json"
+        # First check if scan results already exist
+        scan_results_file = self.binary_path.parent / "osv-scan-results.json"
+        if scan_results_file.exists():
+            try:
+                with open(scan_results_file) as f:
+                    results = json.load(f)
+                    # OSV scanner results structure
+                    vulnerabilities = results.get("results", [{}])[0].get("packages", [])
+                    if not vulnerabilities:
+                        return VerificationResult(
+                            "OSV Vulnerability Scan",
+                            True,
+                            "No known vulnerabilities found",
+                            "Pre-scanned results from release"
+                        )
+                    else:
+                        return VerificationResult(
+                            "OSV Vulnerability Scan",
+                            False,
+                            f"Found vulnerabilities in {len(vulnerabilities)} package(s)",
+                            f"See osv-scan-report.txt for details"
+                        )
+            except Exception:
+                # Fall through to run scan ourselves
+                pass
+
+        sbom_file = self.binary_path.parent / "sbom.spdx.json"
+        if not sbom_file.exists():
+            sbom_file = self.binary_path.parent / "sbom.json"
         if not sbom_file.exists():
             sbom_file = self.binary_path.with_suffix(".sbom.json")
 
