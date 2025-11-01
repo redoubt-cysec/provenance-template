@@ -1,46 +1,95 @@
 # Supply-Chain Security & Verification
 
-This template ships a hardened, reproducible pipeline.
+This template ships a hardened, reproducible pipeline with **14 comprehensive security checks**.
 
-## Verify the Release (fast path)
+## Quick Verification (Recommended)
+
+Download all release artifacts and run the built-in verification:
 
 ```bash
-# Download and verify attestation
-TAG=v0.1.0
-REPO=redoubt-cysec/provenance-demo
-curl -LO https://github.com/$REPO/releases/download/$TAG/client.pyz
-gh attestation verify client.pyz --repo $REPO
+# Set your release details
+TAG=v0.0.1-alpha.40
+REPO=redoubt-cysec/provenance-template
+
+# Download all release artifacts
+gh release download $TAG --repo $REPO
+
+# Run comprehensive verification (14/14 checks)
+GITHUB_REPOSITORY=$REPO python3 provenance-demo.pyz verify
 ```
 
-## Verify with Checksums (+ cosign optional)
+This automatically verifies:
+- Checksums
+- Sigstore signatures
+- Rekor transparency log
+- GitHub attestations
+- SBOM validity
+- Vulnerability scans
+- SLSA provenance
+- Build reproducibility
+- And 6 more checks
+
+## Manual Verification Steps
+
+### 1. Verify GitHub Attestations
 
 ```bash
-curl -LO https://github.com/$REPO/releases/download/$TAG/SHA256SUMS
-curl -LO https://github.com/$REPO/releases/download/$TAG/SHA256SUMS.bundle
-sha256sum --check SHA256SUMS --ignore-missing
-COSIGN_EXPERIMENTAL=1 cosign verify-blob \
-  --bundle SHA256SUMS.bundle \
+gh attestation verify provenance-demo.pyz --repo $REPO
+```
+
+### 2. Verify Checksums
+
+```bash
+# Download checksum manifest
+curl -LO https://github.com/$REPO/releases/download/$TAG/checksums.txt
+
+# Verify checksum
+sha256sum -c checksums.txt --ignore-missing
+```
+
+### 3. Verify Sigstore Signature
+
+```bash
+# Download signature bundle
+curl -LO https://github.com/$REPO/releases/download/$TAG/provenance-demo.pyz.sigstore
+
+# Verify signature with cosign
+cosign verify-blob \
+  --bundle provenance-demo.pyz.sigstore \
   --certificate-oidc-issuer https://token.actions.githubusercontent.com \
-  --certificate-identity "https://github.com/$REPO/.github/workflows/Secure Release@refs/tags/$TAG" \
-  SHA256SUMS
+  --certificate-identity-regexp "^https://github.com/$REPO/" \
+  provenance-demo.pyz
 ```
 
-## Rebuild from Source (reproducible)
+### 4. Verify SBOM and Vulnerabilities
 
 ```bash
-./scripts/verify_build.sh v0.1.0 OWNER REPO client.pyz
-./scripts/verify_provenance.sh v0.1.0 OWNER REPO client.pyz
+# Download SBOM files
+curl -LO https://github.com/$REPO/releases/download/$TAG/sbom.spdx.json
+curl -LO https://github.com/$REPO/releases/download/$TAG/sbom.cyclonedx.json
+
+# Download vulnerability scan results
+curl -LO https://github.com/$REPO/releases/download/$TAG/osv-scan-results.json
+curl -LO https://github.com/$REPO/releases/download/$TAG/osv-scan-report.txt
+
+# Verify no vulnerabilities found
+cat osv-scan-report.txt
 ```
 
-## Artifacts
+## Release Artifacts
 
 Each release includes:
 
-- `client.pyz` - Single-file Python zipapp executable
-- `sbom.cdx.json` - CycloneDX Software Bill of Materials
-- `SHA256SUMS` - Checksums of all artifacts
-- `SHA256SUMS.bundle` - Sigstore cosign signature bundle
-- `vuln-report.json` - Vulnerability scan results from pip-audit
+- `provenance-demo.pyz` - Single-file Python zipapp executable
+- `provenance-demo.pyz.sigstore` - Sigstore cosign signature bundle
+- `attestation.jsonl` - GitHub attestations (SBOM + SLSA provenance)
+- `sbom.spdx.json` - SPDX Software Bill of Materials
+- `sbom.cyclonedx.json` - CycloneDX Software Bill of Materials
+- `checksums.txt` - SHA256 checksums of all artifacts
+- `osv-scan-results.json` - OSV vulnerability scan (JSON format)
+- `osv-scan-report.txt` - OSV vulnerability scan (human-readable)
+- `build-metadata.json` - Build metadata with SOURCE_DATE_EPOCH
+- `provenance-demo.{version}.nupkg` - Chocolatey package for Windows
 
 ## Security Properties
 
