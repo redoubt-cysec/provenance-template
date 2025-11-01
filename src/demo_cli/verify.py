@@ -213,6 +213,24 @@ class Verifier:
                 f"Manifest: {checksums_file}"
             )
 
+        # Security: Validate expected_checksum is a valid hex string
+        if not all(c in '0123456789abcdefABCDEF' for c in expected_checksum):
+            return VerificationResult(
+                "Checksum Verification",
+                False,
+                "Invalid checksum format in manifest",
+                f"Checksum contains non-hex characters"
+            )
+
+        # Security: Validate SHA256 checksum length (64 hex characters)
+        if len(expected_checksum) != 64:
+            return VerificationResult(
+                "Checksum Verification",
+                False,
+                "Invalid checksum length in manifest",
+                f"Expected 64 characters, got {len(expected_checksum)}"
+            )
+
         if checksum.lower() != expected_checksum.lower():
             return VerificationResult(
                 "Checksum Verification",
@@ -591,40 +609,113 @@ class Verifier:
             )
 
     def _load_attestation_statements(self, attestation_file: Path) -> List[Dict]:
-        """Load attestation statements from a JSONL bundle."""
+        """Load attestation statements from a JSONL bundle with security hardening."""
+        # Security limits to prevent DoS
+        MAX_FILE_SIZE = 10 * 1024 * 1024  # 10 MB
+        MAX_STATEMENTS = 100
+        MAX_LINE_LENGTH = 1024 * 1024  # 1 MB per line
+        MAX_PAYLOAD_SIZE = 5 * 1024 * 1024  # 5 MB decoded payload
+
         statements: List[Dict] = []
-        with open(attestation_file) as f:
+
+        # Check file size before processing
+        file_size = attestation_file.stat().st_size
+        if file_size > MAX_FILE_SIZE:
+            print(f"⚠ Warning: Attestation file too large ({file_size} bytes), max {MAX_FILE_SIZE}")
+            return statements
+
+        with open(attestation_file, encoding='utf-8') as f:
+            line_num = 0
             for line in f:
+                line_num += 1
+
+                # Security: Limit number of statements
+                if len(statements) >= MAX_STATEMENTS:
+                    print(f"⚠ Warning: Reached max statements limit ({MAX_STATEMENTS})")
+                    break
+
+                # Security: Limit line length
+                if len(line) > MAX_LINE_LENGTH:
+                    print(f"⚠ Warning: Line {line_num} exceeds max length, skipping")
+                    continue
+
                 if not line.strip():
                     continue
-                record = json.loads(line)
+
+                try:
+                    record = json.loads(line)
+                except json.JSONDecodeError as e:
+                    print(f"⚠ Warning: Invalid JSON on line {line_num}: {str(e)[:100]}")
+                    continue
+
+                # Validate record is a dict
+                if not isinstance(record, dict):
+                    print(f"⚠ Warning: Line {line_num} is not a JSON object, skipping")
+                    continue
 
                 # Handle DSSE envelopes (nested or top-level)
                 # Format 1: dsseEnvelope wrapper (gh attestation download format)
                 if "dsseEnvelope" in record:
                     envelope = record["dsseEnvelope"]
-                    if "payload" in envelope:
+                    if isinstance(envelope, dict) and "payload" in envelope:
                         try:
-                            payload_bytes = base64.b64decode(envelope["payload"])
+                            # Security: Validate payload is string
+                            payload_str = envelope["payload"]
+                            if not isinstance(payload_str, str):
+                                print(f"⚠ Warning: Line {line_num} payload is not a string")
+                                continue
+
+                            # Security: Check decoded size
+                            if len(payload_str) > MAX_PAYLOAD_SIZE * 4 / 3:  # base64 overhead
+                                print(f"⚠ Warning: Line {line_num} payload too large")
+                                continue
+
+                            payload_bytes = base64.b64decode(payload_str, validate=True)
+
+                            # Security: Check decoded size
+                            if len(payload_bytes) > MAX_PAYLOAD_SIZE:
+                                print(f"⚠ Warning: Line {line_num} decoded payload too large")
+                                continue
+
                             payload = json.loads(payload_bytes)
-                            statements.append(payload)
+
+                            # Validate payload structure
+                            if isinstance(payload, dict):
+                                statements.append(payload)
                             continue
-                        except (ValueError, json.JSONDecodeError):
-                            pass
+                        except (ValueError, json.JSONDecodeError, Exception) as e:
+                            print(f"⚠ Warning: Line {line_num} dsseEnvelope decode failed: {str(e)[:100]}")
+                            continue
 
                 # Format 2: Direct payload/payloadType (older format)
                 if "payload" in record and "payloadType" in record:
                     try:
-                        payload_bytes = base64.b64decode(record["payload"])
+                        payload_str = record["payload"]
+                        if not isinstance(payload_str, str):
+                            continue
+
+                        if len(payload_str) > MAX_PAYLOAD_SIZE * 4 / 3:
+                            print(f"⚠ Warning: Line {line_num} direct payload too large")
+                            continue
+
+                        payload_bytes = base64.b64decode(payload_str, validate=True)
+
+                        if len(payload_bytes) > MAX_PAYLOAD_SIZE:
+                            continue
+
                         payload = json.loads(payload_bytes)
-                        statements.append(payload)
+
+                        if isinstance(payload, dict):
+                            statements.append(payload)
                         continue
-                    except (ValueError, json.JSONDecodeError):
-                        pass
+                    except (ValueError, json.JSONDecodeError, Exception) as e:
+                        print(f"⚠ Warning: Line {line_num} direct payload decode failed: {str(e)[:100]}")
+                        continue
 
                 # Format 3: Direct statement (no envelope)
                 if isinstance(record, dict):
                     statements.append(record)
+
         return statements
 
     def verify_slsa_provenance(self) -> VerificationResult:
@@ -680,12 +771,39 @@ class Verifier:
 
             for statement in slsa_statements:
                 subjects = statement.get("subject", [])
+
+                # Security: Validate subjects is a list
+                if not isinstance(subjects, list):
+                    continue
+
                 for subject in subjects:
+                    # Security: Validate subject is a dict
+                    if not isinstance(subject, dict):
+                        continue
+
                     subject_name = subject.get("name", "")
                     digest = subject.get("digest", {})
+
+                    # Security: Validate types
+                    if not isinstance(subject_name, str) or not isinstance(digest, dict):
+                        continue
+
                     subject_checksum = (digest.get("sha256") or "").lower()
 
-                    if Path(subject_name).name != self.binary_path.name:
+                    # Security: Validate checksum format (hex string)
+                    if not all(c in '0123456789abcdef' for c in subject_checksum):
+                        continue
+
+                    # Security: Prevent path traversal - only compare filenames
+                    try:
+                        subject_filename = Path(subject_name).name
+                        # Additional check: ensure no path traversal characters
+                        if '..' in subject_name or '/' in subject_filename or '\\' in subject_filename:
+                            continue
+                    except (ValueError, OSError):
+                        continue
+
+                    if subject_filename != self.binary_path.name:
                         continue
 
                     if subject_checksum != binary_checksum.lower():
