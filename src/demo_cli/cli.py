@@ -1,6 +1,13 @@
 import argparse
 import sys
+import io
 from . import __version__
+
+# Fix Windows encoding for emoji/Unicode characters
+if sys.platform == "win32":
+    # Reconfigure stdout and stderr to use UTF-8 encoding on Windows
+    sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8', errors='replace')
+    sys.stderr = io.TextIOWrapper(sys.stderr.buffer, encoding='utf-8', errors='replace')
 
 # Try to import rich for better formatting
 try:

@@ -13,12 +13,19 @@ the complete security toolchain:
 
 import base64
 import hashlib
+import io
 import json
 import os
 import subprocess
 import sys
 from pathlib import Path
 from typing import Dict, List, Optional, Tuple
+
+# Fix Windows encoding for emoji/Unicode characters
+if sys.platform == "win32":
+    # Reconfigure stdout and stderr to use UTF-8 encoding on Windows
+    sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8', errors='replace')
+    sys.stderr = io.TextIOWrapper(sys.stderr.buffer, encoding='utf-8', errors='replace')
 
 try:
     from rich.console import Console
