@@ -1,8 +1,12 @@
 # Platform Support Guide
 
-**Last Updated:** 2025-10-25 (Added AppImage, AUR, Nix, Flatpak testing coverage)
+**Last Updated:** 2025-11-01
 
-Provenance Demo can be installed on multiple platforms through various package managers and distribution methods.
+> **📊 For complete platform status, testing coverage, and production readiness details, see [PLATFORM-STATUS.md](PLATFORM-STATUS.md)**
+>
+> This guide focuses on **installation instructions**. For **status, testing, and roadmap**, see the status document.
+
+Provenance Demo can be installed through various package managers and distribution methods. Below are installation instructions for each supported platform.
 
 ## 🆕 Newly Tested Platforms (2025-10-25)
 
