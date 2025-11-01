@@ -126,21 +126,47 @@ git push origin v1.0.0
 
 ## Verification
 
-All releases include cryptographic signatures and attestations. Verify them with:
+All releases include comprehensive security verification with **14 automated checks**:
 
 ```bash
-# Verify GitHub attestations
-gh attestation verify provenance-demo.pyz \
-  --owner redoubt-cysec
+# Download a release
+gh release download v0.0.1-alpha.40 --repo redoubt-cysec/provenance-template
 
-# Verify with built-in command
-./provenance-demo.pyz verify
-
-# Rebuild from source and compare hashes
-gh workflow run rebuilder.yml
+# Run verification (14/14 checks)
+GITHUB_REPOSITORY=redoubt-cysec/provenance-template \
+  python3 provenance-demo.pyz verify
 ```
 
-See [SUPPLY-CHAIN.md](docs/security/SUPPLY-CHAIN.md) for complete verification instructions.
+**Example Output:**
+
+```
+============================================================
+🔐 Verifying provenance-demo.pyz
+============================================================
+Version: 0.0.1a40
+Repository: redoubt-cysec/provenance-template
+
+✓ Checksum Verification: SHA256 checksum matches release manifest
+✓ Sigstore Signature: Signature verified via Rekor transparency log
+✓ Certificate Identity: Certificate identity verified
+✓ Rekor Transparency Log: Rekor transparency log entry verified
+✓ GitHub Attestation: GitHub attestation verified
+✓ SBOM Attestation: SBOM attestation verified
+✓ SBOM Verification: Valid SBOMs in 2 format(s)
+✓ OSV Vulnerability Scan: No known vulnerabilities found
+✓ SLSA Provenance: SLSA provenance attestation verified
+✓ Build Environment: Build environment verified from SLSA provenance
+✓ Reproducible Build: Reproducible build verified
+✓ Artifact Metadata: Artifact metadata verified
+✓ License Compliance: License check passed
+✓ Dependency Pinning: All dependencies pinned to specific versions
+
+============================================================
+Summary: ✓ 14/14 checks passed
+============================================================
+```
+
+See [VERIFICATION-EXAMPLE.md](docs/security/VERIFICATION-EXAMPLE.md) for detailed explanation of each check.
 
 ## Example Usage
 

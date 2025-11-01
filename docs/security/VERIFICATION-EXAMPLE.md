@@ -1,104 +1,221 @@
 # Self-Verification Example
 
-This document demonstrates how the `redoubt verify` command works and what it checks.
+This document demonstrates how the `verify` command works and what it checks.
 
 ## What Gets Verified
 
-The `verify` command performs **7 comprehensive security checks**:
+The `verify` command performs **14 comprehensive security checks**:
 
 ### 1. Checksum Verification ✓
 
-Calculates SHA256 hash of the binary and compares against published checksums.
+Calculates SHA256 hash of the binary and compares against the published checksum manifest.
 
 ```bash
-$ ./provenance-demo.pyz verify
-✓ Checksum Verification: SHA256 checksum matches
-  Checksum: 76c642b637244d57...
+✓ Checksum Verification: SHA256 checksum matches release manifest
+  Checksum: a360c14c42729fb5… (manifest: checksums.txt)
 ```
+
+**What it checks:**
+- Binary integrity
+- Checksum file presence
+- Hash algorithm strength
 
 ### 2. Sigstore Signature ✓
 
-Verifies keyless signature via cosign, checking:
+Verifies keyless signature via Sigstore/cosign:
 
 - Signature validity
-- Rekor transparency log entry
-- Fulcio CA certificate
+- Certificate from Fulcio CA
+- Certificate OIDC identity
 
 ```bash
 ✓ Sigstore Signature: Signature verified via Rekor transparency log
   Keyless signing with certificate from Fulcio CA
 ```
 
+**What it checks:**
+- Cryptographic signature
+- Signing certificate validity
+- No need for private key management
+
 **Requires:** `cosign` installed (`brew install cosign`)
 
-### 3. GitHub Attestation ✓
+### 3. Certificate Identity ✓
+
+Verifies the certificate identity matches the expected GitHub Actions workflow:
+
+```bash
+✓ Certificate Identity: Certificate identity verified
+  OIDC issuer: GitHub Actions | Repo: redoubt-cysec/provenance-template
+```
+
+**What it checks:**
+- OIDC issuer is GitHub Actions
+- Repository identity
+- Workflow identity
+
+### 4. Rekor Transparency Log ✓
+
+Verifies the signature is recorded in the Rekor transparency log:
+
+```bash
+✓ Rekor Transparency Log: Rekor transparency log entry verified
+  Index: 660612050 | Time: 2025-11-01 14:56:14 UTC | Key: unknown
+```
+
+**What it checks:**
+- Transparency log entry exists
+- Log index and timestamp
+- Immutable audit trail
+
+### 5. GitHub Attestation ✓
 
 Verifies build provenance attestation from GitHub Actions:
 
+```bash
+✓ GitHub Attestation: GitHub attestation verified
+  Repository: redoubt-cysec/provenance-template
+```
+
+**What it checks:**
 - Attestation signature
 - Build workflow identity
 - Source repository
 
-```bash
-✓ GitHub Attestation: GitHub attestation verified
-  Repository: redoubt-cysec/provenance-demo
-```
-
 **Requires:** `gh` CLI installed (`brew install gh`)
 
-### 4. SBOM Verification ✓
+### 6. SBOM Attestation ✓
 
-Validates Software Bill of Materials (SBOM):
-
-- CycloneDX format validation
-- Component enumeration
-- Dependency metadata
+Verifies that the SBOM is properly attested by GitHub:
 
 ```bash
-✓ SBOM Verification: Valid CycloneDX SBOM with 42 components
-  Spec version: 1.5
+✓ SBOM Attestation: SBOM attestation verified
+  SPDX document attestation for provenance-demo.pyz
 ```
 
-### 5. OSV Vulnerability Scan ✓
+**What it checks:**
+- SBOM attestation signature
+- Attestation links to artifact
+- Proper SBOM format declared
 
-Scans SBOM against OSV vulnerability database:
+### 7. SBOM Verification ✓
 
-- Known CVEs
-- Security advisories
-- Malicious packages
+Validates Software Bill of Materials (SBOM) in both formats:
+
+```bash
+✓ SBOM Verification: Valid SBOMs in 2 format(s)
+  Formats: SPDX (117 packages), CycloneDX (146 components)
+```
+
+**What it checks:**
+- SPDX SBOM validity
+- CycloneDX SBOM validity
+- Component/package enumeration
+- Dependency metadata
+
+### 8. OSV Vulnerability Scan ✓
+
+Scans SBOM against OSV vulnerability database for known CVEs:
 
 ```bash
 ✓ OSV Vulnerability Scan: No known vulnerabilities found
   Scanned against OSV database
 ```
 
+**What it checks:**
+- Known CVEs in dependencies
+- Security advisories
+- Malicious packages
+- Up-to-date vulnerability data
+
 **Requires:** `osv-scanner` installed (`brew install osv-scanner`)
 
-### 6. SLSA Provenance ✓
+### 9. SLSA Provenance ✓
 
-Verifies SLSA build provenance:
+Verifies SLSA build provenance attestation:
 
+```bash
+✓ SLSA Provenance: SLSA provenance attestation verified
+  Builder: unknown | Build type: unknown
+```
+
+**What it checks:**
+- SLSA provenance format
 - Builder identity
 - Build parameters
 - Source commit
 
+### 10. Build Environment ✓
+
+Verifies the build environment from SLSA provenance:
+
 ```bash
-✓ SLSA Provenance: SLSA provenance attestation found
-  Builder: https://github.com/actions/runner/...
+✓ Build Environment: Build environment verified from SLSA provenance
+  Builder: unknown
 ```
 
-### 7. Reproducible Build ✓
+**What it checks:**
+- Build platform details
+- Builder identity
+- Environment reproducibility indicators
+
+### 11. Reproducible Build ✓
 
 Checks reproducibility indicators:
 
+```bash
+✓ Reproducible Build: Reproducible build verified
+  SOURCE_DATE_EPOCH: 1762008927
+```
+
+**What it checks:**
 - SOURCE_DATE_EPOCH usage
 - Deterministic timestamps
-- Build environment normalization
+- Build metadata presence
+- Timestamp normalization
+
+### 12. Artifact Metadata ✓
+
+Verifies release metadata and completeness:
 
 ```bash
-✓ Reproducible Build: Build uses SOURCE_DATE_EPOCH
-  Timestamps normalized for reproducibility
+✓ Artifact Metadata: Artifact metadata verified
+  Tag: v0.0.1-alpha.40 | Assets: 10 | Expected artifacts: .pyz/.nupkg/sbom | Has release notes
 ```
+
+**What it checks:**
+- Release tag validity
+- Expected artifacts present
+- Release notes availability
+- Asset count
+
+### 13. License Compliance ✓
+
+Checks license information in SBOM:
+
+```bash
+✓ License Compliance: License check: 0 unique licenses
+  0 unique licenses, 0/117 packages licensed
+```
+
+**What it checks:**
+- License information in SBOM
+- Unique licenses count
+- Package licensing coverage
+
+### 14. Dependency Pinning ✓
+
+Verifies all dependencies are pinned to specific versions:
+
+```bash
+✓ Dependency Pinning: All 115 dependencies pinned to specific versions
+  100% pinned (115/115)
+```
+
+**What it checks:**
+- No version ranges (e.g., `>=1.0`)
+- All dependencies have exact versions
+- Reproducible dependency resolution
 
 ## Running Verification
 
@@ -107,14 +224,83 @@ Checks reproducibility indicators:
 Download a release and verify it:
 
 ```bash
-# Download from GitHub releases
-curl -L -o provenance-demo.pyz https://github.com/redoubt-cysec/provenance-demo/releases/download/v0.1.0/provenance-demo.pyz
-
-# Make executable
-chmod +x provenance-demo.pyz
+# Download all release artifacts
+gh release download v0.0.1-alpha.40 --repo redoubt-cysec/provenance-template
 
 # Verify everything
-./provenance-demo.pyz verify
+GITHUB_REPOSITORY=redoubt-cysec/provenance-template \
+  python3 provenance-demo.pyz verify
+```
+
+### Full Output Example
+
+```
+============================================================
+🔐 Verifying provenance-demo.pyz
+============================================================
+Version: 0.0.1a40
+Repository: redoubt-cysec/provenance-template
+
+Checking Checksum...
+✓ Checksum Verification: SHA256 checksum matches release manifest
+  Checksum: a360c14c42729fb5… (manifest: checksums.txt)
+
+Checking Sigstore Signature...
+✓ Sigstore Signature: Signature verified via Rekor transparency log
+  Keyless signing with certificate from Fulcio CA
+
+Checking Certificate Identity...
+✓ Certificate Identity: Certificate identity verified
+  OIDC issuer: GitHub Actions | Repo: redoubt-cysec/provenance-template
+
+Checking Rekor Transparency Log...
+✓ Rekor Transparency Log: Rekor transparency log entry verified
+  Index: 660612050 | Time: 2025-11-01 14:56:14 UTC | Key: unknown
+
+Checking GitHub Attestation...
+✓ GitHub Attestation: GitHub attestation verified
+  Repository: redoubt-cysec/provenance-template
+
+Checking SBOM Attestation...
+✓ SBOM Attestation: SBOM attestation verified
+  SPDX document attestation for provenance-demo.pyz
+
+Checking SBOM...
+✓ SBOM Verification: Valid SBOMs in 2 format(s)
+  Formats: SPDX (117 packages), CycloneDX (146 components)
+
+Checking OSV Scan...
+✓ OSV Vulnerability Scan: No known vulnerabilities found
+  Scanned against OSV database
+
+Checking SLSA Provenance...
+✓ SLSA Provenance: SLSA provenance attestation verified
+  Builder: unknown | Build type: unknown
+
+Checking Build Environment...
+✓ Build Environment: Build environment verified from SLSA provenance
+  Builder: unknown
+
+Checking Reproducible Build...
+✓ Reproducible Build: Reproducible build verified
+  SOURCE_DATE_EPOCH: 1762008927
+
+Checking Artifact Metadata...
+✓ Artifact Metadata: Artifact metadata verified
+  Tag: v0.0.1-alpha.40 | Assets: 10 | Expected artifacts: .pyz/.nupkg/sbom | Has release notes
+
+Checking License Compliance...
+✓ License Compliance: License check: 0 unique licenses
+  0 unique licenses, 0/117 packages licensed
+
+Checking Dependency Pinning...
+✓ Dependency Pinning: All 115 dependencies pinned to specific versions
+  100% pinned (115/115)
+
+============================================================
+Summary
+============================================================
+✓ 14/14 checks passed
 ```
 
 ### On a Local Build
@@ -129,42 +315,11 @@ For development builds, some checks will be skipped:
 ./dist/provenance-demo.pyz verify
 ```
 
-Expected output for local builds:
-
-```
-🔐 Verifying provenance-demo.pyz
-Version: 0.1.0
-Repository: redoubt-cysec/provenance-demo
-
-✓ Checksum Verification: Checksum calculated
-✗ Sigstore Signature: No signature bundle found (expected for dev builds)
-✗ GitHub Attestation: Not available for local builds
-✗ SBOM Verification: SBOM file not found
-✗ OSV Vulnerability Scan: SBOM not found for scanning
-✗ SLSA Provenance: Attestation bundle not found
-✓ Reproducible Build: Build metadata present
-
-Summary
-2/7 checks passed
-
-⚠ Some verifications failed or are skipped
-This may be expected if:
-  • You're running a development build (not a release)
-  • Security tools (cosign, gh, osv-scanner) are not installed
-  • Attestation files are not present locally
-```
-
-## Verifying Specific Files
-
-You can verify any `.pyz` file:
-
-```bash
-./provenance-demo.pyz verify --file /path/to/other.pyz
-```
+Expected output for local builds shows fewer passing checks since signatures and attestations are not created for local builds.
 
 ## Installing Verification Tools
 
-To run all checks, install the required tools:
+To run all 14 checks, install the required tools:
 
 ```bash
 # macOS
@@ -187,22 +342,24 @@ The verification passed successfully.
 The verification failed or couldn't be completed. Common reasons:
 
 - Tool not installed (cosign, gh, osv-scanner)
-- File not found (SBOM, attestation bundle)
+- File not found (SBOM, attestation bundle, checksums)
 - Development build (no signatures/attestations)
+- Network error downloading attestations
 
 ### Exit Codes
 
-- `0`: All checks passed
+- `0`: All applicable checks passed
 - `1`: Some checks failed
 
 ## What This Demonstrates
 
 This self-verification CLI shows how to:
 
-1. **Implement verification** in your own applications
-2. **Use industry-standard tools** (Sigstore, GitHub, OSV)
+1. **Implement comprehensive verification** in your own applications
+2. **Use industry-standard tools** (Sigstore, GitHub, OSV, SLSA)
 3. **Provide transparency** to users about security
 4. **Automate trust** without manual verification steps
+5. **Cover 14 different security dimensions** in a single command
 
 ## Use as Template
 
