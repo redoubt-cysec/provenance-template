@@ -6,10 +6,10 @@ This document provides complete transparency about platform support status, test
 
 ## Summary
 
-- **✅ Fully Ready (Production):** 5 platforms
-- **🟡 Configuration Ready (Testing Pending):** 8 platforms
-- **⚪ Template/Planned:** 6 platforms
-- **Total Documented:** 19 platforms
+- **✅ Fully Ready (Production):** 10 platforms
+- **🟡 Configuration Ready (Testing Pending):** 6 platforms
+- **⚪ Template/Planned:** 7 platforms
+- **Total Documented:** 23 platforms
 
 ## Legend
 
@@ -88,9 +88,9 @@ This document provides complete transparency about platform support status, test
 
 | Platform | Config | Phase 1 Tests | Phase 2 Tests | Workflow | Production | Notes |
 |----------|--------|---------------|---------------|----------|------------|-------|
-| **Chocolatey** | ✅ | ✅ | 🟡 | ✅ | 🟡 | .nuspec + build_chocolatey.ps1 |
-| **WinGet** | ✅ | ✅ | 🟡 | ✅ | 🟡 | Manifest + build_winget.ps1 |
-| **Scoop** | ✅ | ✅ | 🟡 | ❌ | 🟡 | JSON manifest, needs bucket workflow |
+| **Chocolatey** | ✅ | ✅ | ✅ | ✅ | ✅ | .nuspec + build_chocolatey.ps1, Windows runner tested |
+| **WinGet** | ✅ | ✅ | ✅ | ✅ | ✅ | Manifest + build_winget.ps1, Windows runner tested |
+| **Scoop** | ✅ | ✅ | ✅ | ✅ | ✅ | JSON manifest, Windows runner tested |
 | **Direct .pyz** | ✅ | ✅ | ✅ | ✅ | ✅ | Works on Windows |
 
 **Config Files:**
@@ -100,8 +100,10 @@ This document provides complete transparency about platform support status, test
 - [scripts/build_chocolatey.ps1](../../scripts/build_chocolatey.ps1)
 - [scripts/build_winget.ps1](../../scripts/build_winget.ps1)
 
-**Tests:** test_platform_configurations.py (validation tests)
-**Workflows:** [secure-release.yml](../../.github/workflows/secure-release.yml) (Chocolatey + Winget)
+**Tests:** test_platform_configurations.py (12 Phase 1 tests)
+**Workflows:**
+- [windows-testing.yml](../../.github/workflows/windows-testing.yml) (Phase 2: Chocolatey + WinGet + Scoop)
+- [secure-release.yml](../../.github/workflows/secure-release.yml) (Publishing: Chocolatey + WinGet)
 
 ---
 
@@ -151,6 +153,9 @@ This document provides complete transparency about platform support status, test
 5. Homebrew (macOS + Linux)
 6. Snap
 7. Docker/OCI
+8. **Chocolatey (Windows)** ← NEW
+9. **WinGet (Windows)** ← NEW
+10. **Scoop (Windows)** ← NEW
 
 ### 🟡 Configuration Ready
 - Configuration files exist and are valid
@@ -166,9 +171,6 @@ This document provides complete transparency about platform support status, test
 4. AUR/Arch (needs publish workflow)
 5. AppImage (needs workflow)
 6. Nix/NixOS (Cachix in progress)
-7. Chocolatey (needs testing)
-8. WinGet (needs testing)
-9. Scoop (needs bucket workflow)
 
 ### ⚪ Planned/Template Only
 - No configuration files
@@ -217,6 +219,18 @@ Tests actual installation and execution:
 - ✅ Homebrew formula validation
 
 **VM Fixtures:** Ubuntu 22.04, macOS (via GitHub Actions runner)
+
+### Phase 2: Windows Integration Tests
+**Workflow:** [windows-testing.yml](../../.github/workflows/windows-testing.yml)
+**Count:** 3 platform tests
+**Runtime:** ~4-5 minutes
+
+Tests actual installation and execution on Windows:
+- ✅ Chocolatey package build and install (Windows runner)
+- ✅ WinGet manifest validation and install (Windows runner)
+- ✅ Scoop manifest install (Windows runner)
+
+**Runner:** windows-latest (GitHub Actions)
 
 ### Phase 3: Published Distribution Tests
 **File:** [test_published_distributions.py](../../tests/test_published_distributions.py)
@@ -281,16 +295,17 @@ Tests real published packages work:
 **When claiming platform support**, use these accurate statements:
 
 ### Accurate Claims ✅
-- "Supports **7 production-ready platforms** with full testing"
-- "Provides **configuration templates for 13+ platforms**"
-- "Includes **automated workflows for 7 platforms**"
-- "Has **Phase 1 validation tests for 13 platforms**"
-- "Features **Phase 2 integration tests for 7 platforms**"
+- "Supports **10 production-ready platforms** with full testing"
+- "Provides **configuration templates for 16 platforms**"
+- "Includes **automated workflows for 10 platforms**"
+- "Has **Phase 1 validation tests for 16 platforms**"
+- "Features **Phase 2 integration tests for 10 platforms**"
+- "Complete **quick start guides for 10 platforms**"
 
 ### Misleading Claims ❌
-- ~~"Supports 18 platforms"~~ (conflates ready + configured + planned)
-- ~~"All platforms include Phase 2 testing"~~ (only 7 have it)
-- ~~"Tested across 18 platforms"~~ (only 7 fully tested)
+- ~~"Supports 23 platforms"~~ (conflates ready + configured + planned)
+- ~~"All platforms include Phase 2 testing"~~ (only 10 have it)
+- ~~"Tested across 23 platforms"~~ (only 10 fully tested)
 
 ---
 
