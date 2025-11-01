@@ -599,7 +599,20 @@ class Verifier:
                     continue
                 record = json.loads(line)
 
-                # Handle DSSE envelopes
+                # Handle DSSE envelopes (nested or top-level)
+                # Format 1: dsseEnvelope wrapper (gh attestation download format)
+                if "dsseEnvelope" in record:
+                    envelope = record["dsseEnvelope"]
+                    if "payload" in envelope:
+                        try:
+                            payload_bytes = base64.b64decode(envelope["payload"])
+                            payload = json.loads(payload_bytes)
+                            statements.append(payload)
+                            continue
+                        except (ValueError, json.JSONDecodeError):
+                            pass
+
+                # Format 2: Direct payload/payloadType (older format)
                 if "payload" in record and "payloadType" in record:
                     try:
                         payload_bytes = base64.b64decode(record["payload"])
@@ -609,6 +622,7 @@ class Verifier:
                     except (ValueError, json.JSONDecodeError):
                         pass
 
+                # Format 3: Direct statement (no envelope)
                 if isinstance(record, dict):
                     statements.append(record)
         return statements
