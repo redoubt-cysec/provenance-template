@@ -100,11 +100,34 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
 
+      - name: Install cosign
+        uses: sigstore/cosign-installer@dc72c7d5c4d10cd6bcb8cf6e3fd625a9e5e537da  # v3.7.0
+
+      - name: Sign artifacts with Sigstore
+        run: |
+          # Sign each .pyz file
+          for artifact in dist/*.pyz; do
+            echo "Signing $artifact..."
+
+            # Sign with cosign (keyless signing)
+            cosign sign-blob "$artifact" \
+              --bundle "${artifact}.sigstore" \
+              --yes
+
+            echo "Created signature bundle: ${artifact}.sigstore"
+          done
+
+          # List all signature bundles
+          ls -lh dist/*.sigstore
+        env:
+          COSIGN_EXPERIMENTAL: 1
+
       - name: Create GitHub Release
         uses: softprops/action-gh-release@c062e08bd532815e2082a85e87e3ef29c3e6d191  # v2.0.8
         with:
           files: |
             dist/*.pyz
+            dist/*.sigstore
             dist/sbom.spdx.json
             dist/sbom.cyclonedx.json
             dist/checksums.txt
