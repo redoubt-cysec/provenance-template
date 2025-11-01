@@ -213,6 +213,8 @@ Replace the demo code in `src/demo_cli/` with your own application.
 
 ### Distribution
 
+- [Quick Start Guides](docs/distribution/quickstart/README.md) - Platform-specific installation guides (7 platforms)
+- [Platform Status](docs/distribution/PLATFORM-STATUS.md) - Complete platform readiness & testing status
 - [Platform Support](docs/distribution/PLATFORM-SUPPORT.md) - Installation on 18+ platforms
 - [Publishing Guide](docs/distribution/PUBLISHING-GUIDE.md) - Publish to registries
 - [Distribution Platforms](docs/distribution/distribution_platforms.md) - Platform-specific details
