@@ -1,10 +1,10 @@
 # Provenance Demo
 
-[![Main Verify](https://github.com/redoubt-cysec/provenance-template/actions/workflows/main-verify.yml/badge.svg)](https://github.com/redoubt-cysec/provenance-template/actions/workflows/main-verify.yml)
-[![Secure Release](https://github.com/redoubt-cysec/provenance-template/actions/workflows/secure-release.yml/badge.svg)](https://github.com/redoubt-cysec/provenance-template/actions/workflows/secure-release.yml)
+[![Main Verify](https://github.com/redoubt-cysec/provenance-template/actions/workflows/main-verify.yml/badge.svg?branch=main)](https://github.com/redoubt-cysec/provenance-template/actions/workflows/main-verify.yml)
+[![Secure Release](https://github.com/redoubt-cysec/provenance-template/actions/workflows/secure-release.yml/badge.svg?branch=main)](https://github.com/redoubt-cysec/provenance-template/actions/workflows/secure-release.yml)
 [![OpenSSF Scorecard](https://api.scorecard.dev/projects/github.com/redoubt-cysec/provenance-template/badge)](https://scorecard.dev/viewer/?uri=github.com/redoubt-cysec/provenance-template)
-[![Security Tests](https://github.com/redoubt-cysec/provenance-template/actions/workflows/security-tests.yml/badge.svg)](https://github.com/redoubt-cysec/provenance-template/actions/workflows/security-tests.yml)
-[![Integration Tests](https://github.com/redoubt-cysec/provenance-template/actions/workflows/integration-tests.yml/badge.svg)](https://github.com/redoubt-cysec/provenance-template/actions/workflows/integration-tests.yml)
+[![Security Tests](https://github.com/redoubt-cysec/provenance-template/actions/workflows/security-tests.yml/badge.svg?branch=main)](https://github.com/redoubt-cysec/provenance-template/actions/workflows/security-tests.yml)
+[![Integration Tests](https://github.com/redoubt-cysec/provenance-template/actions/workflows/integration-tests.yml/badge.svg?branch=main)](https://github.com/redoubt-cysec/provenance-template/actions/workflows/integration-tests.yml)
 [![codecov](https://codecov.io/gh/redoubt-cysec/provenance-template/branch/main/graph/badge.svg)](https://codecov.io/gh/redoubt-cysec/provenance-template)
 [![Python 3.10+](https://img.shields.io/badge/python-3.10+-blue.svg)](https://www.python.org/downloads/)
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
