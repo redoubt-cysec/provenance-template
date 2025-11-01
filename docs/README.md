@@ -10,7 +10,7 @@ Start here if you're new to the template:
 
 - **[Quick Start Guide](../QUICK-START.md)** - Get up and running in 5 minutes
 - **[Developer Guide](contributing/DEVELOPER-GUIDE.md)** - Comprehensive customization instructions
-- **[Platform Support](distribution/PLATFORM-SUPPORT.md)** - Installation on 18+ platforms
+- **[Platform Status](distribution/PLATFORM-STATUS.md)** - Detailed platform readiness and testing status
 
 ### Security
 
@@ -38,9 +38,10 @@ Learn about the comprehensive testing strategy:
 
 Distribute your CLI across multiple platforms:
 
-- **[Platform Support](distribution/PLATFORM-SUPPORT.md)** - Complete platform installation guide
+- **[Platform Status](distribution/PLATFORM-STATUS.md)** - Complete status table with testing coverage and readiness
+- **[Platform Support](distribution/PLATFORM-SUPPORT.md)** - Installation instructions for each platform
 - **[Publishing Guide](distribution/PUBLISHING-GUIDE.md)** - How to publish to registries
-- **[Distribution Platforms](distribution/distribution_platforms.md)** - Platform-specific details
+- **[Distribution Platforms](distribution/distribution_platforms.md)** - Platform-specific configuration details
 
 ### Contributing
 
@@ -107,9 +108,9 @@ Contribute to the template or prepare for release:
 
 - Strategies, Integration Testing, and Approach Comparisons
 
-### Distribution Documentation (3 files)
+### Distribution Documentation (4 files)
 
-- Platform Support, Publishing Guides, and Platform Details
+- Platform Status, Platform Support, Publishing Guides, and Platform Configuration Details
 
 ### Contributing Documentation (4 files)
 
@@ -156,4 +157,4 @@ Contribute to the template or prepare for release:
 - Cross-references use relative links for easy navigation
 - This index provides a high-level overview and quick access to all docs
 
-**Last Updated:** 2025-10-24
+**Last Updated:** 2025-11-01
