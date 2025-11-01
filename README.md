@@ -64,15 +64,54 @@ brew install just  # macOS
 # or: cargo install just
 ```
 
-### 3. Configure the Template
+### 3. Customize the Template
 
-Run the setup script to replace placeholder values:
+**Option A: Interactive Wizard (Recommended)**
+
+Run the initialization wizard to customize the template for your project:
+
+```bash
+just init
+```
+
+Or directly:
+```bash
+python3 scripts/init-template.py
+```
+
+The wizard will interactively prompt you for:
+- Package name (Python module)
+- CLI command name
+- GitHub repository owner/name
+- Project metadata (description, author)
+
+It's **idempotent** - safe to run multiple times and will detect your current configuration.
+
+**Option B: Manual Setup**
+
+Alternatively, use the shell script to replace placeholder values:
 
 ```bash
 ./scripts/setup_local_config.sh
 ```
 
 This replaces `redoubt-cysec/provenance-demo` with your repository details throughout the codebase.
+
+### 3a. Set Up Development Environment
+
+After customizing the template, set up your development environment:
+
+```bash
+just dev-setup
+```
+
+This will:
+- Install development tools (uv, pre-commit)
+- Create virtual environment
+- Install dependencies
+- Set up pre-commit hooks
+
+**Already have tools installed?** Use `just install` to only install the package in development mode.
 
 ### 4. Pin GitHub Actions
 
@@ -100,14 +139,16 @@ uv run pytest tests/ -v
 ./dist/provenance-demo.pyz verify
 ```
 
-### 6. Customize for Your Project
+### 6. Add Your Application Code
 
-1. **Rename the CLI:** Update `pyproject.toml` with your package name and CLI command
-2. **Add Your Code:** Replace `src/demo_cli/` with your application logic
-3. **Update Documentation:** Modify README, docs, and examples
-4. **Configure Secrets:** (Optional) Add distribution secrets for Homebrew, Winget, etc.
+Now that the template is configured, add your application logic:
 
-See the [Developer Guide](docs/contributing/DEVELOPER-GUIDE.md) for detailed customization instructions.
+1. **Add Your Code:** Replace `src/demo_cli/` with your application logic
+2. **Update Tests:** Modify `tests/` to test your code
+3. **Update Documentation:** Customize docs and examples for your project
+4. **Configure Secrets:** (Optional) Add distribution platform secrets (see below)
+
+See the [Developer Guide](docs/contributing/DEVELOPER-GUIDE.md) for detailed development instructions.
 
 ### 7. Release
 
