@@ -221,7 +221,7 @@ class TestIdempotency:
         """Test that template with default values is detected as not customized."""
         pyproject = tmp_path / "pyproject.toml"
         pyproject.write_text('''[project]
-name = "demo_cli"
+name = "provenance-demo"
 description = "Demo Secure CLI — reproducible & attestable release example"
 
 [project.scripts]
@@ -384,7 +384,7 @@ class TestDefaultValues:
 
     def test_default_values_correct(self):
         """Test that default values match template placeholders."""
-        assert init_template.DEFAULT_VALUES["package_name"] == "demo_cli"
+        assert init_template.DEFAULT_VALUES["package_name"] == "provenance-demo"
         assert init_template.DEFAULT_VALUES["cli_command"] == "demo"
         assert init_template.DEFAULT_VALUES["repo_owner"] == "OWNER"
         assert init_template.DEFAULT_VALUES["repo_name"] == "provenance-template"
@@ -534,27 +534,326 @@ class TestSecretsConfigurationFlow:
         assert "gh auth login" in captured.out
 
 
-# Integration test placeholder
+# End-to-end integration tests
 class TestEndToEndScenario:
     """
-    End-to-end integration tests would go here.
+    End-to-end integration tests for the init wizard.
 
-    These would test the full workflow:
-    1. Create a temporary copy of the template
-    2. Run the init wizard with mocked inputs
+    These test the full workflow:
+    1. Create a temporary copy of template files
+    2. Run wizard functions with mocked inputs
     3. Verify all files were updated correctly
     4. Verify package directory was renamed
-    5. Verify the result is idempotent (running again detects custom config)
-    6. Verify secrets configuration flow
-
-    Note: These are more complex and would require mocking user input
-    and potentially running the full script in a subprocess.
+    5. Verify idempotency (running again detects custom config)
+    6. Verify secrets configuration flow (without affecting real GitHub)
     """
 
-    def test_integration_placeholder(self):
-        """Placeholder for integration tests."""
-        # TODO: Implement full end-to-end integration test
-        pass
+    def create_test_repository(self, tmp_path):
+        """Create a minimal test repository structure."""
+        # Create pyproject.toml
+        pyproject = tmp_path / "pyproject.toml"
+        pyproject.write_text('''[project]
+name = "provenance-demo"
+version = "0.1.0"
+description = "Demo Secure CLI — reproducible & attestable release example"
+
+[project.scripts]
+demo = "demo_cli.cli:main"
+
+[project.urls]
+Homepage = "https://github.com/OWNER/provenance-template"
+''')
+
+        # Create src directory with package
+        src_dir = tmp_path / "src" / "demo_cli"
+        src_dir.mkdir(parents=True)
+        (src_dir / "__init__.py").write_text("# Demo package")
+        (src_dir / "cli.py").write_text('def main():\n    print("demo")\n')
+
+        # Create docs directory
+        docs_dir = tmp_path / "docs"
+        docs_dir.mkdir()
+        (docs_dir / "README.md").write_text("# Documentation\n\nFor demo package.")
+
+        # Create workflow directory
+        workflows_dir = tmp_path / ".github" / "workflows"
+        workflows_dir.mkdir(parents=True)
+        (workflows_dir / "release.yml").write_text("name: Release\n# OWNER/provenance-template")
+
+        # Create README
+        readme = tmp_path / "README.md"
+        readme.write_text("# Demo CLI\n\nRepository: OWNER/provenance-template\nCommand: demo")
+
+        return tmp_path
+
+    def test_full_wizard_flow(self, tmp_path):
+        """Test the complete wizard flow with all components."""
+        # Setup test repository
+        repo = self.create_test_repository(tmp_path)
+
+        # Override REPO_ROOT
+        original_root = init_template.REPO_ROOT
+        init_template.REPO_ROOT = repo
+
+        try:
+            # Step 1: Detect current config (should be defaults)
+            config = init_template.detect_current_config()
+            assert config["package_name"] == "provenance-demo"
+            assert config["cli_command"] == "demo"
+            assert config["repo_owner"] == "OWNER"
+
+            # Step 2: Create new configuration
+            new_config = {
+                "package_name": "my_secure_cli",
+                "cli_command": "secure-cli",
+                "repo_owner": "myorg",
+                "repo_name": "my-project",
+                "project_name": "My Secure CLI",
+                "description": "A secure CLI tool",
+                "author": "Test Author",
+                "author_email": "test@example.com"
+            }
+
+            # Step 3: Apply configuration
+            init_template.apply_configuration(new_config)
+
+            # Step 4: Verify files were updated
+            pyproject = (repo / "pyproject.toml").read_text()
+            assert "my-secure-cli" in pyproject
+            assert "A secure CLI tool" in pyproject
+
+            readme = (repo / "README.md").read_text()
+            assert "myorg/my-project" in readme
+            assert "secure-cli" in readme
+
+            # Step 5: Verify package directory was renamed
+            assert (repo / "src" / "my_secure_cli").exists()
+            assert not (repo / "src" / "demo_cli").exists()
+
+            # Step 6: Verify idempotency - detect new config
+            new_detected = init_template.detect_current_config()
+            assert new_detected["package_name"] == "my-secure-cli"
+            assert new_detected["repo_owner"] == "myorg"
+
+        finally:
+            init_template.REPO_ROOT = original_root
+
+    def test_partial_configuration_update(self, tmp_path):
+        """Test updating only some values (idempotent update)."""
+        repo = self.create_test_repository(tmp_path)
+
+        original_root = init_template.REPO_ROOT
+        init_template.REPO_ROOT = repo
+
+        try:
+            # First update: Change package name only
+            config1 = {
+                "package_name": "first_cli",
+                "cli_command": "demo",  # Keep original
+                "repo_owner": "OWNER",  # Keep original
+                "repo_name": "provenance-template",
+                "description": "Demo Secure CLI — reproducible & attestable release example",
+            }
+            init_template.apply_configuration(config1)
+
+            # Verify first update
+            assert (repo / "src" / "first_cli").exists()
+
+            # Second update: Change repo owner only
+            config2 = {
+                "package_name": "first_cli",  # Keep from first update
+                "cli_command": "demo",
+                "repo_owner": "neworg",  # Change this
+                "repo_name": "provenance-template",
+                "description": "Demo Secure CLI — reproducible & attestable release example",
+            }
+            init_template.apply_configuration(config2)
+
+            # Verify second update didn't break things
+            assert (repo / "src" / "first_cli").exists()
+            readme = (repo / "README.md").read_text()
+            assert "neworg/provenance-template" in readme
+
+        finally:
+            init_template.REPO_ROOT = original_root
+
+    def test_file_update_coverage(self, tmp_path):
+        """Test that all expected file types are updated."""
+        repo = self.create_test_repository(tmp_path)
+
+        # Add more file types
+        (repo / "CHANGELOG.md").write_text("# Changelog\n\ndemo-cli changes")
+        packaging_dir = repo / "packaging" / "homebrew"
+        packaging_dir.mkdir(parents=True)
+        (packaging_dir / "formula.rb").write_text('class Demo < Formula\n  url "github.com/OWNER/provenance-template"\nend')
+
+        original_root = init_template.REPO_ROOT
+        init_template.REPO_ROOT = repo
+
+        try:
+            config = {
+                "package_name": "test_cli",
+                "cli_command": "test",
+                "repo_owner": "testorg",
+                "repo_name": "test-repo",
+                "description": "Test CLI",
+            }
+            init_template.apply_configuration(config)
+
+            # Verify different file types were updated
+            assert "test-cli" in (repo / "pyproject.toml").read_text()
+            assert "testorg/test-repo" in (repo / "README.md").read_text()
+            assert "test-cli" in (repo / "CHANGELOG.md").read_text()
+            assert "testorg/test-repo" in (packaging_dir / "formula.rb").read_text()
+
+        finally:
+            init_template.REPO_ROOT = original_root
+
+    def test_directory_rename_edge_cases(self, tmp_path):
+        """Test directory renaming edge cases."""
+        repo = self.create_test_repository(tmp_path)
+
+        original_root = init_template.REPO_ROOT
+        init_template.REPO_ROOT = repo
+
+        try:
+            # Test 1: Normal rename
+            init_template.rename_package_directory("demo_cli", "new_cli")
+            assert (repo / "src" / "new_cli").exists()
+            assert not (repo / "src" / "demo_cli").exists()
+
+            # Test 2: Rename to same name (no-op)
+            init_template.rename_package_directory("new_cli", "new_cli")
+            assert (repo / "src" / "new_cli").exists()
+
+            # Test 3: Source doesn't exist (should handle gracefully)
+            init_template.rename_package_directory("nonexistent", "something")
+            # Should not crash, just log warning
+
+            # Test 4: Target already exists
+            (repo / "src" / "existing").mkdir()
+            init_template.rename_package_directory("new_cli", "existing")
+            # Should not crash, existing directory remains
+            assert (repo / "src" / "existing").exists()
+            assert (repo / "src" / "new_cli").exists()
+
+        finally:
+            init_template.REPO_ROOT = original_root
+
+    def test_secrets_configuration_mock_flow(self, monkeypatch, capsys):
+        """Test secrets configuration flow without touching real GitHub."""
+        import subprocess
+
+        # Mock all GitHub CLI interactions
+        call_log = []
+
+        def mock_run(cmd, **kwargs):
+            call_log.append((" ".join(cmd), kwargs))
+
+            if "auth" in cmd and "status" in cmd:
+                class AuthResult:
+                    returncode = 0
+                    stdout = "Logged in to github.com"
+                    stderr = ""
+                return AuthResult()
+
+            if "secret" in cmd and "list" in cmd:
+                class ListResult:
+                    returncode = 0
+                    stdout = "PYPI_API_TOKEN\tUpdated 2024-01-01\nHOMEBREW_TAP_TOKEN\tUpdated 2024-01-01"
+                    stderr = ""
+                return ListResult()
+
+            if "secret" in cmd and "set" in cmd:
+                class SetResult:
+                    returncode = 0
+                    stdout = ""
+                    stderr = ""
+                return SetResult()
+
+            class DefaultResult:
+                returncode = 0
+                stdout = ""
+                stderr = ""
+            return DefaultResult()
+
+        monkeypatch.setattr(subprocess, "run", mock_run)
+        monkeypatch.setattr(init_template, "check_gh_cli", lambda: True)
+
+        # Mock user input for platform selection
+        inputs = iter(["skip"])  # User chooses to skip
+        monkeypatch.setattr("builtins.input", lambda _: next(inputs))
+
+        config = {"package_name": "test_cli"}
+        init_template.configure_github_secrets(config)
+
+        # Verify gh CLI was checked
+        assert any("auth" in cmd for cmd, _ in call_log)
+        assert any("secret list" in cmd for cmd, _ in call_log)
+
+        captured = capsys.readouterr()
+        assert "Checking existing secrets" in captured.out
+        assert "PYPI_API_TOKEN" in captured.out
+
+    def test_error_handling_file_permissions(self, tmp_path):
+        """Test error handling when files have permission issues."""
+        repo = self.create_test_repository(tmp_path)
+
+        original_root = init_template.REPO_ROOT
+        init_template.REPO_ROOT = repo
+
+        try:
+            # Make a file read-only
+            readme = repo / "README.md"
+            readme.chmod(0o444)  # Read-only
+
+            config = {
+                "package_name": "test_cli",
+                "cli_command": "test",
+                "repo_owner": "testorg",
+                "repo_name": "test-repo",
+                "description": "Test",
+            }
+
+            # Should handle permission error gracefully
+            init_template.apply_configuration(config)
+
+            # Restore permissions
+            readme.chmod(0o644)
+
+        finally:
+            init_template.REPO_ROOT = original_root
+
+    def test_customization_detection(self, tmp_path):
+        """Test detecting whether template is customized."""
+        repo = self.create_test_repository(tmp_path)
+
+        original_root = init_template.REPO_ROOT
+        init_template.REPO_ROOT = repo
+
+        try:
+            # Should detect as uncustomized (uses default values)
+            customized, unchanged = init_template.is_customized()
+            assert not customized
+            assert "repo_owner" in unchanged  # OWNER is default
+
+            # Apply customization
+            config = {
+                "package_name": "custom_cli",
+                "cli_command": "custom",
+                "repo_owner": "customorg",
+                "repo_name": "custom-repo",
+                "description": "Custom description",
+            }
+            init_template.apply_configuration(config)
+
+            # Should now detect as customized
+            customized, unchanged = init_template.is_customized()
+            assert customized
+            assert len(unchanged) == 0
+
+        finally:
+            init_template.REPO_ROOT = original_root
 
 
 if __name__ == "__main__":

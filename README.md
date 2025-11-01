@@ -1,7 +1,7 @@
 # Provenance Demo
 
 [![Main Verify](https://github.com/redoubt-cysec/provenance-demo/actions/workflows/main-verify.yml/badge.svg)](https://github.com/redoubt-cysec/provenance-demo/actions/workflows/main-verify.yml)
-[![Secure Release](https://github.com/redoubt-cysec/provenance-demo/actions/workflows/release.yml/badge.svg)](https://github.com/redoubt-cysec/provenance-demo/actions/workflows/release.yml)
+[![Secure Release](https://github.com/redoubt-cysec/provenance-demo/actions/workflows/secure-release.yml/badge.svg)](https://github.com/redoubt-cysec/provenance-demo/actions/workflows/secure-release.yml)
 [![Coverage](https://img.shields.io/badge/coverage-100%25-brightgreen.svg)](https://github.com/redoubt-cysec/provenance-demo/actions/workflows/coverage.yml)
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 

@@ -175,20 +175,197 @@ The script detects your current configuration from `pyproject.toml`:
 ## Troubleshooting
 
 ### Script Fails to Find pyproject.toml
-Make sure you're running from the repository root:
+
+**Error:**
+```
+✗ pyproject.toml not found!
+ℹ Expected location: /path/to/provenance-template/pyproject.toml
+```
+
+**Solution:** Make sure you're running from the repository root:
 ```bash
 cd /path/to/provenance-template
 python3 scripts/init-template.py
 ```
 
-### Package Already Exists
-If you've already created a package with the same name, the script will warn you. Choose a different name or manually resolve conflicts.
+### Package Name Validation Errors
 
-### Validation Errors
-If you get validation errors, ensure:
-- Package names use underscores (not hyphens)
-- CLI commands use hyphens (not underscores)
-- Names don't start with numbers
+**Error:**
+```
+✗ Invalid package name: 'my-cli'
+ℹ Package name requirements:
+  • Must be lowercase
+  • Start with letter or underscore
+  • Contain only letters, numbers, and underscores
+  • Examples: my_cli, secure_tool, cli_app
+```
+
+**Solution:** Use underscores instead of hyphens in package names:
+- ✗ Wrong: `my-cli`, `My_CLI`, `123_cli`
+- ✓ Correct: `my_cli`, `secure_tool`, `cli_app`
+
+### CLI Command Validation Errors
+
+**Error:**
+```
+✗ Invalid CLI command: 'my_cli'
+ℹ CLI command requirements:
+  • Must be lowercase
+  • Start with a letter
+  • Contain only letters, numbers, and hyphens
+  • Examples: my-cli, secure-tool, cli-app
+```
+
+**Solution:** Use hyphens instead of underscores in CLI commands:
+- ✗ Wrong: `my_cli`, `My-CLI`, `123-cli`
+- ✓ Correct: `my-cli`, `secure-tool`, `cli-app`
+
+### GitHub CLI Not Installed
+
+**Error:**
+```
+⚠ GitHub CLI (gh) is not installed or not in PATH
+```
+
+**Solution:** Install GitHub CLI:
+```bash
+# macOS
+brew install gh
+
+# Linux (Debian/Ubuntu)
+sudo apt install gh
+
+# Windows
+winget install GitHub.cli
+
+# Or visit: https://cli.github.com/
+```
+
+Then authenticate:
+```bash
+gh auth login
+```
+
+### Not Authenticated with GitHub
+
+**Error:**
+```
+⚠ Not authenticated with GitHub CLI
+```
+
+**Solution:** Authenticate with GitHub:
+```bash
+gh auth login
+```
+
+Choose:
+- GitHub.com (for public repositories)
+- Login with web browser (easiest)
+- HTTPS protocol
+
+### Cannot List Secrets
+
+**Error:**
+```
+⚠ Could not list secrets
+```
+
+**Common causes:**
+- Not in a GitHub repository
+- No push access to the repository
+- Network connectivity issues
+
+**Solution:**
+```bash
+# Test manually
+gh secret list
+
+# If that fails, check authentication
+gh auth status
+
+# Re-authenticate if needed
+gh auth login
+```
+
+### Permission Denied Errors
+
+**Error:**
+```
+✗ Permission denied writing to pyproject.toml
+```
+
+**Solution:** Fix file permissions:
+```bash
+chmod u+w pyproject.toml
+# or
+chmod -R u+w .
+```
+
+### Target Directory Already Exists
+
+**Error:**
+```
+✗ Target directory already exists: src/my_new_package
+ℹ Please manually resolve the conflict:
+  • Remove or rename: src/my_new_package
+  • Then run this wizard again
+```
+
+**Solution:** Remove or rename the conflicting directory:
+```bash
+# Remove if it's empty
+rm -rf src/my_new_package
+
+# Or rename to backup
+mv src/my_new_package src/my_new_package.backup
+```
+
+Then run the wizard again.
+
+## Frequently Asked Questions
+
+### Can I run the wizard multiple times?
+
+Yes! The wizard is idempotent - it detects your current configuration and allows you to update values. It's safe to run as many times as needed.
+
+### What if I make a mistake?
+
+Before applying changes, the wizard shows a summary and asks for confirmation. If you haven't confirmed yet, just press `Ctrl+C` to exit. If you've already applied changes, you can:
+1. Use `git diff` to see what changed
+2. Use `git restore .` to revert if not committed
+3. Run the wizard again to fix values
+
+### Do I need to configure secrets immediately?
+
+No, secrets configuration is optional. You can skip it during the wizard and configure them later:
+```bash
+gh secret set SECRET_NAME
+```
+
+### Which platforms require secrets?
+
+- **Homebrew**: `HOMEBREW_TAP_TOKEN` (for tap repository)
+- **Chocolatey**: `CHOCOLATEY_API_KEY` (from chocolatey.org)
+- **WinGet**: `WINGET_TOKEN` (GitHub token with workflow permissions)
+- **Snap**: `SNAPCRAFT_STORE_CREDENTIALS` (from snapcraft export-login)
+- **PyPI**: `PYPI_API_TOKEN` (from pypi.org)
+- **Docker/GHCR**: `GHCR_TOKEN` (GitHub token for container registry)
+
+See [Platform Status](../docs/distribution/PLATFORM-STATUS.md) for complete details.
+
+### What's the difference between package name and CLI command?
+
+- **Package name**: Python module name (use underscores: `my_cli`)
+- **CLI command**: What users type in terminal (use hyphens: `my-cli`)
+
+Example:
+```python
+# Package name: my_secure_cli
+from my_secure_cli import main
+
+# CLI command: my-secure-cli
+$ my-secure-cli --version
+```
 
 ## Advanced Usage
 
