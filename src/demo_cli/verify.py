@@ -85,7 +85,27 @@ class Verifier:
         return None
 
     def _get_version(self) -> str:
-        """Get the package version."""
+        """
+        Get the package version.
+
+        If verifying an external binary, extract version from that binary.
+        Otherwise, use the version of the running package.
+        """
+        # If verifying an external .pyz file, extract its version
+        if self.binary_path and self.binary_path.suffix == ".pyz" and self.binary_path.exists():
+            try:
+                result = subprocess.run(
+                    [str(self.binary_path), "--version"],
+                    capture_output=True,
+                    text=True,
+                    timeout=5
+                )
+                if result.returncode == 0:
+                    return result.stdout.strip()
+            except Exception:
+                pass  # Fall through to default version
+
+        # Use the version of the running package
         try:
             from . import __version__
             return __version__
@@ -1129,12 +1149,14 @@ class Verifier:
             )
 
         try:
-            # Get the latest release info from GitHub
+            # Try to find the release containing this artifact
+            # Step 1: Get list of recent release tags
             result = subprocess.run(
                 [
-                    "gh", "release", "view",
+                    "gh", "release", "list",
                     "--repo", self.github_repo,
-                    "--json", "tagName,name,assets,body"
+                    "--json", "tagName",
+                    "--limit", "20"
                 ],
                 capture_output=True,
                 text=True,
@@ -1145,23 +1167,76 @@ class Verifier:
                 return VerificationResult(
                     "Artifact Metadata",
                     False,
-                    "Could not fetch GitHub release metadata",
+                    "Could not fetch GitHub release list",
                     "Ensure gh CLI is authenticated"
                 )
 
-            release_data = json.loads(result.stdout)
+            releases = json.loads(result.stdout)
+
+            # Step 2: For each release, check if it contains our artifact
+            release_data = None
+            for release in releases:
+                tag = release.get("tagName", "")
+                if not tag:
+                    continue
+
+                # Get full release details including assets
+                view_result = subprocess.run(
+                    [
+                        "gh", "release", "view", tag,
+                        "--repo", self.github_repo,
+                        "--json", "tagName,name,assets,body"
+                    ],
+                    capture_output=True,
+                    text=True,
+                    timeout=10
+                )
+
+                if view_result.returncode == 0:
+                    release_details = json.loads(view_result.stdout)
+                    assets = release_details.get("assets", [])
+                    if any(asset["name"] == self.binary_path.name for asset in assets):
+                        release_data = release_details
+                        break
+
+            # If not found, fall back to latest release
+            if not release_data:
+                result = subprocess.run(
+                    [
+                        "gh", "release", "view",
+                        "--repo", self.github_repo,
+                        "--json", "tagName,name,assets,body"
+                    ],
+                    capture_output=True,
+                    text=True,
+                    timeout=30
+                )
+                if result.returncode == 0:
+                    release_data = json.loads(result.stdout)
+
+            if not release_data:
+                return VerificationResult(
+                    "Artifact Metadata",
+                    False,
+                    "No release found"
+                )
+
             tag_name = release_data.get("tagName", "")
             release_name = release_data.get("name", "")
             assets = release_data.get("assets", [])
             body = release_data.get("body", "")
 
-            # Check if version matches tag
+            # Check if version matches tag (normalize for hatch-vcs format)
             version_matches_tag = False
             if tag_name:
                 # Strip 'v' prefix if present
                 tag_version = tag_name.lstrip("v")
                 current_version = self.version.lstrip("v")
-                version_matches_tag = (tag_version == current_version)
+
+                # Normalize version format: "0.0.1-alpha.35" -> "0.0.1a35"
+                normalized_tag = tag_version.replace("-alpha.", "a").replace("-beta.", "b").replace("-rc.", "rc")
+
+                version_matches_tag = (normalized_tag == current_version or tag_version == current_version)
 
             # Check if binary is in release assets
             binary_in_assets = any(
