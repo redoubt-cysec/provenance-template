@@ -426,12 +426,89 @@ trivy image ghcr.io/redoubt-cysec/provenance-demo:latest
 grype ghcr.io/redoubt-cysec/provenance-demo:latest
 ```
 
+## Multi-Architecture Support
+
+**provenance-demo is built for multiple architectures:**
+
+| Architecture | Status | Notes |
+|--------------|--------|-------|
+| **linux/amd64** | ✅ Fully Supported | x86_64 processors (Intel, AMD) |
+| **linux/arm64** | ✅ Fully Supported | ARM64 processors (Apple Silicon, AWS Graviton, Raspberry Pi 4+) |
+
+### Pull Architecture-Specific Images
+
+```bash
+# Pull for specific architecture (automatic on native platform)
+docker pull --platform linux/amd64 ghcr.io/redoubt-cysec/provenance-demo:latest
+docker pull --platform linux/arm64 ghcr.io/redoubt-cysec/provenance-demo:latest
+
+# Docker automatically selects the correct architecture for your platform
+docker pull ghcr.io/redoubt-cysec/provenance-demo:latest
+```
+
+### Verify Multi-Arch Manifest
+
+```bash
+# Inspect image manifest
+docker manifest inspect ghcr.io/redoubt-cysec/provenance-demo:latest
+
+# Check available architectures
+docker buildx imagetools inspect ghcr.io/redoubt-cysec/provenance-demo:latest
+```
+
+### Build Multi-Arch Images Locally
+
+```bash
+# Set up buildx for multi-arch builds
+docker buildx create --name multiarch --use
+docker buildx inspect --bootstrap
+
+# Build for multiple platforms
+docker buildx build \
+  --platform linux/amd64,linux/arm64 \
+  -t provenance-demo:local \
+  --load \
+  .
+
+# Or build and push to registry
+docker buildx build \
+  --platform linux/amd64,linux/arm64 \
+  -t ghcr.io/YOUR_USERNAME/provenance-demo:latest \
+  --push \
+  .
+```
+
+### Platform-Specific Testing
+
+```bash
+# Test on amd64
+docker run --rm --platform linux/amd64 \
+  ghcr.io/redoubt-cysec/provenance-demo:latest --version
+
+# Test on arm64 (requires QEMU if running on amd64)
+docker run --rm --platform linux/arm64 \
+  ghcr.io/redoubt-cysec/provenance-demo:latest --version
+
+# QEMU setup (if needed for cross-platform testing)
+docker run --rm --privileged multiarch/qemu-user-static --reset -p yes
+```
+
+### Performance Notes
+
+- **Native execution** (matching your CPU architecture) provides best performance
+- **Cross-platform execution** (e.g., ARM on Intel) uses QEMU emulation and is slower
+- **Apple Silicon (M1/M2/M3)**: Use linux/arm64 for best performance
+- **AWS Graviton**: Use linux/arm64 for best performance and cost
+- **Intel/AMD servers**: Use linux/amd64 for best performance
+
 ## Platform-Specific Notes
 
 ### macOS
 
 - Docker Desktop recommended
-- ARM64 (Apple Silicon) and AMD64 (Intel) supported
+- **Apple Silicon (M1/M2/M3)**: Automatically uses linux/arm64 images
+- **Intel Macs**: Automatically uses linux/amd64 images
+- Can run both architectures with QEMU emulation
 - File sharing settings may affect volume mounts
 - Resource limits configurable in Docker Desktop
 
@@ -441,10 +518,13 @@ grype ghcr.io/redoubt-cysec/provenance-demo:latest
 - Best performance
 - Requires systemd or init system
 - SELinux/AppArmor considerations
+- **ARM64 Linux** (Raspberry Pi, AWS Graviton): Automatically uses linux/arm64
+- **x86_64 Linux**: Automatically uses linux/amd64
 
 ### Windows
 
 - Docker Desktop or WSL2 backend
+- Automatically uses linux/amd64 images
 - Volume mount path format different: `/c/Users/...`
 - PowerShell syntax differences
 - Hyper-V or WSL2 required
